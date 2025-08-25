@@ -1,0 +1,11 @@
+{
+  "name": "gadgets-build",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
