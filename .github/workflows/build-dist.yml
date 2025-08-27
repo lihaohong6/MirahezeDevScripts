@@ -1,0 +1,44 @@
+# Mostly written by Claude
+
+name: Build and Deploy to Dist Branch
+
+# Trigger the workflow on push to master branch
+on:
+  push:
+    branches: [ master ]
+  # Allow manual triggering from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Checkout the master branch
+    - name: Checkout master branch
+      uses: actions/checkout@v4
+      with:
+        ref: master
+        fetch-depth: 0  # Fetch all history for all branches
+    
+    # Setup Node.js environment
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'  # Adjust version as needed
+        cache: 'npm'
+    
+    # Install dependencies
+    - name: Install dependencies
+      run: npm ci
+    
+    # Configure git for commits
+    - name: Configure Git
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+    
+    # Copy build output to dist branch
+    - name: Publish result
+      run: |
+        bash ./publish.sh
