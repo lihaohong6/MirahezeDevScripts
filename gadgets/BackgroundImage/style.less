@@ -1,6 +1,7 @@
 html {
     --gadget-bg-color: 255, 255, 255;
     --gadget-bg-opacity: 0.5;
+    --gadget-bg-opacity-low: 0.4;
 }
 
 html.skin-theme-clientpref-night:not(.client-darkmode) {
@@ -94,7 +95,7 @@ body.skin-vector-legacy.has-bg {
         padding: 2px 5px 0 0;
         box-shadow: #666 0 1px 5px;
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(2px);
     }
 
     #p-personal .vector-menu-content-list {
@@ -103,11 +104,12 @@ body.skin-vector-legacy.has-bg {
 
     #mw-panel nav {
         background: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(2px);
         box-shadow: #666 0 1px 5px;
     }
 
-    .vector-menu-tabs-legacy li {
+    .vector-menu-tabs-legacy li,
+    #p-cactions {
         background: linear-gradient(to top, rgba(var(--gadget-bg-color), 0.5) 50%, rgba(var(--gadget-bg-color), 0) 100%);
     }
 
@@ -116,8 +118,26 @@ body.skin-vector-legacy.has-bg {
     }
 
     #content {
-        background-color: rgba(var(--gadget-bg-color), 0.5);
-        backdrop-filter: blur(5px);
+        background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
+        backdrop-filter: blur(2px);
+    }
+
+    #toc {
+        background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity-low));
+    }
+
+    #p-cactions .vector-menu-content {
+        background-color: rgba(var(--gadget-bg-color), 0.8);
+    }
+}
+
+body.has-bg {
+    .wikitable {
+        background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity-low));
+    }
+
+    .catlinks {
+        background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
     }
 }
 
