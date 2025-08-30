@@ -1,0 +1,227 @@
+{
+	"_metadata": {
+		"order": [
+			"preload",
+			"choose",
+			"help",
+			"devWiki",
+			"error"
+		]
+	},
+	"en": {
+		"preload": "Preload template:",
+		"choose": "(choose)",
+		"help": "Select a template to insert its preloaded syntax at the current position",
+		"devWiki": "Check the documentation on Dev Wiki",
+		"error": "No valid syntax found at $1 or page is missing."
+	},
+	"qqq": {
+		"preload": "Text appearing before the preload dropdown",
+		"choose": "Text appearing in the preload dropdown by default",
+		"help": "Tooltip when hovering over the preload dropdown",
+		"devWiki": "Tooltip when hovering over the ? sign in the help text",
+		"error": "Error alerted when a template page is missing, either the preload data page or one of the templates to be preloaded. $1 is replaced with the page name"
+	},
+	"ar": {
+		"preload": ":قالب التحميل المسبق",
+		"choose": "(أختر)",
+		"help": "حدد قالبًا لإدراج تركيبته المحملة مسبقًا في الموضع الحالي",
+		"devWiki": "FANDOM Open Source Library راجع الوثائق على",
+		"error": ".لم يتم العثور على بنية صحيحة في $ 1 أو صفحة مفقودة"
+	},
+	"be": {
+		"preload": "Гатовы шаблон:",
+		"choose": "(выберыце)",
+		"help": "Выберыце падрыхтаваны шаблон, каб ўставіць код у дадзеным месцы",
+		"devWiki": "Паглядзець дакументацыю на Dev Wiki",
+		"error": "Не знойдзены правільны сінтаксіс у $1 ці старонка не існуе."
+	},
+	"ca": {
+		"preload": "Pre-carrega una plantilla:",
+		"choose": "(tria)",
+		"help": "Selecciona una plantilla per inserir la seva sintaxi pre-carregada a la posició actual",
+		"devWiki": "Controla la documentació al Dev Wiki",
+		"error": "Cap sintaxi vàlida trobada a $1 o la pàgina hi falta."
+	},
+	"de": {
+		"preload": "Vorlage einfügen:",
+		"choose": "(Auswählen)",
+		"help": "Wähle die Vorlage, deren vorgefertigte Syntax an der aktuellen Position eingefügt werden soll",
+		"devWiki": "Lies die Dokumentation im Dev-Wiki",
+		"error": "Keine gültige Syntax unter $1 gefunden bzw. keine Seite."
+	},
+	"el": {
+		"preload": "Προφόρτωση προτύπου:",
+		"choose": "(επιλογή)",
+		"help": "Επιλέξτε ένα πρότυπο για εισαγωγή της προεπιλεγμένης σύνταξης στην τρέχουσα θέση",
+		"devWiki": "Δείτε την τεκμηρίωση στο Dev Wiki",
+		"error": "Δεν βρέθηκε έγκυρη σύνταξη στο πρότυπο: $1 ή λείπει η σελίδα."
+	},
+	"es": {
+		"preload": "Precarga una plantilla:",
+		"choose": "(elige)",
+		"help": "Selecciona una plantilla para insertar su sintaxis precargada en la posición actual",
+		"devWiki": "Revisa la documentación en Dev Wiki",
+		"error": "Ninguna sintaxis válida encontrada en $1 o falta la página."
+	},
+	"fi": {
+		"preload": "Esilataa malline:",
+		"choose": "(valitse)",
+		"help": "Valitse malline lisätäksesi sen esiladatun syntaksin nykyiseen paikkaan",
+		"devWiki": "Katso dokumentointi Dev Wikissä",
+		"error": "Väärin syntaksi kohdassa $1 or tai sivu puuttuu."
+	},
+	"fr": {
+		"preload": "Précharger un modèle :",
+		"choose": "(choisir)",
+		"help": "Sélectionnez un modèle pour insérer sa syntaxe préchargée dans la position actuelle",
+		"devWiki": "Consultez la documentation sur le Dev Wiki",
+		"error": "Aucune syntaxe valable trouvée sur $1 ou la page est absente."
+	},
+	"gl": {
+		"preload": "Pre-carga un modelo:",
+		"choose": "(elixe)",
+		"help": "Selecciona un modelo para inserir a súa sintaxe pre-cargada na posición actual",
+		"devWiki": "Controla a documentación no Dev Wiki",
+		"error": "Ningunha sintaxe válida atopada en $1 ou a páxina está a faltar."
+	},
+	"hi": {
+		"preload": "प्रीलोड साँचा:",
+		"choose": "(चुनें)",
+		"help": "वर्तमान जगह पर साँचे के प्रीलोड किए गए सिनटैक्स को जोड़ने के लिए साँचा चुनें",
+		"devWiki": "Dev Wiki पर प्रलेख देखें",
+		"error": "$1 पर कोई स्वीकृत सिनटैक्स नहीं मिला या पृष्ठ खाली है।"
+	},
+	"hr": {
+		"preload": "Predložak predučitanja:",
+		"choose": "(izaberite)",
+		"help": "Izaberite predložak da bi unijeli njegovu predučitanu sintaksu na trenutnu poziciju",
+		"devWiki": "Provjerite dokumentaciju na Dev wikiji",
+		"error": "Nije pronađena važeća sintaksa na $1 ili stranica nedostaje."
+	},
+	"id": {
+		"preload": "Pramuat templat:",
+		"choose": "(plihan)",
+		"help": "Pilihlah sebuah templat untuk dimasukkan ke pramuat sintaksis di posisi sekarang ini ",
+		"devWiki": "Mengecek dokumentasi di devwiki",
+		"error": "Tidak ditemukan sintaksis yang sah ditemukan $1 atau laman menghilang."
+	},
+	"it": {
+		"preload": "Precarica un template:",
+		"choose": "(scegli)",
+		"help": "Seleziona un template per inserire la sua sintassi precaricata nella posizione corrente",
+		"devWiki": "Controlla la documentazione su Dev Wiki",
+		"error": "Nessuna sintassi valida trovata su $1 o la pagina è mancante."
+	},
+	"ja": {
+		"preload": "プリロード・テンプレート:",
+		"choose": "(選択してください)",
+		"help": "テンプレートを選ぶと、文字入力カーソルの位置に埋め込まれます。",
+		"devWiki": "Dev Wikiの解説ページをご覧ください。",
+		"error": "$1は無効な構文か、ページが存在しません。"
+	},
+	"ka": {
+		"preload": "მზა თარგი:",
+		"choose": "(არჩევა)",
+		"help": "აირჩიეთ თარგი, რათა ჩატვირთოთ მისი მზა სინტაქსი ამ ადგილზე",
+		"devWiki": "იხილეთ დოკუმენტაცია Dev Wiki-ში",
+		"error": "$1 არ შეიცავს სწორ სინტაქსს ან გვერდი არ არსებობს."
+	},
+	"ko": {
+		"preload": "저장된 틀:",
+		"choose": "(선택)",
+		"help": "저장되어 있는 구문을 현재 위치에 삽입하시려면 이곳에서 틀을 선택하십시오.",
+		"devWiki": "Dev Wiki에서 설명 문서 확인하기",
+		"error": "$1 문서에서 유효한 구문을 찾을 수 없었거나 문서가 존재하지 않습니다."
+	},
+	"oc": {
+		"preload": "Precarga un modèl:",
+		"choose": "(escuelh)",
+		"help": "Selecciona un modèl per inserir la siá sintaxi precargada dins la posicion actuala",
+		"devWiki": "Contròtla la documentacion sul Dev Wiki",
+		"error": "Cap de sintaxi valida amassada sus $1 o la pagina i manca."
+	},
+	"pl": {
+		"preload": "Gotowy szablon:",
+		"choose": "(wybierz)",
+		"help": "Wybierz przygotowany szablon, aby wstawić kod w obecnym miejscu",
+		"devWiki": "Zobacz dokumentację na Dev Wiki",
+		"error": "Nie znaleziono odpowiedniej składni w $1 lub strona nie istnieje."
+	},
+	"pt": {
+		"preload": "Pré-carrega uma predefinição:",
+		"choose": "(escolhe)",
+		"help": "Seleciona uma predefinição para inserires a sua sintaxe pré-carregada na posição actual",
+		"devWiki": "Controla a documentação no Dev Wiki",
+		"error": "Nenhuma sintaxe válida encontrada em $1 ou a página está a faltar."
+	},
+	"pt-br": {
+		"preload": "Pré-carregar predefinição:",
+		"choose": "(escolher)",
+		"help": "Selecione uma predefinição para inserir sua sintaxe pré-carregada na posição atual",
+		"devWiki": "Confira a documentação na Dev Wiki",
+		"error": "Nenhuma sintaxe válida encontrada em $1 ou a página não existe."
+	},
+	"ro": {
+		"preload": "Preîncărcaţi un format:",
+		"choose": "(alegeţi)",
+		"help": "Selecţionaţi un format pentru a insera sintaxa acesta preîncărcată în poziţia actuală",
+		"devWiki": "Controlaţi documentaţia pe Dev Wiki"
+	},
+	"ru": {
+		"preload": "Готовый шаблон:",
+		"choose": "(выберите)",
+		"help": "Выберите подготовленный шаблон, чтобы вставить код в данном месте",
+		"devWiki": "Посмотреть документацию на Dev Wiki",
+		"error": "Не найден правильный синтаксис в $1 или страница не существует."
+	},
+	"tr": {
+		"preload": "Ön yüklenecek şablon:",
+		"choose": "(seç)",
+		"help": "Mevcut konuma önceden yüklenmiş sözdizimini eklemek için bir şablon seçin",
+		"devWiki": "Dev Wiki'deki belgelendirmeye göz atın",
+		"error": "$1 sayfasında geçerli bir sözdizimi bulunamadı ya da sayfa eksik."
+	},
+	"uk": {
+		"preload": "Готовий шаблон:",
+		"choose": "(виберіть)",
+		"help": "Виберіть підготовлений шаблон, щоб вставити код в даному місці",
+		"devWiki": "Див. документацію на Dev Wiki",
+		"error": "Не знайдений правильний синтаксис в $1 або сторінка не існує."
+	},
+	"val": {
+		"preload": "Precarrega una plantilla:",
+		"choose": "(tria)",
+		"help": "Selecciona una plantilla per a insertar la sua sintaxis precarregada en la posició actual",
+		"devWiki": "Controla la documentació en el Dev Wiki",
+		"error": "No hi ha sintaxis vàlides trobades en $1 o falta la pàgina."
+	},
+	"vi": {
+		"preload": "Tải trước bản mẫu",
+		"choose": "Chọn",
+		"help": "Chọn một bản mẫu để chèn cú pháp đã tải trước vào vị trí hiện tại",
+		"devWiki": "Xem tài liệu tham khảo trên Dev Wiki",
+		"error": "Không tìm thấy cú pháp hợp lệ tại $1 hoặc thiếu trang"
+	},
+	"zh-hans": {
+		"preload": "预载模板：",
+		"choose": "（请选择）",
+		"help": "请选择一个模板，以在当前位置插入其预载语法",
+		"devWiki": "前往Dev Wiki查阅帮助文档",
+		"error": "$1页面上没有有效的语法或该页面缺失。"
+	},
+	"zh-hant": {
+		"preload": "預載模板：",
+		"choose": "（選擇）",
+		"help": "選擇一個模板在目前位置插入其預載語法",
+		"devWiki": "前往Dev Wiki查閱相關說明文件",
+		"error": "$1為無效語法或頁面遺失。"
+	},
+	"zh-hk": {
+		"preload": "預載模板：",
+		"choose": "（選擇）",
+		"help": "選擇一個模板在目前位置插入其預載語法",
+		"devWiki": "前往Dev Wiki查閱相關說明文件",
+		"error": "$1為無效語法或頁面遺失。"
+	}
+}

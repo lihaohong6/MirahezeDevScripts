@@ -1,0 +1,179 @@
+{
+	"_metadata": {
+		"order": [
+			"viewSource",
+			"viewArticle",
+			"tooltip"
+		]
+	},
+	"en": {
+		"viewSource": "View source",
+		"viewArticle": "View article",
+		"tooltip": "Toggle the visibility of the wiki source code of the current page"
+	},
+	"qqq": {
+		"viewSource": "A button in the edit dropdown. Clicking the button will switch to view source.",
+		"viewArticle": "A button in the edit dropdown. Clicking the button will switch back to the page.",
+		"tooltip": "The text of the tooltip that is shown when the user hovers over the button."
+	},
+	"ar": {
+		"viewSource": "اعرض المصدر",
+		"viewArticle": "اعرض المقالة",
+		"tooltip": ""
+	},
+	"be": {
+		"viewSource": "Паказаць выточны код",
+		"viewArticle": "Паказаць артыкул",
+		"tooltip": ""
+	},
+	"ca": {
+		"viewSource": "Veure codi font",
+		"viewArticle": "Veure l'article",
+		"tooltip": ""
+	},
+	"de": {
+		"viewSource": "Quelltext-Ansicht",
+		"viewArticle": "Artikel-Ansicht",
+		"tooltip": ""
+	},
+	"el": {
+		"viewSource": "Εμφάνιση κώδικα",
+		"viewArticle": "Εμφάνιση λήμματος",
+		"tooltip": ""
+	},
+	"es": {
+		"viewSource": "Ver código fuente",
+		"viewArticle": "Ver artículo",
+		"tooltip": ""
+	},
+	"et": {
+		"viewSource": "Vaata lähtekood",
+		"viewArticle": "Vaata artikkel",
+		"tooltip": ""
+	},
+	"fi": {
+		"viewSource": "Katso lähdekoodia",
+		"viewArticle": "Katso artikkelia",
+		"tooltip": ""
+	},
+	"fr": {
+		"viewSource": "Voir le texte source",
+		"viewArticle": "Voir l'article",
+		"tooltip": ""
+	},
+	"he": {
+		"viewSource": "הצגת מקור",
+		"viewArticle": "הצגת דף",
+		"tooltip": ""
+	},
+	"hi": {
+		"viewSource": "स्रोत देखें",
+		"viewArticle": "आर्टिकल देखें",
+		"tooltip": ""
+	},
+	"hr": {
+		"viewSource": "Prikaži izvorni kod",
+		"viewArticle": "Prikaži članak",
+		"tooltip": ""
+	},
+	"hu": {
+		"viewSource": "Forráskód megtekintése",
+		"viewArticle": "Szócikk megtekintése",
+		"tooltip": ""
+	},
+	"id": {
+		"viewSource": "Tampilkan sumber",
+		"viewArticle": "Tampilkan artikel",
+		"tooltip": "Tukar antara penampilan sumber dan artikel pada halaman ini"
+	},
+	"it": {
+		"viewSource": "Vedi codice sorgente",
+		"viewArticle": "Vedi articolo",
+		"tooltip": ""
+	},
+	"ja": {
+		"viewSource": "ソースを表示",
+		"viewArticle": "記事を閲覧",
+		"tooltip": ""
+	},
+	"ka": {
+		"viewSource": "წყაროს ნახვა",
+		"viewArticle": "სტატიის ნახვა",
+		"tooltip": ""
+	},
+	"ko": {
+		"viewSource": "소스 보기",
+		"viewArticle": "문서 보기",
+		"tooltip": ""
+	},
+	"mo": {
+		"viewSource": "Ведець кодул сурсэ",
+		"viewArticle": "Ведець артиколул",
+		"tooltip": ""
+	},
+	"nl": {
+		"viewSource": "Toon bron",
+		"viewArticle": "Toon artikel",
+		"tooltip": ""
+	},
+	"no": {
+		"viewSource": "Se kilde",
+		"viewArticle": "Se artikkel",
+		"tooltip": ""
+	},
+	"pl": {
+		"viewSource": "Tekst źródłowy",
+		"viewArticle": "Pokaż artykuł",
+		"tooltip": ""
+	},
+	"pt": {
+		"viewSource": "Ver código",
+		"viewArticle": "Ver artigo",
+		"tooltip": ""
+	},
+	"pt-br": {
+		"viewSource": "Ver código",
+		"viewArticle": "Ver artigo",
+		"tooltip": ""
+	},
+	"ru": {
+		"viewSource": "Показать исходный код",
+		"viewArticle": "Показать статью",
+		"tooltip": ""
+	},
+	"tr": {
+		"viewSource": "Kaynağı gör",
+		"viewArticle": "Maddeyi gör",
+		"tooltip": ""
+	},
+	"uk": {
+		"viewSource": "Показати вихідний код",
+		"viewArticle": "Показати статтю",
+		"tooltip": ""
+	},
+	"vi": {
+		"viewSource": "Xem mã nguồn",
+		"viewArticle": "Xem bài",
+		"tooltip": ""
+	},
+	"zh-hans": {
+		"viewSource": "查看源代码",
+		"viewArticle": "显示文章",
+		"tooltip": ""
+	},
+	"zh-hant": {
+		"viewSource": "檢視原始碼",
+		"viewArticle": "顯示條目",
+		"tooltip": ""
+	},
+	"zh-hk": {
+		"viewSource": "檢視原始碼",
+		"viewArticle": "顯示條目",
+		"tooltip": ""
+	},
+	"zh-tw": {
+		"viewSource": "檢視原始碼",
+		"viewArticle": "顯示條目",
+		"tooltip": ""
+	}
+}

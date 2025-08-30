@@ -9,6 +9,269 @@ gadgets:
     styles:
       - style.less
 
+  ajax-batch-delete:
+    description: "Allows deleting a list of pages in a form and protecting them too."
+    authors:
+      - Splarka
+      - Grunny
+      - KnazO
+      - KockaAdmiralac
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/AjaxBatchDelete
+    requires: 
+      - fandoom-ui-utils-modal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  ajax-batch-undelete:
+    description: "Allows batch undeletion of pages."
+    authors:
+      - UltimateSupreme
+      - Nerfmaster8
+      - Noreplyz
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/AjaxBatchUndelete
+    requires: 
+      - fandoom-ui-utils-modal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  ajax-batch-redirect:
+    description: "Allows redirecting a list of pages in a form."
+    authors:
+      - MonkeysHK
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/AjaxBatchRedirect
+    requires: 
+      - fandoom-ui-utils-modal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  countdown:
+    description: "Script that creates a countdown clock"
+    authors:
+      - Splarka
+      - Eladkse
+      - Pecoes
+      - Asaba
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/Countdown
+    requires:
+      - i18n-js
+    scripts:
+      - code.js
+    i18n:
+      - i18n.json
+
+  fandoom-ui-utils-dorui:
+    description: "For building complex element trees with few expressions"
+    authors:
+      - Doru
+    links:
+      - https://dev.fandom.com/wiki/Dorui
+    scripts:
+      - code.js
+
+  fandoom-ui-utils-modal:
+    description: "Makes creation of Fandom modals easier."
+    authors:
+      - Noreplyz
+      - KockaAdmiralac
+    links:
+      - https://dev.fandom.com/wiki/Modal
+    scripts:
+      - code.js
+    styles:
+      - style.css
+
+  fandoom-ui-utils-qdmodal:
+    description: "Minimalist flexbox-based modal library"
+    authors:
+      - OneTwoThreeFall
+    links:
+      - https://dev.fandom.com/wiki/QDmodal
+    scripts:
+      - code.js
+    styles:
+      - style.css
+
+  fandoom-ui-utils-ui-js:
+    description: "Allows easier creation of DOM elements"
+    authors:
+      - KockaAdmiralac
+    links:
+      - https://dev.fandom.com/wiki/UI-js
+    scripts:
+      - code.js
+
+  i18n-js:
+    description: "Library for loading i18n messages."
+    authors:
+      - Cqm
+      - OneTwoThreeFall
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/I18n-js
+    scripts:
+      - code.js
+
+  mass-categorization:
+    description: "Categorization (add/remove/replace) on multiple pages in a list fashion, similar to AjaxBatchDelete."
+    authors:
+      - KnazO
+      - Dorumin
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/MassCategorization
+    requires:
+      - fandoom-ui-utils-modal
+      - fandoom-ui-utils-dorui
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  mass-copy-upload:
+    description: "Adds a special page to copy upload many files/images to a wiki at once."
+    authors:
+      - CoolMikeHatsune22
+    links:
+      - https://dev.miraheze.org/wiki/Mass_Copy_Upload
+    scripts:
+      - code.js
+
+  mass-null-edit:
+    description: "Null edit multiple pages from a list."
+    authors:
+      - KnazO
+      - DarthKitty
+      - OneTwoThreeFall 
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/MassNullEdit
+    requires:
+      - fandoom-ui-utils-qdmodal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  mass-protect:
+    description: "Protect multiple pages from a list"
+    authors:
+      - KnazO
+      - TheGoldenPatrik1
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/MassProtect
+    requires:
+      - fandoom-ui-utils-modal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  mass-rename:
+    description: "Rename multiple pages in a list fashion, similar to AjaxBatchDelete"
+    authors:
+      - KnazO
+      - TheGoldenPatrik1
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/MassRename
+    requires:
+      - fandoom-ui-utils-modal
+      - powertools-placement
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  powertools-placement:
+    description: "Convenience script for placing links to loaded userscripts in a shared portlet. Works across skins."
+    authors:
+      - CoolMikeHatsune22
+    scripts:
+      - code.js
+
+  preload-templates:
+    description: "Allows inserting a pre-made syntax of a template selected from a list directly within the source editor."
+    authors:
+      - leviathan_89
+      - Grunny
+      - KockaAdmiralac
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/PreloadTemplates
+    requires:
+      - i18n-js
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+    resourceLoader:
+      actions: "edit"
+      namespaces: "0,1,2,3,6,12,13,14,500,501"
+
+  view-source:
+    description: "Adds a \"View source\" link to the \"Edit\" menu"
+    authors:
+      - Pecoes
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/View_Source
+    requires:
+      - i18n-js
+    scripts:
+      - code.js
+      - definitions.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+    resourceLoader:
+      actions:
+        - view
+
   VueHelloWorld:
     description: "A test script used as a demonstration of Vue.js and Codex"
     authors:

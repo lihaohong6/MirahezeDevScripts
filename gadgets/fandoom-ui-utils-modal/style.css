@@ -1,0 +1,50 @@
+/*
+** @title         Modal styles
+** @description   Provides some layout improvements to modals.
+** @author        Polymeric
+** @license       CC-BY-SA 3.0
+** @note          Please install Modal.js for complete functionality.
+*/
+
+/* Add new invisible backdrop that will handle the close event when clicked. */
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-backdrop {
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 100%;
+  z-index: -1;
+}
+
+/* Preventing modal footer from overlapping the header. */
+.oo-ui-windowManager-modal.oo-ui-windowManager-floating > .oo-ui-dialog > .oo-ui-window-frame {
+  min-height: 148px;
+}
+
+/* Add some horizontal padding to the modal body. */
+.oo-ui-window-content.oo-ui-processDialog-content .oo-ui-window-body {
+  padding: 8px 19px;
+}
+
+/* Other styles. */
+/** Change input colors to match that of the wiki's theme. **/
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame {
+  color-scheme: light dark;
+}
+
+html.skin-theme-clientpref-night .oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame, 
+html.theme-dark .oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame {
+  color-scheme: dark light;
+}
+@media screen and (prefers-color-scheme: dark) {
+  html.skin-theme-clientpref-os .oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame {
+    color-scheme: dark light;
+  }
+}
+
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame hr {
+  border: none;
+  border-bottom: 1px solid var(--theme-border-color);
+}
