@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": false,
+    "noEmitOnError": false,
+
+    "outDir": "build",
+
+    "typeRoots": ["./node_modules/@types", "./node_modules/types-mediawiki"],
+    
+    /* Linting */
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedSideEffectImports": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strict": false
+  },
+  "include": ["dev-utils/*", "plugins/*", "gadgets/**/*"]
+}

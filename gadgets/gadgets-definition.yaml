@@ -1,0 +1,19 @@
+workspace:
+  enable_all: true
+  disable: []
+
+gadgets:
+  BackgroundImage:
+    scripts:
+      - index.js
+    styles:
+      - style.less
+
+  VueHelloWorld:
+    description: "A test script used as a demonstration of Vue.js and Codex"
+    authors:
+      - Plantaest
+    links:
+      - https://en.wikipedia.org/wiki/User:Plantaest/TestVue.js
+    scripts:
+      - hello-world.ts
