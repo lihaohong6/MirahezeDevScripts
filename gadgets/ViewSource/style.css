@@ -1,0 +1,28 @@
+#ca-view-source {
+    cursor: pointer !important;
+}
+#source-toc {
+    padding: 10px 0;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    font-size: 14px;
+}
+#source-toc li {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#source-code {
+    white-space: pre-wrap;
+}
+#source-code a {
+    text-decoration: underline;
+    color: inherit;
+}
+
+/* UCP fixes */
+.ooui-theme-fandom #source-code {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 16px;
+}
