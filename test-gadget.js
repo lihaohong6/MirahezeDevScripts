@@ -22,7 +22,7 @@ exec(`npm run build`, (err) => {
     }
 });
 
-const distPath = resolve(process.cwd(), 'dist/gadgets', gadgetName)
+const distPath = resolve(process.cwd(), 'dist', gadgetName)
 const jsPath = resolve(distPath, 'index.js')
 const cssPath = resolve(distPath, 'style.css')
 
