@@ -1,0 +1,56 @@
+#preload-templates {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 0 1em 0;
+	align-items: center;
+	gap: 10px;
+}
+.ve-ui-summaryPanel #preload-templates {
+	margin: 0.5em 0;
+	font-size: 13px;
+}
+
+#preload-templates #pt-list, #preload-templates #pt-list-secondary {
+	margin-left: 10px;
+	min-width: 160px;
+	border-color: var(--theme-border-color);
+	border-radius: 3px;
+	background-color: var(--theme-page-background-color);
+	color: var(--theme-page-text-color);
+	cursor: pointer;
+	min-height: 34px;
+	padding: .3em .5em;
+}
+
+#preload-templates #pt-help {
+	background-color: var(--theme-accent-color);
+	border-radius: 50%;
+	color: var(--theme-accent-label-color);
+	display: flex;
+	font-size: 16px;
+	height: 25px;
+	text-align: center;
+	width: 27px;
+	align-items: center;
+	justify-content: center;
+	transition: .25s;
+}
+
+#preload-templates #pt-help:hover,
+#preload-templates #pt-help:focus-within
+#preload-templates #pt-help:active {
+	background-color: var(--theme-accent-color--hover);
+}
+
+#preload-templates #pt-help a {
+	color: inherit;
+	cursor: pointer;
+	height: 100%;
+	width: 100%;
+	line-height: 1.5;
+}
+
+#preload-templates #pt-help a:hover {
+	cursor: pointer;
+	text-decoration: none;
+}
