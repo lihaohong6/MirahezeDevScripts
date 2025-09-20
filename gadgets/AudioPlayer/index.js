@@ -48,7 +48,14 @@
         }
     }
     
-    let oggSupported = true;
+    /* File extensions for which the original audio instead of the transcoded version should be played */
+    /* Should default to true since that is the safer option */
+    let fileExtensionUseTranscoded = {
+        "mp3": false,
+        "wav": false,
+        "ogg": false,
+        "flac": true,
+    };
     const groups = {};
 
     /**
@@ -58,7 +65,13 @@
      * @returns string Url to playable audio file
      */
     function processAudioUrl(url) {
-        if (oggSupported || !url.endsWith(".ogg")) {
+        const index = url.search(/\.[a-zA-Z0-9]+$/i);
+        if (index === -1) {
+            return url;
+        }
+        const fileExtension = url.substring(index + 1).toLowerCase();
+        // Always use transcoded version unless this extension is in the whitelist
+        if (fileExtensionUseTranscoded[fileExtension] === false) {
             return url;
         }
         // FIXME: this is dependent on Miraheze's URL structure, which is subject to change in the future.
@@ -265,7 +278,11 @@
     }
 
     async function audioInit() {
-        oggSupported = await checkOggOpusSupport();
+        // Safair doesn't support ogg opus. Use transcoded version if we see it.
+        const oggSupported = await checkOggOpusSupport();
+        if (!oggSupported) {
+            fileExtensionUseTranscoded.ogg = true;
+        }
         $(".audio-player").each(initAudioPlayer);
     }
 
