@@ -9,6 +9,10 @@ gadgets:
     styles:
       - style.less
 
+  AudioPlayer:
+    scripts:
+      - index.js
+
   VueHelloWorld:
     description: "A test script used as a demonstration of Vue.js and Codex"
     authors:
