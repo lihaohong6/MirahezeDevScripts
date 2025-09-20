@@ -17,32 +17,64 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # Checkout the master branch
     - name: Checkout master branch
       uses: actions/checkout@v4
       with:
         ref: master
-        fetch-depth: 0  # Fetch all history for all branches
+        fetch-depth: 0
         token: ${{ secrets.GITHUB_TOKEN }}
     
-    # Setup Node.js environment
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '22'  # Adjust version as needed
+        node-version: '22'
         cache: 'npm'
     
-    # Install dependencies
     - name: Install dependencies
       run: npm ci
     
-    # Configure git for commits
     - name: Configure Git
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
     
-    # Copy build output to dist branch
-    - name: Publish result
+    - name: Publish build result to dist branch
       run: |
         bash ./publish.sh
+
+  sync-with-dev:
+    runs-on: ubuntu-latest
+
+    needs: build-and-deploy
+
+    steps:
+    - name: Checkout all branches
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Get latest commit hash from dist branch
+      id: dist-hash
+      run: |
+        git fetch origin dist
+        HASH=$(git rev-parse origin/dist)
+        echo "dist_hash=$HASH" >> $GITHUB_ENV
+
+    - name: Switch to master branch
+      run: |
+        git checkout master
+
+    - name: Set up Python with uv
+      run: |
+        pip install uv
+
+    - name: Run dev-sync script
+      env:
+        CONSUMER_TOKEN: ${{ secrets.CONSUMER_TOKEN }}
+        CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
+        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
+      run: |
+        cd dev-sync
+        uv run main.py $dist_hash $CONSUMER_TOKEN $CONSUMER_SECRET $ACCESS_TOKEN $ACCESS_SECRET

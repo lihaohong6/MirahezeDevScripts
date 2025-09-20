@@ -10,7 +10,9 @@ def dump_json(o) -> str:
 def main():
     if len(argv) != 6:
         print(f"Expect python {argv[0]} <commit hash> <consumer_token> <consumer_secret> <access_token> <access_secret>")
-    authenticate = tuple(*argv[2:])
+        print(f"Got {len(argv)} arguments intead")
+        return
+    authenticate = tuple(argv[2:])
     config.authenticate['dev.miraheze.org'] = authenticate
     s = Site()
     s.login()
