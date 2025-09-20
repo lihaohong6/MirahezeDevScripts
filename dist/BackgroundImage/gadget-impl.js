@@ -1,4 +1,4 @@
-(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.BackgroundImage@3641fd37",function($,jQuery,require,module){(function(){const o=document.querySelectorAll(".background-image-hint"),i=window.innerWidth<window.innerHeight;function a(t){document.body.classList.add("has-bg");const e=document.createElement("style");e.innerHTML=`
+(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.BackgroundImage@facb08eb",function($,jQuery,require,module){(function(){const o=document.querySelectorAll(".background-image-hint"),i=window.innerWidth<window.innerHeight;function a(t){document.body.classList.add("has-bg");const e=document.createElement("style");e.innerHTML=`
 body.has-bg::before {
 	background-image: linear-gradient(rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${t});
 }
