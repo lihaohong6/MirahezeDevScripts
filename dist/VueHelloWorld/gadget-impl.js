@@ -1,4 +1,4 @@
-(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.VueHelloWorld@5a81d6f1",function($,jQuery,require,module){mw.config.get("wgCanonicalNamespace")==="Special"&&mw.config.get("wgCanonicalSpecialPageName")==="Blankpage"&&mw.config.get("wgTitle").endsWith("/HelloWorld")&&mw.loader.using(["vue","@wikimedia/codex"]).then(function(e){const o=e("vue"),n=e("@wikimedia/codex"),c=o.reactive({count:0,increment(){this.count++}}),t=o.createMwApp({template:`
+(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.VueHelloWorld@b2f3bdb5",function($,jQuery,require,module){mw.config.get("wgCanonicalNamespace")==="Special"&&mw.config.get("wgCanonicalSpecialPageName")==="Blankpage"&&mw.config.get("wgTitle").endsWith("/HelloWorld")&&mw.loader.using(["vue","@wikimedia/codex"]).then(function(e){const o=e("vue"),n=e("@wikimedia/codex"),c=o.reactive({count:0,increment(){this.count++}}),t=o.createMwApp({template:`
             <component-a/>
             <component-b/>
             `});t.component("component-a",{template:`
