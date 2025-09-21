@@ -133,6 +133,12 @@
             }
         }
 
+        function setVolumeBarWidth(volumeFraction) {
+            if (volumePercentage) {
+                volumePercentage.style.width = volumeFraction * 100 + '%';
+            }
+        }
+
         const howler = new Howl({
             src: [processAudioUrl(dataSet.src)],
             preload: shouldPreload,
@@ -170,13 +176,12 @@
                 console.log(err);
             },
             onvolume: function() {
-                if (volumePercentage) {
-                    volumePercentage.style.width = howler.volume() * 100 + '%';
-                }
+                setVolumeBarWidth(howler.volume());
             }
         });
 
-        howler.volume(parseFloat(dataSet.volume));
+        setVolumeBarWidth(startingVolume);
+        howler.volume(startingVolume);
 
         function checkBGMLoop() {
             const seek = howler.seek();
@@ -251,25 +256,30 @@
             });
         }
 
+        function toggleMute() {
+            if (muted) {
+                howler.mute(false);
+                volumeButtonIcon.classList.remove("icon-muted");
+                volumeButtonIcon.classList.add("icon-volume-medium");
+            } else {
+                howler.mute(true);
+                volumeButtonIcon.classList.add("icon-muted");
+                volumeButtonIcon.classList.remove("icon-volume-medium");
+            }
+            muted = !muted;
+        }
+
         // controls volume button: either mute or unmute
         if (volumeButton) {
-            volumeButton.addEventListener("click", function() {
-                if (muted) {
-                    howler.mute(false);
-                    volumeButtonIcon.classList.remove("icon-muted");
-                    volumeButtonIcon.classList.add("icon-volume-medium");
-                } else {
-                    howler.mute(true);
-                    volumeButtonIcon.classList.add("icon-muted");
-                    volumeButtonIcon.classList.remove("icon-volume-medium");
-                }
-                muted = !muted;
-            });
+            volumeButton.addEventListener("click", toggleMute);
         }
 
         // controls volume slider
         if (volumeSlider) {
             volumeSlider.addEventListener('click', e => {
+                if (muted) {
+                    toggleMute();
+                }
                 const sliderWidth = window.getComputedStyle(volumeSlider).width;
                 const newVolume = e.offsetX / parseInt(sliderWidth);
                 howler.volume(newVolume);
