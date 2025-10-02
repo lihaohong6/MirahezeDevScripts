@@ -13,6 +13,10 @@ gadgets:
     scripts:
       - index.js
 
+  Tab:
+    scripts:
+      - index.js
+
   VueHelloWorld:
     description: "A test script used as a demonstration of Vue.js and Codex"
     authors:
