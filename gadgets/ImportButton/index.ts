@@ -1,3 +1,14 @@
+interface WikiData {
+  wiki: string;
+  url: string;
+  groups: string[] | undefined;
+};
+
+interface WikiEntry {
+  label: string;
+  value: string;
+}
+
 mw.loader.using( '@wikimedia/codex' ).then( ( require ) => {
 	// only run on template and module namespaces
 	const supportedNamespaces = [ 10, 828 ];
@@ -23,44 +34,48 @@ mw.loader.using( '@wikimedia/codex' ).then( ( require ) => {
 			$howToExport.append( mountPoint );
 
 			Vue.createMwApp( {
-				data: () => ( {
+				data: (): {
+          wikis: WikiEntry[];
+          selectedWikiUrl: string | null;
+          templateName: string;
+        } => ( {
 					wikis: [],
-					selectedWiki: null,
+					selectedWikiUrl: null,
 					templateName: mw.config.get( 'wgPageName' )
 				} ),
 				template: /* html */ `
-			<hr />
-			<b>Pre-fill import parameters</b>
-			<div style="display: flex; gap: 0.25em;">
-				<cdx-select
-					v-model:selected="selectedWiki"
-					:menu-items="wikis"
-					default-label="Select wiki"
-					@click="loadWikis"
-					@update:selected="saveSelectedWiki"
-				/>
-				<cdx-button
-					action="progressive"
-					:disabled="!selectedWiki"
-					@click="openImportPage"
-					>Open</cdx-button>
-			</div>
-			<p>Clicking the "Open" button will open the import page on the selected wiki in a new tab. Please click "Import" on the import page to complete the installation.</p>
-		`,
+          <hr />
+          <b>Pre-fill import parameters</b>
+          <div style="display: flex; gap: 0.25em;">
+            <cdx-select
+              v-model:selected="selectedWikiUrl"
+              :menu-items="wikis"
+              default-label="Select wiki"
+              @click="loadWikis"
+              @update:selected="saveSelectedWiki"
+            />
+            <cdx-button
+              action="progressive"
+              :disabled="!selectedWikiUrl"
+              @click="openImportPage"
+            >Open</cdx-button>
+          </div>
+          <p>Clicking the "Open" button will open the import page on the selected wiki in a new tab. Please click "Import" on the import page to complete the installation.</p>
+		    `,
 				methods: {
 					openImportPage() {
-						if ( !this.selectedWiki ) {
+						if ( !this.selectedWikiUrl ) {
 							return;
 						}
 						// build url to Special:Import with parameters
-						const importUrl = new URL( this.selectedWiki + '/wiki/Special:Import' );
+						const importUrl = new URL( this.selectedWikiUrl + '/wiki/Special:Import' );
 						importUrl.searchParams.set( 'source', 'interwiki' );
 						importUrl.searchParams.set( 'interwiki', 'dev' );
 						importUrl.searchParams.set( 'frompage', this.templateName );
 						// set fragment
 						importUrl.hash = 'mw-import-interwiki-form';
 						// open url in new tab
-						window.open( importUrl.href, '_blank' ).focus();
+						window.open( importUrl.href, '_blank' )?.focus();
 					},
 					loadWikis() {
 						// load all wikis the user has sysop rights on
@@ -75,11 +90,14 @@ mw.loader.using( '@wikimedia/codex' ).then( ( require ) => {
 							} )
 							.then( ( data ) => {
 								this.wikis = data.query.globaluserinfo.merged
-									.filter( ( wiki ) => ( wiki.groups && wiki.groups.includes( 'sysop' ) ) )
-									.map( ( wiki ) => ( {
-										label: wiki.wiki,
-										value: wiki.url
-									} ) );
+									.filter( ( wiki: WikiData ) => ( wiki.groups && wiki.groups.includes( 'sysop' ) ) )
+									.map( ( wiki: WikiData ) => {
+                    const url = new URL( wiki.url );
+                    return {
+                      label: url.hostname,
+                      value: wiki.url
+									  }
+                  } );
 							} )
 							.catch( ( error ) => {
 								mw.notify( 'importButton: Failed to load wikis!', { type: 'error' } );
@@ -94,27 +112,25 @@ mw.loader.using( '@wikimedia/codex' ).then( ( require ) => {
 							} );
 					},
 					saveSelectedWiki() {
-						const storage = mw.storage;
-						const wikiData = this.wikis.find(
-							( wiki ) => wiki.value === this.selectedWiki
+						const wikiEntry = this.wikis.find(
+							( wiki: WikiEntry ) => wiki.value === this.selectedWikiUrl
 						);
 
-						if ( !wikiData ) {
+						if ( !wikiEntry ) {
 							return;
 						}
 
-						storage.set(
+						mw.storage.set(
 							'template-installer-selected-wiki',
 							JSON.stringify( {
-								label: wikiData.label,
-								value: wikiData.value
+								label: wikiEntry.label,
+								value: wikiEntry.value
 							} )
 						);
 					}
 				},
 				mounted() {
-					const storage = mw.storage;
-					const savedValue = storage.get( 'template-installer-selected-wiki' );
+					const savedValue = mw.storage.get( 'template-installer-selected-wiki' );
 					// if there's a saved value, load it
 					if ( savedValue ) {
 						const data = JSON.parse( savedValue );
@@ -122,7 +138,7 @@ mw.loader.using( '@wikimedia/codex' ).then( ( require ) => {
 							label: data.label,
 							value: data.value
 						} );
-						this.selectedWiki = data.value;
+						this.selectedWikiUrl = data.value;
 					}
 					// add a loading item
 					this.wikis.push( {
