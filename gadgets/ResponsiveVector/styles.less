@@ -1,0 +1,151 @@
+@page-edge-spacing: 0.5em;
+
+.sidebar-visible-styles() {
+    #mw-panel {
+        left: 0;
+    }
+
+    .arrow-container {
+        left: 9.5em;
+    }
+
+    .arrow {
+        transform: rotate(135deg);
+        left: 5px;
+    }
+}
+
+.sidebar-hidden-styles() {
+    #mw-panel {
+        left: -9.7em;
+    }
+
+    .arrow-container {
+        left: -0.2em;
+    }
+
+    .arrow {
+        transform: rotate(-45deg);
+        left: 2px;
+    }
+}
+
+.sidebar-visible-styles();
+
+body.gadget-sidebar-visible {
+    .sidebar-visible-styles();
+}
+
+@media (max-width: 800px) {
+    .sidebar-hidden-styles();
+
+    #p-logo {
+        display: none;
+    }
+
+    nav#p-personal {
+        right: @page-edge-spacing;
+    }
+
+    #p-personal li.mw-list-item {
+        padding-left: 0em;
+        margin-left: 0.5em;
+    }
+
+    div#content {
+        margin-left: 0;
+    }
+
+    div#content {
+        padding: @page-edge-spacing;
+    }
+
+    #p-personal ul.vector-menu-content-list {
+        padding-left: 0;
+    }
+
+    div#left-navigation {
+        margin-left: 0.25em;
+    }
+
+    div#mw-panel {
+        top: calc(5em - 1px);
+        background-color: #f7f7f7;
+        border: 1px solid #a7d7f9;
+        transition: left 0.5s ease-in-out;
+    }
+
+    .arrow-container {
+        position: absolute;
+        z-index: 10;
+        top: 9em;
+        transition: left 0.5s ease-in-out;
+        border-radius: 50%;
+        background-color: #fafafa;
+        width: 15px;
+        height: 15px;
+        border: 1px solid cadetblue;
+    }
+
+    .arrow-container:hover {
+        cursor: pointer;
+    }
+
+    .arrow {
+        border: solid cadetblue;
+        border-width: 0 2px 2px 0;
+        display: inline-block;
+        padding: 3px;
+        position: absolute;
+        top: 4px;
+    }
+
+    footer#footer {
+        margin-left: 0.25em;
+    }
+}
+
+nav#p-personal {
+    /* Center items vertically */
+    display: flex;
+    align-items: center;
+    top: 2px;
+    right: @page-edge-spacing;
+    height: 2.5em;
+}
+
+#p-personal li.mw-list-item {
+    padding-top: 0;
+}
+
+figure.mw-default-size.mw-halign-right {
+    float: unset;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mw-parser-output img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* When space is extremly limited, remove the search bar */
+@media (max-width: 500px) {
+    div#simpleSearch {
+        min-width: unset;
+        width: 1.75em;
+    }
+
+    input#searchInput {
+        display: none;
+    }
+
+    input#searchButton {
+        height: 2.15em;
+    }
+
+    div#p-search {
+        margin-left: 0.25em;
+        margin-right: 0.25em;
+    }
+}

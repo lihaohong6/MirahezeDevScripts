@@ -17,6 +17,12 @@ gadgets:
     scripts:
       - index.ts
 
+  ResponsiveVector:
+    scripts:
+      - index.js
+    styles:
+      - styles.less
+
   Tab:
     scripts:
       - index.js
