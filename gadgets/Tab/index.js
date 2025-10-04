@@ -3,10 +3,10 @@
  * License: CC BY-SA 4.0
  */
 
-(function() {
+(function () {
 
     const DEBUG_MODE = window.location.href.includes("localhost:") || window.location.href.includes("safemode=");
-    
+
     const allLabels = {}, allPanels = {};
 
     // specifies what to do after the user clicks on a sensei reply option
@@ -44,18 +44,18 @@
         let result = '';
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         const charactersLength = characters.length;
-        for ( let i = 0; i < 10; i++ ) {
+        for (let i = 0; i < 10; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         return result;
     }
-    
+
     function tabMain() {
-    	const urlHash = window.location.hash;
-    	let defaultTab;
-    	if (urlHash && urlHash !== "") {
-    		defaultTab = urlHash.substring(1).replaceAll(' ', '_').replaceAll('%20', '_');
-    	}
+        const urlHash = window.location.hash;
+        let defaultTab;
+        if (urlHash && urlHash !== "") {
+            defaultTab = urlHash.substring(1).replaceAll(' ', '_').replaceAll('%20', '_');
+        }
         // Anonymous tab groups should be assigned a random group number
         document.querySelectorAll(".tab-group-container").forEach(
             (container) => {
@@ -78,7 +78,7 @@
                     console.log(container);
                     return;
                 }
-                
+
                 const buttons = [];
                 container.querySelectorAll(":scope > .tab-button").forEach(
                     (button, index) => {
@@ -86,7 +86,7 @@
                             defaultButtons[group] = index;
                         }
                         buttons.push(button);
-                        button.addEventListener("click", (event) => {
+                        button.addEventListener("click", (_) => {
                             buttonClicked(group, index);
                         });
                     }
@@ -106,7 +106,7 @@
                     console.log(container);
                     return;
                 }
-                
+
                 const panels = [];
                 container.querySelectorAll(":scope > .tab-panel").forEach(
                     (panel, _) => {
@@ -130,6 +130,6 @@
             console.log("Found panels: ", allPanels);
         }
     }
-    
+
     tabMain();
 })();

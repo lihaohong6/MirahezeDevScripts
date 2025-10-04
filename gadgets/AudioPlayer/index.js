@@ -2,8 +2,8 @@
  * Author: User:PetraMagna
  * License: CC BY-SA 4.0
  */
-(function() {
-    function addScript( src, callback ) {
+(function () {
+    function addScript(src, callback) {
         var s = document.createElement('script');
         s.setAttribute('src', src);
         s.onload = callback;
@@ -28,7 +28,7 @@
             console.warn('MediaCapabilities API not supported');
             return false;
         }
-        
+
         const mediaConfig = {
             type: 'file',
             audio: {
@@ -38,7 +38,7 @@
                 samplerate: 44100
             }
         };
-        
+
         try {
             const result = await navigator.mediaCapabilities.decodingInfo(mediaConfig);
             return result.powerEfficient;
@@ -47,7 +47,7 @@
             return false;
         }
     }
-    
+
     /* File extensions for which the original audio instead of the transcoded version should be played */
     /* Should default to true since that is the safer option */
     let fileExtensionUseTranscoded = {
@@ -81,9 +81,9 @@
         // https://static.wikitide.net/strinovawiki/transcoded/c/ca/XYZ.ogg/XYZ.ogg.mp3
         return url.replace(/wikitide\.net\/([^/]+)\/(.)\/(..)\/(\w+)\.ogg/i, "wikitide.net/$1/transcoded/$2/$3/$4.ogg/$4.ogg.mp3");
     }
-    
+
     function initAudioPlayer(index, audioPlayer) {
-    	const dataSet = audioPlayer.dataset;
+        const dataSet = audioPlayer.dataset;
         const audioGroup = dataSet.group;
         const shouldLoop = dataSet.loop === "true";
         // Always preload unless instructed otherwise
@@ -93,16 +93,15 @@
         const isPauseButton = dataSet.pauseButton;
         const filename = dataSet.filename;
 
-        const playerId = "audio" + index;
         const playButton = audioPlayer.querySelector(".toggle-play");
 
         const progressBar = audioPlayer.querySelector(".progress");
         const timeline = audioPlayer.querySelector(".timeline");
-		
-		let startingVolume = parseFloat(dataSet.volume);
-		if (isNaN(startingVolume)) {
-			startingVolume = 1;
-		}
+
+        let startingVolume = parseFloat(dataSet.volume);
+        if (isNaN(startingVolume)) {
+            startingVolume = 1;
+        }
         const volumeButton = audioPlayer.querySelector(".volume-button");
         const volumeButtonIcon = audioPlayer.querySelector(".volume");
         const volumeSlider = audioPlayer.querySelector(".volume-slider");
@@ -114,7 +113,7 @@
         const audioLength = audioPlayer.querySelector(".length");
 
         if (isPauseButton && isPauseButton === "true") {
-            playButton.parentElement.addEventListener("click", function() {
+            playButton.parentElement.addEventListener("click", function () {
                 groups[audioGroup].pause();
             });
             return;
@@ -143,7 +142,7 @@
             src: [processAudioUrl(dataSet.src)],
             preload: shouldPreload,
             onpause: onAudioPauseOrStop,
-            onplay: function() {
+            onplay: function () {
                 playButton.classList.remove("play");
                 playButton.classList.add("pause");
                 if (shouldLoop && loopEnd !== 0) {
@@ -154,7 +153,7 @@
                     setTimeout(updateProgress, 100);
                 }
             },
-            onend: function() {
+            onend: function () {
                 if (shouldLoop) {
                     howler.seek(0);
                     howler.play();
@@ -162,20 +161,20 @@
                     onAudioPauseOrStop();
                 }
             },
-            onload: function() {
+            onload: function () {
                 if (audioTime) {
                     audioCurrentTime.innerText = "0:00";
                     audioDivider.innerText = "/";
                     audioLength.innerText = getTimeCodeFromNum(howler.duration());
                 }
             },
-            onloaderror: function(err) {
-            	if (audioCurrentTime) {
-            		audioCurrentTime.innerText = "Failed to load";
-            	}
+            onloaderror: function (err) {
+                if (audioCurrentTime) {
+                    audioCurrentTime.innerText = "Failed to load";
+                }
                 console.log(err);
             },
-            onvolume: function() {
+            onvolume: function () {
                 setVolumeBarWidth(howler.volume());
             }
         });
@@ -208,29 +207,29 @@
         }
         howler.on("seek", updateProgress);
 
-		function openFilePage() {
-			if (filename) {
-				const filepage = "/wiki/File:" + filename;
-        		window.open(filepage, '_blank').focus();
-        		return true;
-			}
-			return false;
-		}
-		
-		playButton.parentElement.addEventListener("contextmenu", function(event) {
-			event.preventDefault();
-			// if file page opened, no need to open context menu
-		    return !openFilePage();
-		});
+        function openFilePage() {
+            if (filename) {
+                const filepage = "/wiki/File:" + filename;
+                window.open(filepage, '_blank').focus();
+                return true;
+            }
+            return false;
+        }
+
+        playButton.parentElement.addEventListener("contextmenu", function (event) {
+            event.preventDefault();
+            // if file page opened, no need to open context menu
+            return !openFilePage();
+        });
 
         // controls playing and pausing
-        playButton.parentElement.addEventListener("click", function(event) {
-        	if (event.ctrlKey) {
-        		const result = openFilePage();
-        		if (result) {
-        			return;
-        		}
-        	}
+        playButton.parentElement.addEventListener("click", function (event) {
+            if (event.ctrlKey) {
+                const result = openFilePage();
+                if (result) {
+                    return;
+                }
+            }
             howlerLoad();
             if (howler.playing()) {
                 howler.pause();
