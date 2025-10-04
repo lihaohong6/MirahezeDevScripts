@@ -1,6 +1,25 @@
 {
-	"extends": [
-		"wikimedia/client",
-		"wikimedia/jquery"
-	]
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "globals": {
+    "mw": "readonly"
+  },
+  "overrides": [
+    {
+      "files": [
+        "VueHelloWorld/**"
+      ],
+      "extends": [
+        "wikimedia/client",
+        "wikimedia/jquery"
+      ]
+    }
+  ]
 }

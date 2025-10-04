@@ -64,14 +64,14 @@
                     return;
                 }
                 group = randomGroup();
-                Array.from(container.children).forEach((child, _) => {
+                Array.from(container.children).forEach((child) => {
                     child.dataset.group = group;
                 });
             }
         );
         const defaultButtons = {};
         document.querySelectorAll(".tab-button-container").forEach(
-            (container, _) => {
+            (container) => {
                 const group = container.dataset.group;
                 if (!group || group === "") {
                     console.log("Empty group found: ");
@@ -86,7 +86,7 @@
                             defaultButtons[group] = index;
                         }
                         buttons.push(button);
-                        button.addEventListener("click", (_) => {
+                        button.addEventListener("click", () => {
                             buttonClicked(group, index);
                         });
                     }
@@ -99,7 +99,7 @@
             }
         );
         document.querySelectorAll(".tab-panel-container").forEach(
-            (container, _) => {
+            (container) => {
                 const group = container.dataset.group;
                 if (!group || group === "") {
                     console.log("Empty group found: ");
@@ -109,7 +109,7 @@
 
                 const panels = [];
                 container.querySelectorAll(":scope > .tab-panel").forEach(
-                    (panel, _) => {
+                    (panel) => {
                         panels.push(panel);
                     }
                 );

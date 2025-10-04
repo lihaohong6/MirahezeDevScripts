@@ -2,6 +2,7 @@
  * Author: User:PetraMagna
  * License: CC BY-SA 4.0
  */
+/* global Howl */
 (function () {
     function addScript(src, callback) {
         var s = document.createElement('script');
