@@ -1,0 +1,5 @@
+{
+  "rules": {
+    "@stylistic/indent": ["error", 2]
+  }
+}
