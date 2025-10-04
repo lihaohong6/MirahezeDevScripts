@@ -1,4 +1,4 @@
-(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.BackgroundImage@6e321147",function($,jQuery,require,module){(function(){const a=document.querySelectorAll(".background-image-hint"),c=window.innerWidth<window.innerHeight;function d(t){t.startsWith("//")&&(t="https:"+t);const n=new URL(t);if(!(n.protocol==="http:"||n.protocol==="https:")){mw.log.error("Invalid image URL:",t);return}const i=document.createElement("style");i.innerHTML=`
+(function(mw){mw.loader.impl(function(){return ["ext.gadget.store.BackgroundImage@646e7836",function($,jQuery,require,module){(function(){const a=document.querySelectorAll(".background-image-hint"),c=window.innerWidth<window.innerHeight;function d(t){t.startsWith("//")&&(t="https:"+t);const n=new URL(t);if(!(n.protocol==="http:"||n.protocol==="https:")){mw.log.error("Invalid image URL:",t);return}const i=document.createElement("style");i.innerHTML=`
 		body.has-bg::before {
 			background-image: linear-gradient(rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(n.toString())});
 			}
