@@ -22,50 +22,14 @@ exec(`npm run build`, (err) => {
     }
 });
 
-const distPath = resolve(process.cwd(), 'dist', gadgetName)
-const jsPath = resolve(distPath, 'index.js')
-const cssPath = resolve(distPath, 'style.css')
-
-// Check if files exist
-if (!existsSync(jsPath) && !existsSync(cssPath)) {
-    console.error(`No built files found for gadget "${gadgetName}". Did you run "npm run build"?`)
-    process.exit(1)
-}
-
-let jsContent = ''
-let cssContent = ''
+const distPath = resolve(process.cwd(), 'dist', gadgetName);
+const implPath = resolve(distPath, "gadget-impl.js");
 
 // Read JS file if it exists
-if (existsSync(jsPath)) {
-    jsContent = readFileSync(jsPath, 'utf8')
+if (!existsSync(implPath)) {
+  console.error("impl path not found");
 }
-
-// Read CSS file if it exists
-if (existsSync(cssPath)) {
-    cssContent = readFileSync(cssPath, 'utf8')
-}
-
-// Generate the test snippet
-const snippet = `
-(function() {
-  console.log('Loading gadget: ${gadgetName}');
-  
-  ${cssContent ? `
-  // Inject CSS
-  const style = document.createElement('style');
-  style.textContent = \`${cssContent.replace(/`/g, '\\`')}\`;
-  document.head.appendChild(style);
-  console.log('✓ CSS loaded');
-  ` : '// No CSS file found'}
-  
-  ${jsContent ? `
-  // Inject and execute JS
-  ${jsContent}
-  ` : '// No JS file found'}
-  
-  console.log('Gadget ${gadgetName} loaded successfully');
-})();
-`.trim()
+const snippet = readFileSync(implPath, {encoding: "utf-8"});
 
 function copyWithWlCopy(text) {
   const tmpFile = join(tmpdir(), `clipboard-${Date.now()}.txt`);
