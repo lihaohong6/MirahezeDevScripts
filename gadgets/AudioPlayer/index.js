@@ -24,63 +24,35 @@
         ).padStart(2, 0)}`;
     }
 
-    async function checkOggOpusSupport() {
-        if (!('mediaCapabilities' in navigator)) {
-            console.warn('MediaCapabilities API not supported');
-            return false;
-        }
-
-        const mediaConfig = {
-            type: 'file',
-            audio: {
-                contentType: 'audio/ogg; codecs="opus"',
-                channels: 2,
-                bitrate: 64000,
-                samplerate: 44100
-            }
-        };
-
-        try {
-            const result = await navigator.mediaCapabilities.decodingInfo(mediaConfig);
-            return result.powerEfficient;
-        } catch (e) {
-            console.error('Error while checking media capabilities:', e);
-            return false;
-        }
-    }
-
-    /* File extensions for which the original audio instead of the transcoded version should be played */
-    /* Should default to true since that is the safer option */
-    let fileExtensionUseTranscoded = {
-        "mp3": false,
-        "wav": false,
-        "ogg": false,
-        "flac": true,
-    };
     const groups = {};
 
     /**
-     * Checks whether the browser supports the container format in the url. If not, return a different
-     * url pointing to the transcoded mp3 file on Miraheze's server.
+     * Return a possible set of audio file src urls
      * @param {string} url Url of the desired audio file
-     * @returns string Url to playable audio file
+     * @returns Array of possible audio file urls
      */
     function processAudioUrl(url) {
-        const index = url.search(/\.[a-zA-Z0-9]+$/i);
-        if (index === -1) {
-            return url;
-        }
-        const fileExtension = url.substring(index + 1).toLowerCase();
-        // Always use transcoded version unless this extension is in the whitelist
-        if (fileExtensionUseTranscoded[fileExtension] === false) {
-            return url;
+        if (!url.includes("wikitide")) {
+            return [url];
         }
         // FIXME: this is dependent on Miraheze's URL structure, which is subject to change in the future.
         // Transform 
         // https://static.wikitide.net/strinovawiki/c/ca/XYZ.ogg 
         // to
         // https://static.wikitide.net/strinovawiki/transcoded/c/ca/XYZ.ogg/XYZ.ogg.mp3
-        return url.replace(/wikitide\.net\/([^/]+)\/(.)\/(..)\/(\w+)\.ogg/i, "wikitide.net/$1/transcoded/$2/$3/$4.ogg/$4.ogg.mp3");
+        // Only use ogg if the device supports it
+        const urls = [];
+        for (let newExtension of ['ogg', 'mp3']) {
+            if (url.toLowerCase().endsWith(newExtension)) {
+                urls.push(url);
+            } else {
+                urls.push(url.replace(
+                    /wikitide\.net\/([^/]+)\/(.)\/(..)\/(\w+)\.([a-zA-Z0-9]+)$/i,
+                    "wikitide.net/$1/transcoded/$2/$3/$4.$5/$4.$5." + newExtension));
+            }
+        }
+        urls.push(url);
+        return urls;
     }
 
     function initAudioPlayer(index, audioPlayer) {
@@ -140,7 +112,7 @@
         }
 
         const howler = new Howl({
-            src: [processAudioUrl(dataSet.src)],
+            src: processAudioUrl(dataSet.src),
             preload: shouldPreload,
             onpause: onAudioPauseOrStop,
             onplay: function () {
@@ -288,11 +260,6 @@
     }
 
     async function audioInit() {
-        // Safair doesn't support ogg opus. Use transcoded version if we see it.
-        const oggSupported = await checkOggOpusSupport();
-        if (!oggSupported) {
-            fileExtensionUseTranscoded.ogg = true;
-        }
         $(".audio-player").each(initAudioPlayer);
     }
 
