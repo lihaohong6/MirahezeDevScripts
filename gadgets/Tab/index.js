@@ -43,22 +43,14 @@
     function initTabs() {
         let urlHash = window.location.hash;
         if ( urlHash ) {
-            urlHash = urlHash
-                .slice( 1 )
-                .replace( / /g, '_' )
-                .replace( /%20/g, '_' );
+            urlHash = decodeURIComponent( urlHash.slice( 1 ) ).replace( / /g, '_' );
         }
 
         // Anonymous tab groups should be assigned a random group number
         document.querySelectorAll( '.tab-group-container' ).forEach( ( container ) => {
-            const group = container.dataset.group || randomGroup();
-            // Propagate data-group to direct children if they don’t have it
-            container.querySelectorAll( '.tab-button, .tab-panel' )
-                .forEach( ( child ) => {
-                    if ( !child.dataset.group ) {
-                        child.dataset.group = group;
-                    }
-                } );
+            if ( !container.dataset.group ) {
+                container.dataset.group = randomGroup();
+            }
         } );
 
         document.querySelectorAll( '.tab-button-container, .tab-panel-container' ).forEach( ( container ) => {
@@ -87,6 +79,8 @@
             }
             allButtons[ group ].push( { option: option, el: button } );
 
+            // Either select the first button encountered as the default
+            // or use the one that matches the URL hash
             if ( !defaultButtons[ group ] ) {
                 defaultButtons[ group ] = option;
             }
@@ -114,8 +108,8 @@
             allPanels[ group ].push( { option: option, el: panel } );
         } );
 
-        for ( const [ k, v ] of Object.entries( defaultButtons ) ) {
-            selectTab( k, v );
+        for ( const [ group, option ] of Object.entries( defaultButtons ) ) {
+            selectTab( group, option );
         }
 
         if ( DEBUG_MODE ) {
