@@ -15,7 +15,8 @@
     {
       "files": [
         "ImportButton/**",
-        "VueHelloWorld/**"
+        "VueHelloWorld/**",
+        "Tab/**"
       ],
       "extends": [
         "wikimedia/client",
