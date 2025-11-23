@@ -14,17 +14,80 @@
     const allButtons = {}, allPanels = {};
 
     // specifies what to do after the user clicks on a sensei reply option
-    function selectTab( group, option ) {
+    function selectTab( group, option, focus ) {
         if ( DEBUG_MODE ) {
-            console.log( `Group ${ group } option ${ option } clicked` );
+            console.log( `Group ${ group } option ${ option } selected` );
         }
         const buttons = allButtons[ group ] || [];
         for ( const { el, option: buttonOption } of buttons ) {
-            el.classList.toggle( 'tab-button-selected', buttonOption === option );
+            el.classList.toggle( 'tab-button-selected', buttonOption == option );
+            el.ariaSelected = buttonOption == option
+            el.tabIndex = buttonOption == option ? 0 : -1
+            if (focus && buttonOption == option) {
+                el.focus()
+            }
         }
         const panels = allPanels[ group ] || [];
         for ( const { el, option: panelOption } of panels ) {
-            el.classList.toggle( 'tab-panel-hidden', panelOption !== option );
+            el.classList.toggle( 'tab-panel-hidden', panelOption != option );
+        }
+    }
+
+    function handleTabKeyDown(event, group, option) {
+        let tgt = event.currentTarget,
+        flag = false;
+
+        // Note: When multiple buttons containers with same group,
+        // focus behaviour jumps to the last button container
+
+        // This doesn't work for non numerical IDs
+
+        // Not very good
+        const isVertical = tgt.parentElement.getAttribute('aria-orientation') === 'vertical'
+
+        // Also not very good
+        const totalOptions = tgt.parentElement.querySelectorAll('.tab-button').length-1
+
+        switch (event.key) {
+        case isVertical ? 'ArrowUp' : 'ArrowLeft':
+            if ( DEBUG_MODE ) {
+                console.log( `Group ${ group } roving left from option ${ option }` );
+            }
+            selectTab(group, option!=0 ? +option-1 : totalOptions, true)
+            flag = true;
+            break;
+
+        case isVertical ? 'ArrowDown' : 'ArrowRight':
+            if ( DEBUG_MODE ) {
+                console.log( `Group ${ group } roving right from option ${ option }` );
+            }
+            selectTab(group, option!=totalOptions ? +option+1 : 0, true)
+            flag = true;
+            break;
+
+        case 'Home':
+            if ( DEBUG_MODE ) {
+                console.log( `Group ${ group } jumping to start from option ${ option }` );
+            }
+            selectTab(group, 0, true)
+            flag = true;
+            break;
+
+        case 'End':
+            if ( DEBUG_MODE ) {
+                console.log( `Group ${ group } jumping to end from option ${ option }` );
+            }
+            selectTab(group, totalOptions, true)
+            flag = true;
+            break;
+
+        default:
+            break;
+        }
+
+        if (flag) {
+            event.stopPropagation();
+            event.preventDefault();
         }
     }
 
@@ -61,6 +124,15 @@
             } );
         } );
 
+        document.querySelectorAll( '.tab-button-container' ).forEach( ( container ) => {
+            container.role = 'tablist'
+            container.id = `${container.parentElement.dataset.group}-tablist`
+            // There should be an aria-label labelling the tablist
+            if (container.classList.contains('tab-vertical')) {
+                container.setAttribute('aria-orientation', 'vertical')
+            }
+        } );
+
         const defaultButtons = {};
         document.querySelectorAll( '.tab-button' ).forEach( ( button ) => {
             const group = getGroup( button );
@@ -88,6 +160,13 @@
                 defaultButtons[ group ] = option;
             }
 
+            button.id = `${group}-${option}-tab`
+            button.role = 'tab'
+            button.tabIndex = -1
+            button.setAttribute('aria-controls', `${group}-${option}-tabpanel`)
+            button.setAttribute('aria-selected', false)
+
+            button.addEventListener( 'keydown', (ev) => handleTabKeyDown( ev, group, option ) );
             button.addEventListener( 'click', () => selectTab( group, option ) );
         } );
 
@@ -101,6 +180,13 @@
             if ( !option ) {
                 return;
             }
+            
+            panel.role = 'tabpanel'
+            panel.id = `${group}-${option}-tabpanel`
+            panel.setAttribute('aria-labelledby', `${group}-${option}-tab`)
+
+            // Not too good of a way to check if the first element after tab panel is focusable
+            panel.tabIndex = 0
 
             if ( !allPanels[ group ] ) {
                 allPanels[ group ] = [];
