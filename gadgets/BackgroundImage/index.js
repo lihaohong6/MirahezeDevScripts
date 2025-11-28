@@ -14,9 +14,11 @@
 		}
 		const style = document.createElement('style');
 		style.innerHTML = `
-		body.has-bg::before {
-			background-image: linear-gradient(rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(url.toString())});
-			}
+body.has-bg::before {
+	background-image: linear-gradient(
+		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5)), 
+		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(url.toString())});
+}
 			`;
 		document.head.appendChild(style);
 		document.body.classList.add("has-bg");
