@@ -1,12 +1,17 @@
-import autogenerateEntrypoint from './plugins/autogenerate-entrypoint.js';
-import createMwGadgetImplementation from './plugins/create-mw-gadget-implementation.js';
+import {
+  autogenerateEntrypoint,
+  createMwGadgetImplementation,
+} from './plugins';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+
 import { 
   readGadgetsDefinition, 
   getGadgetsToBuild,
   mapGadgetSourceFiles, 
-  setViteServerOrigin
+  setViteServerOrigin,
+  setGadgetNamespace,
 } from './dev-utils/build-orchestration.js';
+import { resolveCommandLineArgumentsPassedToVite } from './dev-utils/resolve-env.js';
 import { 
   ConfigEnv, 
   defineConfig, 
@@ -15,20 +20,31 @@ import {
 } from 'vite';
 
 export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => {
+  const customArgs = resolveCommandLineArgumentsPassedToVite();
   const env = loadEnv(mode, process.cwd(), '');
+  
+  const { 
+    GADGET_NAMESPACE: gadgetNamespace = 'ext.gadget.store',
+    SERVER_DEV_ORIGIN: serverDevOrigin = 'http://localhost:5173',
+    SERVER_PREVIEW_ORIGIN: serverPreviewOrigin = 'http://localhost:4173',
+  } = env;
+  
   const isDev = mode === 'development';
   if (isDev) { 
-    setViteServerOrigin(env.VITE_SERVER_DEV_ORIGIN || 'http://localhost:5173'); 
+    setViteServerOrigin(serverDevOrigin); 
+  } else {
+    setViteServerOrigin(serverPreviewOrigin);
   }
+  setGadgetNamespace(gadgetNamespace);
+    
   const gadgetsDefinition = await readGadgetsDefinition();
   const gadgetsToBuild = getGadgetsToBuild(gadgetsDefinition);
   const [bundleInputs, bundleAssets] = mapGadgetSourceFiles(gadgetsToBuild);
 
   return {
     plugins: [
-      // In Vite Serve, watches changes made to files in gadgets/ subdirectory
-      // and generate the load.js entrypoint file 
-      autogenerateEntrypoint(gadgetsToBuild),
+      // Generate the load.js entrypoint file 
+      autogenerateEntrypoint(gadgetsToBuild, customArgs['no-rollup']),
       
       // In Vite Build, copy the i18n.json files to dist/
       viteStaticCopy({
@@ -37,9 +53,12 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       }),
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
-      createMwGadgetImplementation(gadgetsToBuild),
+      !customArgs['no-rollup'] &&
+        createMwGadgetImplementation(gadgetsToBuild, customArgs['no-minify']),
     ],
     build: {
+      minify: !customArgs['no-minify'],
+      cssMinify: !customArgs['no-minify'],
       rollupOptions: {
         input: bundleInputs,
         output: {
@@ -73,6 +92,9 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
           ".yml": "text"
         }
       }
+    },
+    preview: {
+      open: '/load.js'
     }
   }
 });
