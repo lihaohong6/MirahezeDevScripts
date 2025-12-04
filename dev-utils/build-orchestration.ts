@@ -1,8 +1,9 @@
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import { Target } from 'vite-plugin-static-copy';
+import { transformWithEsbuild } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -15,12 +16,14 @@ import {
 } from './utils';
 
 let viteServerOrigin: string;
-
-// Defines the prefix of the name of the gadget/script when registered onto MW via mw.loader.impl 
-// e.g. When this variable is set as "ext.gadget", a gadget named "hello-world" will
-//      be registered under the name "ext.gadget.hello-world" 
+ 
+/**
+ * Defines the prefix of the name of the gadget/script when registered onto MW via `mw.loader.impl`
+ * 
+ * e.g. When this variable is set as "`ext.gadget`", a gadget named "`hello-world`" will
+ *      be registered under the name "`ext.gadget.hello-world`"
+ */
 let namespace = 'ext.gadget.store';
-
 
 /** 
  * @param _origin
@@ -207,17 +210,20 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
       }");`
     }
     // Async generator implementation
-    function* awaitTheseTasks() {
+    async function* awaitTheseTasks() {
       for (const gadget of gadgetsToBuild) {
         yield useRolledupImplementation ? 
           createScriptLoadingStatement(gadget) :
-          createRolledUpGadgetImplementationByLazyLoading(gadget);
+          await createRolledUpGadgetImplementationByLazyLoading(gadget);
       }
     }
+    // should be ES5-compliant
+    writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(function (res) { return res.text(); })\n\t\t.then(function (contents) { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
     for await (const gadgetImplementation of awaitTheseTasks()) {
       writeStream.write(gadgetImplementation);
       writeStream.write(useRolledupImplementation ? '\n' : '\n\n');
     }
+    writeStream.write(`}`);
   } catch (err) {
     console.error(err);
   } finally {
@@ -237,11 +243,10 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
     dependencies = null, rights = null, skins = null, 
     actions = null, categories = null, namespaces = null, 
     contentModels = null 
-  } = {} }: GadgetDefinition,
-  { minify = false }: { minify: boolean }
-): [string, string] {
+  } = {} }: GadgetDefinition
+): [string[], string[]] {
   if ([dependencies, rights, skins, actions, categories, namespaces, contentModels].every((v) => v === null)) {
-    return ['', ''];
+    return [[], []];
   }
   const conditions: string[] = [];
   const normalizeVariable = (variable: string | string[]) => {
@@ -250,12 +255,16 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
     }
     return variable;
   }
-  const generateCodeConditionForComparingValues = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => (
-    `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}].some(function(a){return mw.config.get('${configKey}') === a;})`
-  );
-  const generateCodeConditionForComparingLists = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => (
-    `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}].some(function(a){return (mw.config.get('${configKey}') || []).indexOf(a) > -1;})`
-  );
+  const generateCodeConditionForComparingValues = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
+    const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
+    // should be ES5-compliant
+    return `${arr}.some(function (a) { return mw.config.get('${configKey}') === a; })`;
+  };
+  const generateCodeConditionForComparingLists = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
+    const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
+    // should be ES5-compliant
+    return `${arr}.some(function (a) { return (mw.config.get('${configKey}') || []).indexOf(a) > -1; })`
+  };
 
   const checkForConditions = [
     { v: rights, configIsListOfValues: true, configKey: 'wgUserRights', valueIsNumeric: false },
@@ -277,20 +286,21 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
     }
   });
 
-  let head = '';
-  let tail = '';
+  let head: string[] = [];
+  let tail: string[] = [];
+
+  if (conditions.length === 1) {
+    head.push(`if (${conditions[0]}) {`);
+    tail.unshift(`}`);
+  } else if (conditions.length > 0) {
+    head.push(`if ( ([ ${conditions.join(', ')} ]).every(Boolean) ) {`);
+    tail.unshift(`}`);
+  }
 
   if (!!dependencies) {
     dependencies = normalizeVariable(dependencies);
-    head = `mw.loader.using([${dependencies.map(el => `"${el}"`).join(',')}],function(require){${minify ? '' : '\n  '}`;
-    tail = `${minify ? '' : '\n  '}});`;
-  }
-  if (conditions.length === 1) {
-    head = `if (${conditions[0]}){\n  ${head}`;
-    tail = `${tail}\n  }`;
-  } else if (conditions.length > 0) {
-    head = `if ([${conditions.join(',')}].every(function(el){${minify ? '' : ' '}return el;${minify ? '' : ' '}})){${minify ? '' : '\n  '}`;
-    tail = `${tail}${minify ? '' : '\n  '}}`;
+    head.push(`mw.loader.using([ ${dependencies.map(el => `"${el}"`).join(`, `)} ], function (require) {`);
+    tail.unshift(`});`);
   }
 
   return [head, tail];
@@ -306,64 +316,71 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * @returns
  */
 export async function writeRolledUpGadgetImplementation(gadgetImplementationFilePath: string, gadget: GadgetDefinition, minify: boolean): Promise<void> {
-  const writeStream = createWriteStream(gadgetImplementationFilePath, { encoding: 'utf-8', flags: 'w' });
-  try {
-    const { name } = gadget;
-    
-    if (!checkGadgetExists(name)) {
-      throw new Error(`Cannot resolve gadget ${name}`);
-    }
-
-    const hash = crypto.randomBytes(4).toString('hex');
-
-    const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget, { minify });
-
-    writeStream.write(`(function (mw) {${minify ? '': '\n  '}`);
-    writeStream.write(rsCondHead);
-    writeStream.write(`mw.loader.impl(function(){${minify ? '' : '\n    '}return [${minify ? '' : '\n      '}"${namespace}.${name}@${hash}",${minify ? '' : '\n      '}function($,jQuery,require,module){${minify ? '' : '\n      '}`);
-    
-    const readFileContents = (src: string) => readFile(
-      resolveDistGadgetsPath(name, resolveFileExtension(src)), 
-      { encoding: 'utf-8', flag: 'r' }
-    );
-
-    if (!!gadget.scripts) {
-      const n = gadget.scripts.length;
-      for (let i = 0; i < n; i++) {
-        writeStream.write((await readFileContents(gadget.scripts[i])).trim());
-        if (!minify) {
-          writeStream.write('\n');
-        }
-      }
-    }
-
-    writeStream.write(`},{"css":[`);
-
-    if (!!gadget.styles) {
-      const n = gadget.styles.length;
-      for (let i = 0; i < n; i++) {
-        writeStream.write(minify ? `"` : `\``);
-        const contents = (await readFileContents(gadget.styles[i])).trim().replaceAll(
-          minify ? /(")/g : /(`)/g,
-          '\\$1'
-        );
-        writeStream.write(contents);
-        writeStream.write(minify ? `"` : `\``);
-        if (i < n-1) {
-          writeStream.write(`,${!minify && '\n'}`);
-        }
-      }
-    }
+  const { name } = gadget;
   
-    writeStream.write(`]},{},{},null];});`);
-    writeStream.write(rsCondTail);
-    writeStream.write(`${minify ? '' : '\n'}})(mediaWiki);`);
-
-  } catch (err) {
-    console.error(err);
-  } finally {
-    writeStream.close();
+  if (!checkGadgetExists(name)) {
+    throw new Error(`Cannot resolve gadget ${name}`);
   }
+
+  const hash = crypto.randomBytes(4).toString('hex');
+
+  const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget);
+
+  const body = [
+    `mw.loader.impl(function () {`,
+    `return [`,
+    `"${namespace}.${name}@${hash}",`,
+    `function ($, jQuery, require, module) {`,
+  ];
+
+  const readFileContents = (src: string) => readFile(
+    resolveDistGadgetsPath(name, resolveFileExtension(src)), 
+    { encoding: 'utf-8', flag: 'r' }
+  );
+
+  if (!!gadget.scripts) {
+    (await Promise.all(gadget.scripts.map((script) => (
+      readFileContents(script)
+    )))).forEach((src) => {
+      body.push(src);
+    });
+  }
+
+  body.push(`}, {"css": [`);
+
+  if (!!gadget.styles) {
+    (await Promise.all(gadget.styles.map((script) => (
+      readFileContents(script)
+    )))).forEach((src) => {
+      body.push(minify ? `"` : `\``);
+      body.push(src.trim().replaceAll(
+        minify ? /(")/g : /(`)/g,
+        '\\$1'
+      ));
+      body.push(minify ? `"` : `\``);
+      body.push(', ');
+    });
+  }
+
+  body.push(`]}, {}, {}, null];`);
+  body.push(`});`);
+
+  await writeFile(
+    gadgetImplementationFilePath, 
+    (await transformWithEsbuild(
+      [
+        `(function (mw) {`,
+        ...rsCondHead,
+        ...body,
+        ...rsCondTail,
+        `})(mediaWiki);`,
+      ].join(''), 
+      gadgetImplementationFilePath, 
+      { minify }
+    )).code,
+    { encoding: 'utf-8', flag: 'w' }
+  );
+
 }
 
 /**
@@ -372,7 +389,7 @@ export async function writeRolledUpGadgetImplementation(gadgetImplementationFile
  * 
  * @param gadget 
  */
-export function createRolledUpGadgetImplementationByLazyLoading(gadget: GadgetDefinition): string {
+export async function createRolledUpGadgetImplementationByLazyLoading(gadget: GadgetDefinition): Promise<string> {
   const { name } = gadget;
     
   if (!checkGadgetExists(name)) {
@@ -381,11 +398,9 @@ export function createRolledUpGadgetImplementationByLazyLoading(gadget: GadgetDe
 
   const hash = crypto.randomBytes(4).toString('hex');
 
-  let snippet: string;
-
   const scriptsToLoad = gadget.scripts?.map((script) => {
     const scriptUrl = getStaticUrlToFile(name, script).replaceAll('"', '\\"');
-    return `${" ".repeat(10)}fetch("${scriptUrl}")\n${" ".repeat(12)}.then(res => res.text())\n${" ".repeat(12)}.then(contents => $.globalEval(\`(() => {\${contents}})()\`))\n${" ".repeat(12)}.catch(console.error);`;
+    return `loadLazily("${scriptUrl}");`;
   }) || [];
 
   const stylesToLoad = gadget.styles?.map((style) => {
@@ -393,22 +408,31 @@ export function createRolledUpGadgetImplementationByLazyLoading(gadget: GadgetDe
     return `"${styleUrl}"`;
   }) || [];
 
-  snippet = `  mw.loader.impl(function (){
-      return [
-        "${namespace}.${name}@${hash}",
-        function($, jQuery, require, module) {${
-          scriptsToLoad.length === 0 ? '' :
-          `\n` + scriptsToLoad.join('\n') + `\n${" ".repeat(8)}`
-        }},
-        {"url":{"all":[${stylesToLoad.join(',')}]}},
-        {}, {}, null
-      ];
-    });`;
+  const codeBlock = [
+    `mw.loader.impl(function () {`,
+      `return [`,
+        `"${namespace}.${name}@${hash}",`,
+        `function($, jQuery, require, module) {`,
+        ...scriptsToLoad,
+        `}, `,
+        `{"url": {"all": [${stylesToLoad.join(',')}] }},`,
+        `{}, {}, null`,
+      `];`,
+    `});`
+  ];
 
-  const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget, { minify: false });
-  snippet = `(function (mw) {\n  ${rsCondHead}${snippet}${rsCondTail}\n})(mediaWiki);`
-
-  return snippet;
+  const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget);
+  return (await transformWithEsbuild(
+    [
+      `(function (mw) {`,
+      ...rsCondHead,
+      ...codeBlock,
+      ...rsCondTail,
+      `})(mediaWiki);`
+    ].join(''),
+    resolveEntrypointFilepath(),
+    { minify: false }
+  )).code;
 }
 
 /**
