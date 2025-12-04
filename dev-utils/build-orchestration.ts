@@ -412,7 +412,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
     `mw.loader.impl(function () {`,
       `return [`,
         `"${namespace}.${name}@${hash}",`,
-        `function($, jQuery, require, module) {`,
+        `function() {`,
         ...scriptsToLoad,
         `}, `,
         `{"url": {"all": [${stylesToLoad.join(',')}] }},`,
