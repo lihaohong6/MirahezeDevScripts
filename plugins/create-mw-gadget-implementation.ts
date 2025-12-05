@@ -1,5 +1,6 @@
 import { writeRolledUpGadgetImplementation } from '../dev-utils/build-orchestration.js';
 import { PluginOption } from 'vite';
+import { PluginContext } from 'rollup';
 import { resolveDistGadgetsPath } from '../dev-utils/utils.js';
 import type { GadgetDefinition } from '../dev-utils/types.js';
 
@@ -19,10 +20,11 @@ export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefin
     enforce: 'post',
     apply: 'build',
 
-    async writeBundle() {
+    async writeBundle(this: PluginContext) {
+      const wFn = writeRolledUpGadgetImplementation.bind(this);
       for (const gadget of gadgetsToBuild) {
         const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
-        await writeRolledUpGadgetImplementation(gadgetImplementationFilePath, gadget, !noMinify);
+        await wFn(gadgetImplementationFilePath, gadget, !noMinify);
         this.info(`✓ Created the MediaWiki gadget implementation ${gadget.name}/gadget-impl.js`);
       }
     },

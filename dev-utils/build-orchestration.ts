@@ -1,5 +1,6 @@
 import { readFile, writeFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
+import { PluginContext } from 'rollup';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import { Target } from 'vite-plugin-static-copy';
@@ -197,33 +198,38 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
  * loaded on the MediaWiki client.
  * 
  * @param gadgetsToBuild
- * @param useRolledupImplementation
+ * @param useRolledUpImplementation If set to true, then `load.js` will load the gadget-impl.js files. 
+ *                                  Otherwise, it will lazily load and execute the individual scripts and stylesheets.
  * @returns
  */
-export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolledupImplementation: boolean): Promise<void> {
+export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
   const entrypointFile = resolveEntrypointFilepath();
   const writeStream = createWriteStream(entrypointFile, { flags: 'w', encoding: 'utf-8'});
   try {
-    const createScriptLoadingStatement = (gadget: GadgetDefinition) => {
-      return `mw.loader.load("${
-        getStaticUrlToFile(gadget.name, 'gadget-impl.js')
-      }");`
-    }
-    // Async generator implementation
-    async function* awaitTheseTasks() {
-      for (const gadget of gadgetsToBuild) {
-        yield useRolledupImplementation ? 
-          createScriptLoadingStatement(gadget) :
-          await createRolledUpGadgetImplementationByLazyLoading(gadget);
+    if (useRolledUpImplementation) {
+      const writeScriptLoadingStatement = (gadget: GadgetDefinition) => {
+        return writeStream.write(
+          `mw.loader.load("${
+            getStaticUrlToFile(gadget.name, 'gadget-impl.js')
+          }");\n`
+        );
       }
+      gadgetsToBuild.forEach(writeScriptLoadingStatement);
+    } else {
+      // Async generator implementation
+      async function* createGadgetImplementations() {
+        for (const gadget of gadgetsToBuild) {
+          yield await createRolledUpGadgetImplementationByLazyLoading(gadget);
+        }
+      }
+      // should be ES5-compliant
+      writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(function (res) { return res.text(); })\n\t\t.then(function (contents) { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
+      for await (const gadgetImplementation of createGadgetImplementations()) {
+        writeStream.write(gadgetImplementation);
+        writeStream.write('\n\n');
+      }
+      writeStream.write(`}`);
     }
-    // should be ES5-compliant
-    writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(function (res) { return res.text(); })\n\t\t.then(function (contents) { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
-    for await (const gadgetImplementation of awaitTheseTasks()) {
-      writeStream.write(gadgetImplementation);
-      writeStream.write(useRolledupImplementation ? '\n' : '\n\n');
-    }
-    writeStream.write(`}`);
   } catch (err) {
     console.error(err);
   } finally {
@@ -235,7 +241,6 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
  * Used to simulate ResourceLoader's conditional loading
  * 
  * @param resourceLoader        conditions to load
- * @param minify
  * @returns
  */
 function generateGadgetImplementationLoadConditionsWrapperCode(
@@ -315,7 +320,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * @param minify
  * @returns
  */
-export async function writeRolledUpGadgetImplementation(gadgetImplementationFilePath: string, gadget: GadgetDefinition, minify: boolean): Promise<void> {
+export async function writeRolledUpGadgetImplementation(this: PluginContext, gadgetImplementationFilePath: string, gadget: GadgetDefinition, minify: boolean): Promise<void> {
   const { name } = gadget;
   
   if (!checkGadgetExists(name)) {
@@ -333,24 +338,21 @@ export async function writeRolledUpGadgetImplementation(gadgetImplementationFile
     `function ($, jQuery, require, module) {`,
   ];
 
-  const readFileContents = (src: string) => readFile(
-    resolveDistGadgetsPath(name, resolveFileExtension(src)), 
-    { encoding: 'utf-8', flag: 'r' }
-  );
-
-  if (!!gadget.scripts) {
-    (await Promise.all(gadget.scripts.map((script) => (
-      readFileContents(script)
-    )))).forEach((src) => {
-      body.push(src);
+  if (gadget?.scripts?.length) {
+    gadget.scripts.forEach((script) => {
+      body.push(...this.getModuleInfo(resolveSrcGadgetsPath(gadget.name, script))?.code || []);
     });
   }
 
   body.push(`}, {"css": [`);
 
-  if (!!gadget.styles) {
-    (await Promise.all(gadget.styles.map((script) => (
-      readFileContents(script)
+  const readFileContents = (src: string) => readFile(
+    resolveDistGadgetsPath(name, resolveFileExtension(src)), 
+    { encoding: 'utf-8', flag: 'r' }
+  );
+  if (gadget?.styles?.length) {
+    (await Promise.all(gadget.styles.map((style) => (
+      readFileContents(style)
     )))).forEach((src) => {
       body.push(minify ? `"` : `\``);
       body.push(src.trim().replaceAll(
