@@ -465,7 +465,7 @@ export function mapGadgetSourceFiles(gadgetsToBuild: GadgetDefinition[]): [{ [Ke
     definition.i18n?.forEach((i18nFile) => {
       assets.push({ 
         src: resolveSrcGadgetsPath(name, i18nFile), 
-        dest: `${name}/${i18nFile}`, 
+        dest: name, 
         overwrite: true 
       });
     });
