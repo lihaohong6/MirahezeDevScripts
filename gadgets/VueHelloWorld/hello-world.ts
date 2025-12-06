@@ -3,29 +3,29 @@
 // Source:
 // https://en.wikipedia.org/wiki/User:Plantaest/TestVue.js
 if (
-	mw.config.get('wgCanonicalNamespace') === 'Special'
-    && mw.config.get('wgCanonicalSpecialPageName') === 'Blankpage'
-    && mw.config.get('wgTitle').endsWith('/HelloWorld')
-) {	
-    mw.loader.using(['vue', '@wikimedia/codex']).then(function (require) {
-        const Vue = require('vue');
-        const Codex = require('@wikimedia/codex');
+    mw.config.get( 'wgCanonicalNamespace' ) === 'Special' &&
+    mw.config.get( 'wgCanonicalSpecialPageName' ) === 'Blankpage' &&
+    mw.config.get( 'wgTitle' ).endsWith( '/HelloWorld' )
+) {
+    mw.loader.using( [ 'vue', '@wikimedia/codex' ] ).then( ( require ) => {
+        const Vue = require( 'vue' );
+        const Codex = require( '@wikimedia/codex' );
 
-        const store = Vue.reactive({
+        const store = Vue.reactive( {
             count: 0,
             increment() {
                 this.count++;
             },
-        });
+        } );
 
-        const App = Vue.createMwApp({
+        const App = Vue.createMwApp( {
             template: `
             <component-a/>
             <component-b/>
             `,
-        });
+        } );
 
-        App.component('component-a', {
+        App.component( 'component-a', {
             template: `
             <div style="margin-bottom: 1rem">
               <cdx-button action="progressive" type="primary" @click="store.increment()">
@@ -33,13 +33,13 @@ if (
               </cdx-button>
             </div>
             `,
-            setup: () => ({ store }),
+            setup: () => ( { store } ),
             components: {
                 CdxButton: Codex.CdxButton,
             },
-        });
+        } );
 
-        App.component('component-b', {
+        App.component( 'component-b', {
             template: `
             <div>
               <cdx-button @click="store.increment()">
@@ -47,13 +47,13 @@ if (
               </cdx-button>
             </div>
             `,
-            setup: () => ({ store }),
+            setup: () => ( { store } ),
             components: {
                 CdxButton: Codex.CdxButton,
             },
-        });
+        } );
 
-        App.mount('#content');
-    });
+        App.mount( '#content' );
+    } );
 }
 // </nowiki>

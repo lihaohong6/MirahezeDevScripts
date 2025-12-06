@@ -3,13 +3,21 @@ workspace:
   disable: []
 
 gadgets:
+  AudioPlayer:
+    scripts:
+      - index.js
+
   BackgroundImage:
     scripts:
       - index.js
     styles:
       - style.less
-  
-  AudioPlayer:
+
+  ImportButton:
+    scripts:
+      - index.ts
+
+  Tab:
     scripts:
       - index.js
 

@@ -1,3 +1,4 @@
+/* stylelint-disable */
 html {
     --gadget-bg-color: 255, 255, 255;
     --gadget-bg-opacity: 0.5;
@@ -177,5 +178,29 @@ body.skin-timeless.has-bg {
 
     #mw-content-block {
         background: unset;
+    }
+}
+
+body.skin-citizen.has-bg {
+    --gadget-bg-padding-half: calc(var(--padding-page) / 2);
+
+    #citizen-page-header,
+    .citizen-body-container,
+    .citizen-footer {
+        background: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
+        backdrop-filter: blur(2px);
+    }
+
+    .citizen-body-container {
+        margin-bottom: unset;
+        padding-bottom: var(--space-xl);
+    }
+
+    #citizen-page-header,
+    .citizen-body-container {
+        padding-left: var(--gadget-bg-padding-half);
+        padding-right: var(--gadget-bg-padding-half);
+        margin-left: var(--gadget-bg-padding-half);
+        margin-right: var(--gadget-bg-padding-half);
     }
 }

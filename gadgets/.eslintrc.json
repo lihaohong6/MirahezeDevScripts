@@ -1,0 +1,41 @@
+{
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "globals": {
+    "mw": "readonly"
+  },
+  "overrides": [
+    {
+      "files": [
+        "ImportButton/**",
+        "VueHelloWorld/**",
+        "Tab/**"
+      ],
+      "extends": [
+        "wikimedia/client",
+        "wikimedia/jquery"
+      ],
+      "rules": {
+        "indent": "off",
+        "@stylistic/indent": ["error", 4],  // 4 spaces
+        "comma-dangle": [
+          "error",
+          {
+            "arrays": "always-multiline",
+            "objects": "always-multiline",
+            "imports": "always-multiline",
+            "exports": "always-multiline",
+            "functions": "only-multiline"
+          }
+        ]
+      }
+    }
+  ]
+}

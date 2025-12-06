@@ -3,14 +3,25 @@
 	const portraitMode = window.innerWidth < window.innerHeight;
 
 	function setBackground(image) {
-		document.body.classList.add("has-bg");
+		if (image.startsWith("//")) {
+			image = "https:" + image;
+		}
+		const url = new URL(image);
+		const valid = url.protocol === 'http:' || url.protocol === 'https:';
+		if (!valid) {
+			mw.log.error('Invalid image URL:', image);
+			return;
+		}
 		const style = document.createElement('style');
 		style.innerHTML = `
 body.has-bg::before {
-	background-image: linear-gradient(rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${image});
+	background-image: linear-gradient(
+		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5)), 
+		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(url.toString())});
 }
-		`;
+			`;
 		document.head.appendChild(style);
+		document.body.classList.add("has-bg");
 	}
 
 	function checkBackgroundHintAndSet(dataset) {
