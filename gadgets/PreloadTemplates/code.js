@@ -418,48 +418,20 @@
 		);
 	}
 	
-	function loadMessages() {
-		var deferred = new $.Deferred();
-		if (mw.loader.getState('ext.gadget.i18n-js')) {
-			mw.loader.load('ext.gadget.i18n-js');
-			mw.hook('dev.i18n').add(function (i18n) {
-				i18n.loadMessages('PreloadTemplates')
-					.done(function (messages) {
-						deferred.resolve(messages || loadFallbackMessages());
-					});
-			});
-			return deferred;
-		}
-		deferred.resolve(loadFallbackMessages());
-		return deferred;
-	}
-	function loadFallbackMessages() {
-		mw.messages.set({
-			"PreloadTemplates__preload": "Preload template:",
-			"PreloadTemplates__choose": "(choose)",
-			"PreloadTemplates__help": "Select a template to insert its preloaded syntax at the current position",
-			"PreloadTemplates__devWiki": "Check the documentation on Dev Wiki",
-			"PreloadTemplates__error": "No valid syntax found at $1 or page is missing."
-		});
-		return {
-			msg: function () {
-				arguments[0] = "PreloadTemplates__" + arguments[0];
-				return mw.message.apply(this, arguments);
-			}
-		};
-	}
+	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
+  INJECT_FANDOM_UTILS_I18N();
 	
 	$.when(
-        loadMessages(),
-        mw.loader.using('mediawiki.util')
-    ).then(function(i18nData) {
-        preInit(i18nData);
-        // Doesn't work for Visual Editor, disabled
-        //mw.hook('ve.activationComplete').add(function () { // Visual Editor
-			//appendModule(true);
+		loadMessages(),
+		mw.loader.using('mediawiki.util')
+	).then(function(i18nData) {
+		preInit(i18nData);
+		// Doesn't work for Visual Editor, disabled
+		//mw.hook('ve.activationComplete').add(function () { // Visual Editor
+		//appendModule(true);
 		//});
-        if (mwc.wgAction === 'edit') {
-        	mw.hook( 'wikipage.content' ).add(init);
+		if (mwc.wgAction === 'edit') {
+			mw.hook( 'wikipage.content' ).add(init);
 		}
-    });
+	});
 })();

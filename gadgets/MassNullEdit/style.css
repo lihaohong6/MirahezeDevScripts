@@ -2,62 +2,62 @@
 
 /* Main modal */
 #mne-main {
-    width: 560px;
+  width: 560px;
 }
 
 /* Main modal input textarea */
 #mne-input {
-    border: 1px solid #aaa;
-    box-sizing: border-box;
-    height: 20em;
-    padding: 2px;
-    width: 100%;
+  border: 1px solid #aaa;
+  box-sizing: border-box;
+  height: 20em;
+  padding: 2px;
+  width: 100%;
 }
 
 /* Main modal notices element */
 #mne-output {
-    background-color: #fdd;
-    border: 1px solid #aaa;
-    box-sizing: border-box;
-    color: #111;
-    height: 10em;
-    margin-top: 5px;
-    overflow: auto;
-    padding: 2px;
-    width: 100%;
+  background-color: #fdd;
+  border: 1px solid #aaa;
+  box-sizing: border-box;
+  color: #111;
+  height: 10em;
+  margin-top: 5px;
+  overflow: auto;
+  padding: 2px;
+  width: 100%;
 }
 
 /* Main modal: switch buttons on processing state */
 #mne-main:not(.processing) #mne-main-pause,
 #mne-main.processing #mne-main-start {
-    opacity: 0.6;
-    pointer-events: none;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* "Add pages" modal rows */
 .mne-addpages-row {
-    padding: 4px 0;
+  padding: 4px 0;
 }
 .mne-addpages-row > label {
-    margin-right: 4px;
+  margin-right: 4px;
 }
 
 /* "Add pages" modal: disable while processing */
 #mne-addpages.processing #mne-addpages-start,
 #mne-addpages.processing > section {
-    opacity: 0.6;
-    pointer-events: none;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* Modal footer message */
 .mne-modal .qdmodal-spinner-container {
-    --qdmodal-spinner-size: 40px;
+  --qdmodal-spinner-size: 40px;
 }
 .mne-modal #mne-processing-msg {
-    flex-grow: 1;
-    text-indent: 8px;
+  flex-grow: 1;
+  text-indent: 8px;
 }
 .mne-modal:not(.processing) .qdmodal-spinner-container,
 .mne-modal:not(.processing) #mne-processing-msg {
-    display: none;
+  display: none;
 }

@@ -1,23 +1,23 @@
 #text-mass-protect {
-    height: 20em;
-    width: 100%;
+  height: 20em;
+  width: 100%;
 }
- 
+
 #text-error-output {
-    width: 100%;
-    margin: 5px auto 0 auto;
-    color: black;
-    background-color: #FFBFBF;
-    border: 1px solid black;
-    font-weight: bold;
-    overflow: scroll;
-    min-height: 120px;
+  width: 100%;
+  margin: 5px auto 0 auto;
+  color: black;
+  background-color: #FFBFBF;
+  border: 1px solid black;
+  font-weight: bold;
+  overflow: scroll;
+  min-height: 120px;
 }
- 
+
 #t-mp {
-    cursor: pointer;
+  cursor: pointer;
 }
- 
+
 #protection-bold {
-    font-weight: bold;
+  font-weight: bold;
 }
