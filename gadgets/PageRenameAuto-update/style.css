@@ -1,0 +1,89 @@
+#PRAQueueProgress {
+  border: 2px solid black;
+  box-sizing: border-box;
+  float: right;
+  height: 17px;
+  margin: 6px 5px 0 0;
+  width: 200px;
+}
+
+.theme-dark #PRAQueueProgress {
+  border-color: white;
+}
+
+#PRAProgressInd {
+  background-color: green;
+  float: left;
+  height: 100%;
+  width: 0%;
+}
+
+.theme-dark #PRAProgressInd {
+  background-color: darkgreen;
+}
+
+#PRAFailedLog div:odd {
+  background-color: darkred;
+}
+
+#PRAQueue div:odd {
+  background-color: lightgray;
+}
+
+.theme-dark #PRAQueue div:odd {
+  background-color: #333;
+}
+
+.mw-input a {
+  font-weight: bold;
+}
+
+#PRAstart {
+  margin-left: 0;
+}
+
+#PRAprocess {
+  margin-left: 5px;
+}
+
+#PRAStatus {
+  font-weight: bold;
+}
+
+#PRAQueue {
+  background-color: white;
+  border: 1px solid black;
+  box-sizing: border-box;
+  float: left;
+  font-weight: bold;
+  height: 300px;
+  overflow: scroll;
+  width: 798px;
+}
+
+.theme-dark #PRAQueue {
+  background-color: black;
+  border-color: white;
+}
+
+#PRAQueueLength {
+  float: left;
+  font-weight: bold;
+  margin: 5px 15px 0 0;
+}
+
+#PRAFailedLog {
+  background-color: #FFBFBF;
+  border: 1px solid black;
+  box-sizing: border-box;
+  font-weight: bold;
+  height: 150px;
+  margin: 5px auto 0 auto;
+  overflow: scroll;
+  width: 798px;
+}
+
+.theme-fandomdesktop-dark #PRAFailedLog {
+  background-color: darkred;
+  border-color: white;
+}

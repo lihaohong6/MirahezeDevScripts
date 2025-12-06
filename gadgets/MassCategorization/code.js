@@ -100,7 +100,7 @@
       });
     },
     preload: function() {
-      var required = ['ext.gadget.fandoom-ui-utils-modal', 'ext.gadget.fandoom-ui-utils-dorui', 'ext.gadget.powertools-placement'];
+      var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsDorui', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
       var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
       if (missing.length > 0) {
         for (var i = 0; i < missing.length; i++) {
@@ -930,72 +930,8 @@
     }
   }, window.MassCategorization);
   
-  function loadMessages() {
-    var deferred = new $.Deferred();
-    if (mw.loader.getState('ext.gadget.i18n-js')) {
-      mw.loader.load('ext.gadget.i18n-js');
-      mw.hook('dev.i18n').add(function (i18n) {
-        i18n.loadMessages('MediaWiki:MassCategorization', { apiEntrypoint: 'self' })
-        .done(function (messages) {
-          deferred.resolve(messages || loadFallbackMessages()); 
-        });
-      });
-      return deferred;
-    }
-    deferred.resolve(loadFallbackMessages());
-    return deferred;
-  }
-  function loadFallbackMessages() {
-    mw.messages.set({
-      "MassCategorization__modal-title": "MassCategorization",
-      "MassCategorization__my-tools-button": "MassCategorization",
-      "MassCategorization__start-button": "Start",
-      "MassCategorization__pause-button": "Pause",
-      "MassCategorization__cancel-button": "Cancel",
-      "MassCategorization__add-category-contents-button": "Add category contents",
-      "MassCategorization__mode-dropdown-label": "Mode:",
-      "MassCategorization__mode-dropdown-add": "Add",
-      "MassCategorization__mode-dropdown-remove": "Remove",
-      "MassCategorization__mode-dropdown-replace": "Replace",
-      "MassCategorization__category-label": "Category:",
-      "MassCategorization__category-replace-label": "Replace with:",
-      "MassCategorization__options-section-label": "Options:",
-      "MassCategorization__options-no-include-label": "Do not include in transclusion (for templates)",
-      "MassCategorization__options-case-sensitive-label": "Case sensitive (remove and replace only)",
-      "MassCategorization__options-suppress-automatic-label": "Suppress (automatic) from the edit summary",
-      "MassCategorization__pages-section-label": "Put the name of each page you want to categorize on a separate line",
-      "MassCategorization__status-description": "Here you will see what the script is doing",
-      "MassCategorization__status-categorizing": "Categorizing $1...",
-      "MassCategorization__status-fetching": "Fetching content for $1...",
-      "MassCategorization__status-publishing": "Publishing $1...",
-      "MassCategorization__status-published-waiting": "Published $1. Waiting on delay...",
-      "MassCategorization__status-failed-publish-waiting": "Failed while publishing $1. Waiting on delay...",
-      "MassCategorization__status-no-changes-waiting": "No changes made. Waiting on delay...",
-      "MassCategorization__status-finished": "Finished!",
-      "MassCategorization__status-paused": "Paused",
-      "MassCategorization__close-modal-prompt": "Are you sure you want to close the modal without finishing?",
-      "MassCategorization__add-category-prompt": "Please enter the category name (no category prefix):",
-      "MassCategorization__nothing-left-to-do-prompt": "Nothing left to do, or next line is blank",
-      "MassCategorization__error-failed-to-get-contents": "Failed to get contents of $1",
-      "MassCategorization__error-category-does-not-exist": "$1 is empty",
-      "MassCategorization__interrupted": "Execution was interrupted by a change in the settings",
-      "MassCategorization__error-page-does-not-exist": "$1 does not exist",
-      "MassCategorization__automatic": "automatic",
-      "MassCategorization__summary": "Updating categories: $1",
-      "MassCategorization__change-added": "added $1",
-      "MassCategorization__change-removed": "removed $1",
-      "MassCategorization__change-replaced": "replaced $1 with $2",
-      "MassCategorization__error-missing-category": "Missing category in update number $1",
-      "MassCategorization__error-missing-replacement": "Missing replacement category in update number $1",
-      "MassCategorization__error-publishing": "Could not publish an edit to $1"
-    });
-    return {
-      msg: function () {
-        arguments[0] = "MassCategorization__" + arguments[0];
-        return mw.message.apply(this, arguments);
-      }
-    };
-  }
+  /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
+  INJECT_FANDOM_UTILS_I18N();
   
   if (!window.MassCategorization.shouldRun()) return;
   

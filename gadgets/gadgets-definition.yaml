@@ -32,9 +32,9 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/AjaxBatchDelete
     requires: 
-      - fandoom-ui-utils-modal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -52,9 +52,9 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/AjaxBatchUndelete
     requires: 
-      - fandoom-ui-utils-modal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -70,9 +70,9 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/AjaxBatchRedirect
     requires: 
-      - fandoom-ui-utils-modal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -91,7 +91,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/Countdown
     requires:
-      - i18n-js
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     i18n:
@@ -138,7 +138,7 @@ gadgets:
     scripts:
       - code.js
 
-  i18n-js:
+  FandoomUtilsI18njs:
     description: "Library for loading i18n messages."
     authors:
       - Cqm
@@ -158,10 +158,10 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/MassCategorization
     requires:
-      - fandoom-ui-utils-modal
-      - fandoom-ui-utils-dorui
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - FandoomUiUtilsDorui
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -188,9 +188,9 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/MassNullEdit
     requires:
-      - fandoom-ui-utils-qdmodal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsQdmodal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -207,9 +207,9 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/MassProtect
     requires:
-      - fandoom-ui-utils-modal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -226,9 +226,25 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/MassRename
     requires:
-      - fandoom-ui-utils-modal
-      - powertools-placement
-      - i18n-js
+      - FandoomUiUtilsModal
+      - PowertoolsPlacement
+      - FandoomUtilsI18njs
+    scripts:
+      - code.js
+    styles:
+      - style.css
+    i18n:
+      - i18n.json
+
+  PageRenameAuto-update:
+    description: "Automatically updates page links, transclusions and category members throughout the wiki upon renaming a page."
+    authors: 
+      - Jr Mime
+      - Foodbandlt
+      - KockaAdmiralac
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/PageRenameAuto-update
     scripts:
       - code.js
     styles:
@@ -253,7 +269,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/PreloadTemplates
     requires:
-      - i18n-js
+      - FandoomUtilsI18njs
     scripts:
       - code.js
     styles:
@@ -262,7 +278,6 @@ gadgets:
       - i18n.json
     resourceLoader:
       actions: "edit"
-      namespaces: "0,1,2,3,6,12,13,14,500,501"
 
   ViewSource:
     description: "Adds a \"View source\" link to the \"Edit\" menu"
@@ -272,7 +287,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/View_Source
     requires:
-      - i18n-js
+      - FandoomUtilsI18njs
     scripts:
       - code.js
       - definitions.js
@@ -283,12 +298,3 @@ gadgets:
     resourceLoader:
       actions:
         - view
-
-  VueHelloWorld:
-    description: "A test script used as a demonstration of Vue.js and Codex"
-    authors:
-      - Plantaest
-    links:
-      - https://en.wikipedia.org/wiki/User:Plantaest/TestVue.js
-    scripts:
-      - hello-world.ts

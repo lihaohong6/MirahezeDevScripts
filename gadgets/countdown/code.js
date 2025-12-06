@@ -197,55 +197,8 @@
 		}
 	}
 	
-	function loadMessages() {
-		var deferred = new $.Deferred();
-		if (mw.loader.getState('ext.gadget.i18n-js')) {
-			mw.loader.load('ext.gadget.i18n-js');
-			mw.hook('dev.i18n').add(function (i18n) {
-				i18n.loadMessages('Countdown', { 
-					cacheVersion: 2
-				}).done(function (messages) {
-					if (!messages) { 
-						deferred.resolve(loadFallbackMessages()); 
-						return;
-					}
-					messages.useContentLang();
-					deferred.resolve(messages);
-				});
-			});
-			return deferred;
-		}
-		deferred.resolve(loadFallbackMessages());
-		return deferred;
-	}
-	function loadFallbackMessages() {
-		mw.messages.set({
-			"Countdown__and": "and",
-			"Countdown__second": "second",
-			"Countdown__seconds": "seconds",
-			"Countdown__minute": "minute",
-			"Countdown__minutes": "minutes",
-			"Countdown__hour": "hour",
-			"Countdown__hours": "hours",
-			"Countdown__day": "day",
-			"Countdown__days": "days",
-			"Countdown__bad-date": "Invalid Date",
-			"Countdown__second-short": "s",
-			"Countdown__minute-short": "m",
-			"Countdown__hour-short": "h",
-			"Countdown__day-short": "d",
-			"Countdown__seconds2": "seconds",
-			"Countdown__minutes2": "minutes",
-			"Countdown__hours2": "hours",
-			"Countdown__days2": "days"
-		});
-		return {
-			msg: function () {
-				arguments[0] = "Countdown__" + arguments[0];
-				return mw.message.apply(this, arguments);
-			}
-		};
-	}
+	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
+  INJECT_FANDOM_UTILS_I18N({ "useContentLang": true });
 	
 	loadMessages().done(function (messages) {
 		i18n = messages;
