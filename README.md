@@ -8,7 +8,7 @@ npm run build
 ```
 Running this command will generate gadgets in the folder `dist/` in the project directory. The files that will be created are:
  - Minified scripts & stylesheets
- - Minified i18n.json files
+ - i18n.json files (not minified)
  - Rolled-up gadget implementation, in a file named `gadget-impl.js` on each gadget sub-directory
 
 In addition, this command will also create an entrypoint file named `load.js` in the `dist/` folder. This file simply tells your local MediaWiki instance to load & implement the userscripts placed on the `gadgets/` folder, provided they have been defined in `gadgets/gadgets-definition.yaml` (Refer to [Gadgets Definition](#gadgets-definition) for more information on how to configure this file). To use the `load.js` file, start up a Preview server on Vite (using the command `npm run serve`) and add the following line of code in your User:&lt;Username&gt;/common.js on your local MediaWiki instance:
@@ -32,7 +32,7 @@ Additional flags are supported to configure how the userscripts will be served:
 <code>npm run build</code> (<i>default</i>)
 </td>
 <td>
-Serve individual minified JS, CSS, and i18n.json files, along with the minified <code>gadget-impl.js</code> file.  
+Serve individual minified JS & CSS files, along with the minified <code>gadget-impl.js</code> file.  
 </td>
 </tr>
 <tr>
@@ -40,7 +40,7 @@ Serve individual minified JS, CSS, and i18n.json files, along with the minified 
 <code>npm run build -- -- --no-minify</code>
 </td>
 <td>
-Serve individual JS, CSS, and i18n.json files, along with the <code>gadget-impl.js</code> file, without minification.  
+Serve individual JS & CSS, along with the <code>gadget-impl.js</code> file, without minification.  
 </td>
 </tr>
 <tr>
@@ -48,7 +48,7 @@ Serve individual JS, CSS, and i18n.json files, along with the <code>gadget-impl.
 <code>npm run build -- -- --no-rollup</code>
 </td>
 <td>
-Serve individual minified JS, CSS, and i18n.json files, but do not create <code>gadget-impl.js</code>. When gadgets are loaded using the entrypoint file <code>dist/load.js</code>, each individual script & stylesheet will be executed & applied lazily and asynchronously.
+Serve individual minified JS & CSS files, but do not create <code>gadget-impl.js</code>. When gadgets are loaded using the entrypoint file <code>dist/load.js</code>, each individual script & stylesheet will be executed & applied lazily and asynchronously.
 </td>
 </tr>
 <tr>
