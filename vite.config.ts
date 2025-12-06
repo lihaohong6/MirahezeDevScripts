@@ -41,10 +41,13 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
   const gadgetsToBuild = getGadgetsToBuild(gadgetsDefinition);
   const [bundleInputs, bundleAssets] = mapGadgetSourceFiles(gadgetsToBuild);
 
+  const minify = !customArgs['no-minify'];
+  const rollup = !customArgs['no-rollup'];
+
   return {
     plugins: [
       // Generate the load.js entrypoint file 
-      autogenerateEntrypoint(gadgetsToBuild, customArgs['no-rollup']),
+      autogenerateEntrypoint(gadgetsToBuild, rollup),
       
       // In Vite Build, copy the i18n.json files to dist/
       viteStaticCopy({
@@ -53,12 +56,12 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       }),
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
-      !customArgs['no-rollup'] &&
-        createMwGadgetImplementation(gadgetsToBuild, customArgs['no-minify']),
+      rollup &&
+        createMwGadgetImplementation(gadgetsToBuild, minify),
     ],
     build: {
-      minify: !customArgs['no-minify'],
-      cssMinify: !customArgs['no-minify'],
+      minify: minify,
+      cssMinify: minify,
       rollupOptions: {
         input: bundleInputs,
         output: {

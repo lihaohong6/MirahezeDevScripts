@@ -1,6 +1,6 @@
-import { readFile, writeFile } from 'fs/promises';
+import { readFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
-import { PluginContext } from 'rollup';
+import { OutputBundle } from 'rollup';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import { Target } from 'vite-plugin-static-copy';
@@ -13,7 +13,6 @@ import {
   resolveEntrypointFilepath,
   checkGadgetExists,
   resolveFilepathForBundleInputKey,
-  resolveDistGadgetsPath,
 } from './utils';
 
 let viteServerOrigin: string;
@@ -316,11 +315,17 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * Outputs directly to a write stream for better performance.
  * 
  * @param gadgetImplementationFilePath
+ * @param writeBundle
  * @param gadget
  * @param minify
  * @returns
  */
-export async function writeRolledUpGadgetImplementation(this: PluginContext, gadgetImplementationFilePath: string, gadget: GadgetDefinition, minify: boolean): Promise<void> {
+export async function createRolledUpGadgetImplementation(
+  gadgetImplementationFilePath: string, 
+  writeBundle: OutputBundle,
+  gadget: GadgetDefinition, 
+  minify: boolean
+): Promise<string> {
   const { name } = gadget;
   
   if (!checkGadgetExists(name)) {
@@ -340,49 +345,49 @@ export async function writeRolledUpGadgetImplementation(this: PluginContext, gad
 
   if (gadget?.scripts?.length) {
     gadget.scripts.forEach((script) => {
-      body.push(...this.getModuleInfo(resolveSrcGadgetsPath(gadget.name, script))?.code || []);
+      const moduleInfo = writeBundle[`gadgets/${name}/${resolveFileExtension(script)}`];
+      if (moduleInfo.type === 'chunk') body.push(moduleInfo.code);
     });
   }
 
   body.push(`}, {"css": [`);
 
-  const readFileContents = (src: string) => readFile(
-    resolveDistGadgetsPath(name, resolveFileExtension(src)), 
-    { encoding: 'utf-8', flag: 'r' }
-  );
   if (gadget?.styles?.length) {
-    (await Promise.all(gadget.styles.map((style) => (
-      readFileContents(style)
-    )))).forEach((src) => {
-      body.push(minify ? `"` : `\``);
-      body.push(src.trim().replaceAll(
-        minify ? /(")/g : /(`)/g,
-        '\\$1'
-      ));
-      body.push(minify ? `"` : `\``);
-      body.push(', ');
+    gadget.styles.forEach((style) => {
+      const assetInfo = writeBundle[`gadgets/${name}/${resolveFileExtension(style)}`];
+      if (assetInfo.type === 'asset') {
+        body.push(minify ? `"` : `\``);
+        (() => {
+          let src = assetInfo.source;
+          if (src instanceof Uint8Array) {
+            src = new TextDecoder().decode(src);
+          }
+          src = src.trim().replaceAll(
+            minify ? /(")/g : /(`)/g,
+            '\\$1'
+          );
+          body.push(src);
+        })();
+        body.push(minify ? `"` : `\``);
+        body.push(', ');
+      }
     });
   }
 
   body.push(`]}, {}, {}, null];`);
   body.push(`});`);
 
-  await writeFile(
+  return (await transformWithEsbuild(
+    [
+      `(function (mw) {`,
+      ...rsCondHead,
+      ...body,
+      ...rsCondTail,
+      `})(mediaWiki);`,
+    ].join(''), 
     gadgetImplementationFilePath, 
-    (await transformWithEsbuild(
-      [
-        `(function (mw) {`,
-        ...rsCondHead,
-        ...body,
-        ...rsCondTail,
-        `})(mediaWiki);`,
-      ].join(''), 
-      gadgetImplementationFilePath, 
-      { minify }
-    )).code,
-    { encoding: 'utf-8', flag: 'w' }
-  );
-
+    { minify }
+  )).code;
 }
 
 /**

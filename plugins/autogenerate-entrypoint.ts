@@ -7,10 +7,10 @@ import type { GadgetDefinition } from '../dev-utils/types.js';
  * to be loaded on the MediaWiki client.
  * 
  * @param gadgetsToBuildAtIntialState 
- * @param noRollup
+ * @param rollup
  * @returns 
  */
-export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: GadgetDefinition[], noRollup: boolean = false): PluginOption {
+export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: GadgetDefinition[], rollup: boolean = false): PluginOption {
   
   return {
     name: 'autogenerate-entrypoint',
@@ -20,7 +20,7 @@ export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: Gadg
     buildEnd() {
       const startTime = Date.now();
       this.info('Creating dist/load.js...');
-      serveGadgets(gadgetsToBuildAtIntialState, !noRollup)
+      serveGadgets(gadgetsToBuildAtIntialState, rollup)
         .then(() => this.info(`Created dist/load.js in ${(Date.now() - startTime) / 1000} s`));
     },
   }
