@@ -75,8 +75,25 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
               return assetInfo.name;
             }
             return 'assets/[name][extname]';
-          }
-        }
+          },
+          // generatedCode: {
+          //   /**
+          //    * Turn these settings off if you want to enforce ES5 compliance
+          //    */
+          //   arrowFunctions: true,
+          //   constBindings: true,
+          //   objectShorthand: true,
+          // },
+          globals: {
+            /**
+             * Pass this to ensure that Vite/Rollup does not use $ as a 
+             * minification symbol
+             */
+            'jquery': '$',
+            'mediawiki': 'mw',
+          },
+        },
+        external: ['jquery', 'mediawiki']
       },
       outDir: 'dist',
       emptyOutDir: true
@@ -87,6 +104,25 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
           // Add any Less-specific options here
         }
       }
+    },
+    /**
+     * Additional ESBuild Settings
+     */
+    esbuild: {
+      
+      // format: 'esm',
+
+      // Set this on if you want to preserve comments in /!* */ or //! blocks 
+      // legalComments: 'inline', 
+      
+      // Ignore annotations such as /* @__PURE__ */ when building
+      // ignoreAnnotations: true,
+
+      // Minification settings
+      // minifyWhitespace: minify && true,
+      // minifyIdentifiers: minify && false,
+      // minifySyntax: minify && true,
+
     },
     optimizeDeps: {
       esbuildOptions: {
