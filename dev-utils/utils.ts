@@ -27,7 +27,6 @@ export function getFileType(filename: string): "script" | "style" | "other" {
 }
 
 /**
- * 
  * @param filepath 
  * @returns 
  */
@@ -51,7 +50,6 @@ export function resolveFileExtension(filepath: string): string {
 }
 
 /**
- * 
  * @param filepath 
  * @returns 
  */
@@ -61,6 +59,7 @@ export function removeFileExtension(filepath: string): string {
 
 /**
  * Used to resolve the bundle input key for compiled JS/CSS
+ * 
  * @param filepath 
  * @returns 
  */
@@ -92,7 +91,7 @@ export function resolveSrcGadgetsPath(gadgetName?: string, codeRelativePath?: st
 }
 
 /**
- * Resolves the path of `src/gadgets/gadgets-definitions.yaml`
+ * Resolves the path of `gadgets/gadgets-definitions.yaml`
  */
 export function resolveGadgetsDefinitionManifestPath(): string {
   return resolveSrcGadgetsPath('gadgets-definition.yaml');
@@ -129,9 +128,7 @@ export function resolveDistPath(relativeFilepath?: string): string {
  * @returns 
  */
 export function resolveDistGadgetsPath(gadgetName?: string, codeRelativePath?: string): string {
-  const srcDirPath = resolveDistPath();
-  const gadgetsDir = resolve(srcDirPath, './gadgets');
-  let gadgetDir = gadgetsDir;
+  let gadgetDir = resolveDistPath();
   for (let rel of [gadgetName, codeRelativePath]) {
     if (!rel) { break; }
     gadgetDir = resolve(gadgetDir, rel);
@@ -145,8 +142,7 @@ export function resolveDistGadgetsPath(gadgetName?: string, codeRelativePath?: s
  * @returns 
  */
 export function resolveEntrypointFilepath(): string {
-  const distFolder = resolveDistPath();
-  return normalizePath(resolve(distFolder, 'load.js'));
+  return normalizePath(resolveDistPath('load.js'));
 }
 
 /**

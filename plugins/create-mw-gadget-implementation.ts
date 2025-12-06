@@ -24,7 +24,7 @@ export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefin
         const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
         this.emitFile({
           code: await createRolledUpGadgetImplementation(gadgetImplementationFilePath, bundle, gadget, minify),
-          fileName: `gadgets/${gadget.name}/gadget-impl.js`,
+          fileName: `${gadget.name}/gadget-impl.js`,
           type: 'prebuilt-chunk'
         });
       }

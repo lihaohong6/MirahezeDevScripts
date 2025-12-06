@@ -34,7 +34,7 @@ export function setViteServerOrigin(_origin: string): void {
 }
 
 /** 
- * @param _origin
+ * @param _gadgetNamespace
  * @returns
  */
 export function setGadgetNamespace(_gadgetNamespace: string): void {
@@ -43,8 +43,11 @@ export function setGadgetNamespace(_gadgetNamespace: string): void {
 
 /**
  * Resolve the static URL to the file in the specified gadget directory.
- * This is passed in the entrypoint file (load.js) to `mw.loader.impl`, 
- * and is used by the MediaWiki client to load and execute/apply the JS/CSS files.
+ * 
+ * Meant to be used in the development stage on `npm run serve`
+ * 
+ * This is mainly used in the entrypoint file (load.js). The URLs will be loaded 
+ * and the scripts/stylesheets executed/applied asynchronously.
  * 
  * @param gadgetSubdir
  * @param filepath
@@ -52,7 +55,7 @@ export function setGadgetNamespace(_gadgetNamespace: string): void {
  */
 function getStaticUrlToFile(gadgetSubdir: string, filepath: string): string {
   filepath = resolveFileExtension(filepath);
-  return encodeURI(`${viteServerOrigin!}/gadgets/${gadgetSubdir}/${filepath}`);
+  return encodeURI(`${viteServerOrigin!}/${gadgetSubdir}/${filepath}`);
 }
 
 /**
@@ -74,8 +77,8 @@ interface GadgetPremCheck {
 /**
  * Processes the parsed gadgets definition and does the following:
  *  1) It selects which gadgets to include/exclude when serving/building, based 
- *     on the "workspace.enable_all", "workspace.enable", and/or "workspace.disable" properties, or
- *     on the "gadgets.<GADGET-NAME>.disabled" property of each gadget
+ *     on the "`workspace.enable_all`", "`workspace.enable`", and/or "`workspace.disable`" 
+ *     properties, or on the "`gadgets.<GADGET-NAME>.disabled`" property of each gadget
  *  2) It excludes the gadgets with unresolved directories
  *  3) It sets the gadget build order so gadgets with no required dependencies are loaded first
  *  4) It excludes gadgets with unknown dependencies
@@ -311,8 +314,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
 }
 
 /**
- * Writes an `mw.loader.impl` implementation with direct execution of each script and stylesheet.
- * Outputs directly to a write stream for better performance.
+ * Creates an `mw.loader.impl` implementation with direct execution of each script and stylesheet.
  * 
  * @param gadgetImplementationFilePath
  * @param writeBundle
@@ -345,7 +347,7 @@ export async function createRolledUpGadgetImplementation(
 
   if (gadget?.scripts?.length) {
     gadget.scripts.forEach((script) => {
-      const moduleInfo = writeBundle[`gadgets/${name}/${resolveFileExtension(script)}`];
+      const moduleInfo = writeBundle[`${name}/${resolveFileExtension(script)}`];
       if (moduleInfo.type === 'chunk') body.push(moduleInfo.code);
     });
   }
@@ -354,7 +356,7 @@ export async function createRolledUpGadgetImplementation(
 
   if (gadget?.styles?.length) {
     gadget.styles.forEach((style) => {
-      const assetInfo = writeBundle[`gadgets/${name}/${resolveFileExtension(style)}`];
+      const assetInfo = writeBundle[`${name}/${resolveFileExtension(style)}`];
       if (assetInfo.type === 'asset') {
         body.push(minify ? `"` : `\``);
         (() => {
@@ -455,7 +457,7 @@ export function mapGadgetSourceFiles(gadgetsToBuild: GadgetDefinition[]): [{ [Ke
   gadgetsToBuild.forEach((definition) => {
     const { name } = definition;
     const loadFile = (filepath: string) => {
-      const key = `gadgets/${name}/${resolveFilepathForBundleInputKey(filepath)}`;
+      const key = `${name}/${resolveFilepathForBundleInputKey(filepath)}`;
       entries[key] = resolveSrcGadgetsPath(name, filepath);
     }
     definition.styles?.forEach(loadFile);

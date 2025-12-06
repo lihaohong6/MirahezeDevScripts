@@ -6,6 +6,11 @@ interface CustomCliArguments {
   'no-rollup'?: boolean
 }
 
+/**
+ * Parse custom Command Line Arguments.
+ * 
+ * @returns 
+ */
 export function resolveCommandLineArgumentsPassedToVite() {
   const customArgs = process.argv.slice(3);
   let args: CustomCliArguments = {};
