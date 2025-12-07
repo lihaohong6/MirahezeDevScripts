@@ -7,7 +7,7 @@
 * Authors:     Foodbandlt
 *              Jr Mime
 *              KockaAdmiralac
-* Used files:  [[File:w:c:File:24px-spinner-black.gif]]
+* Used files:  [[w:c:File:24px-spinner-black.gif]]
 */
 (function() {
   'use strict';
@@ -371,9 +371,6 @@
       PRA.api = new mw.Api();
       PRA.i18n = i18n;
       
-      // Replace with your own style if you so wish
-      mw.loader.load('https://dev.miraheze.org/wiki/User:CoolMikeHatsune22/PageRenameAuto-update.css?action=raw&ctype=text/css', 'text/css');
-      
       if (
         PRA.wg.wgCanonicalSpecialPageName === 'Blankpage' &&
         mw.util.getParamValue('blankspecial') === 'pageusageupdate'
@@ -543,7 +540,7 @@
           'mediawiki.user',
           'mediawiki.util'
         ])
-      ).then(this.initialize.bind(this, 'i18n'));
+      ).then(this.initialize.bind(this));
     }
   };
 

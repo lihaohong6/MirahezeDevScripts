@@ -60,8 +60,8 @@
     nocreate: true
   };
   var i18n;
-  // Media, Special, Message Wall, Thread, Board
-  var nsBlacklist = ['-2', '-1', '1200', '1201', '2000'];
+  // Media, Special
+  var nsBlacklist = ['-2', '-1'];
   var nsCategory = config.wgFormattedNamespaces[14] + ':';
   var nsFile = config.wgFormattedNamespaces[6] + ':';
   
@@ -502,7 +502,7 @@
       loadMessages(),
       mw.loader.using(required)
     ).then(function (messages) {
-      i18n = messages;
+      i18n = messages.msg;
       main();
     });
   }

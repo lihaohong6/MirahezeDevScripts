@@ -8,7 +8,8 @@
 */
 
 (function() {
-  
+  if (window.MassCategorization && window.MassCategorization.loaded) return;
+
   window.MassCategorization = $.extend({
     loaded: true,
     
@@ -503,7 +504,7 @@
           var escapedCat = this.escapeRegex(category);
           var categoryNamespaceGroup = '(' + this.categoryAliases.join('|') + ')';
           // TODO: Simplify
-          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':' + escapedCat + '\\|.*?\\]\\])';
+          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\|.*?\\]\\])';
           var regex = new RegExp(sRegEx, flags);
           var newCat = this.categoryLocal + ':' + this.upcaseFirst(replacement);
           
@@ -526,7 +527,7 @@
           var escapedCat = this.escapeRegex(category);
           var categoryNamespaceGroup = '(' + this.categoryAliases.join('|') + ')';
           // TODO: Simplify
-          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':' + escapedCat + '\\|.*?\\]\\])';
+          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\|.*?\\]\\])';
           var regex = new RegExp(sRegEx, flags);
           
           if (regex.test(newContent)) {
@@ -873,7 +874,6 @@
     // Creates the script modal and keeps a reference to it in [this.modal]
     // Called on init
     createModal: function() {
-      console.log('createModal', this.i18n);
       this.modal = new dev.modal.Modal({
         id: 'MassCatModal',
         size: 'medium',

@@ -211,7 +211,6 @@ mw.loader.using('mediawiki.api', function () {
   /**
   * @method initDependencies
   * @description Loads messages & userscript dependencies
-  * @param {String} name - The rename data
   */
   function initDependencies() {
     var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
