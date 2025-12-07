@@ -171,8 +171,8 @@
 		return opts;
 	}
 
-	function init($content) {
-		var countdown = $content.find('.countdown:not(.handled)');
+	function init() {
+		var countdown = $('.countdown:not(.handled)');
 		if (!countdown.length) return;
 		$content.find('.nocountdown').css('display', 'none');
 		countdown
@@ -198,7 +198,7 @@
 	}
 	
 	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
-  INJECT_FANDOM_UTILS_I18N({ "useContentLang": true });
+  INJECT_FANDOM_UTILS_I18N();
 	
 	loadMessages().done(function (messages) {
 		i18n = messages;
