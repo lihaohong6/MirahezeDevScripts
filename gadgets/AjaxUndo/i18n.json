@@ -1,0 +1,353 @@
+{
+	"_metadata": {
+		"order": [
+			"undoing",
+			"undone",
+			"error",
+			"unknownerror",
+			"buttontext",
+			"undotitle",
+			"summaryprompt"
+		]
+	},
+	"en": {
+		"undoing": "Undoing...",
+		"undone": "undone",
+		"error": "error",
+		"unknownerror": "Error: Unknown result from API.",
+		"buttontext": "AJAX Undo",
+		"undotitle": "Instantly revert this edit without leaving the page",
+		"summaryprompt": "Enter the undo summary to leave when undoing this edit:"
+	},
+	"qqq": {
+		"undoing": "Text when undo is in progress.",
+		"undone": "Text when undo is complete.",
+		"error": "Text when the undo fails.",
+		"unknownerror": "Text when there is a error from the API.",
+		"buttontext": "Text for the undo button.",
+		"undotitle": "Hover text for the undo button.",
+		"summaryprompt": "A summary field to enter."
+	},
+	"ar": {
+		"undoing": "...التراجع",
+		"undone": "غير مصنوع",
+		"error": "خطأ",
+		"unknownerror": ".API خطأ: نتيجة غير معروفة من ",
+		"buttontext": "AJAX تراجع",
+		"undotitle": "التراجع عن هذا التعديل على الفور دون مغادرة الصفحة",
+		"summaryprompt": "أدخل ملخص التراجع لمغادرته عند التراجع عن هذا التعديل:"
+	},
+	"be": {
+		"undoing": "Скасаванне…",
+		"undone": "скасавана",
+		"error": "абмыла",
+		"unknownerror": "Абмыла: невядомы вынік ад API.",
+		"buttontext": "AJAX-скасаванне"
+	},
+	"bg": {
+		"undoing": "Отменя се…",
+		"undone": "отменено",
+		"error": "грешка",
+		"unknownerror": "Грешка: неизвестен резултат от API.",
+		"buttontext": "AJAX отмени"
+	},
+	"bs": {
+		"undoing": "Poništavanje…",
+		"undone": "poništeno",
+		"error": "greška",
+		"unknownerror": "Greška: Nepoznat rezultat od API-ja.",
+		"buttontext": "AJAX Poništi"
+	},
+	"ca": {
+		"undoing": "Desfent…",
+		"undone": "desfet",
+		"error": "error",
+		"unknownerror": "Error: Resultat desconegut des de l'API.",
+		"buttontext": "Desfés AJAX"
+	},
+	"de": {
+		"undoing": "Rückgängig machen...",
+		"undone": "rückgängig gemacht",
+		"error": "Fehler",
+		"unknownerror": "Fehler: Unbekanntes Ergebnis von API.",
+		"buttontext": "AJAX Undo",
+		"undotitle": "Änderung sofort rückgängig machen ohne die Seite zu verlassen",
+		"summaryprompt": "Zusammenfassung zum Rückgängig machen der Änderung eingeben:"
+	},
+	"el": {
+		"undoing": "Αναίρεση...",
+		"undone": "αναιρέθηκε",
+		"error": "σφάλμα",
+		"unknownerror": "Σφάλμα: Άγνωστο αποτέλεσμα από το API.",
+		"buttontext": "AJAX Αναίρεση"
+	},
+	"eo": {
+		"undoing": "Malfarante…",
+		"undone": "malfarita",
+		"error": "eraro",
+		"unknownerror": "Eraro: Rezulto ne konita de la API.",
+		"buttontext": "Malfari AJAX"
+	},
+	"es": {
+		"undoing": "Deshaciendo…",
+		"undone": "deshecho",
+		"error": "error",
+		"unknownerror": "Error: Resultado desconocido desde la API.",
+		"buttontext": "Deshacer AJAX",
+		"undotitle": "Revertir instantáneamente esta edición sin salir de la página",
+		"summaryprompt": "Introduzca el resumen de edición a dejar al deshacer esta edición:"
+	},
+	"fi": {
+		"undoing": "Kumotaan...",
+		"undone": "kumottu",
+		"error": "virhe",
+		"unknownerror": "Virhe: Tuntematon virhe APIssa.",
+		"buttontext": "AJAX - peru"
+	},
+	"fr": {
+		"undoing": "Annulation en cours...",
+		"undone": "annulé",
+		"error": "erreur",
+		"unknownerror": "Erreur : Résultat inconnu de l'API.",
+		"buttontext": "Annulation AJAX",
+		"undotitle": "Annuler instantanément cette modification sans quitter la page",
+		"summaryprompt": "Saisissez le résumé d'annulation à conserver lors de l'annulation de cette modification :"
+	},
+	"fy": {
+		"undoing": "Werom sette...",
+		"undone": "werom setten",
+		"error": "fout",
+		"unknownerror": "Fout: Unbekend resultaat fan de API.",
+		"buttontext": "AJAX Werom sette "
+	},
+	"hi": {
+		"undoing": "पूर्ववत किया जा रहा है...",
+		"undone": "पूर्ववत कर दिया गया",
+		"error": "त्रुटि",
+		"unknownerror": "त्रुटि: API से अज्ञात परिणाम आया।",
+		"buttontext": "AJAX पूर्ववत",
+		"undotitle": "पृष्ठ को छोड़े बिना ही इस सम्पादन को पूर्ववत करें",
+		"summaryprompt": "इस सम्पादन को पूर्ववत करते समय छोड़ने के लिए पूर्ववत करने का सारांश दर्ज करें:"
+	},
+	"hr": {
+		"undoing": "Ukidanje...",
+		"undone": "ukinuto",
+		"error": "greška",
+		"unknownerror": "Greška: Nepoznat rezultat iz API-a.",
+		"buttontext": "Ukid uz Ajax"
+	},
+	"id": {
+		"undoing": "Mengurungkan...",
+		"undone": "Selesai diurungkan",
+		"error": "kesalahan",
+		"unknownerror": "Kesalahan: Hasil API tidak diketahui.",
+		"buttontext": "Urungkan AJAX",
+		"undotitle": "Kembalikan hasil sunting secara instan tanpa meninggalkan halaman ini",
+		"summaryprompt": "Masukkan ringkasan yang akan ditinggalkan saat mengurungkan suntingan ini:"
+	},
+	"it": {
+		"undoing": "Annullamento...",
+		"undone": "annullato",
+		"error": "errore",
+		"unknownerror": "Errore: risultato sconosciuto dall'API",
+		"buttontext": "Annulla AJAX"
+	},
+	"ja": {
+		"undoing": "元に戻しています...",
+		"undone": "元に戻しました",
+		"error": "エラー",
+		"unknownerror": "エラー: APIからの返事のわけがわからないよ",
+		"buttontext": "AJAX Undo"
+	},
+	"ka": {
+		"undoing": "უქმდება...",
+		"undone": "გაუქმდა",
+		"error": "შეცდომა",
+		"unknownerror": "შეცდომა: API-ს უცნობი შედეგი.",
+		"buttontext": "AJAX-ით გაუქმება"
+	},
+	"ko": {
+		"undoing": "편집을 취소하는 중...",
+		"undone": "편집 취소 완료",
+		"error": "오류",
+		"unknownerror": "오류: API에서 알 수 없는 결과가 나왔습니다.",
+		"buttontext": "AJAX 편집 취소"
+	},
+	"la": {
+		"undoing": "Abrogatur...",
+		"undone": "abrogatum",
+		"error": "error",
+		"unknownerror": "Error: Eventus ignotus ex API.",
+		"buttontext": "AJAX Abrogare"
+	},
+	"lv": {
+		"undoing": "Atsauc...",
+		"undone": "atsaukts",
+		"error": "kļūda",
+		"unknownerror": "Kļūda: Nezināms rezultāts no API.",
+		"buttontext": "AJAX atsaukšana"
+	},
+	"mk": {
+		"undoing": "Откажува се…",
+		"undone": "откажано",
+		"error": "грешка",
+		"unknownerror": "Грешка: непознат резултат од API.",
+		"buttontext": "AJAX откажи"
+	},
+	"mo": {
+		"undoing": "Анулынд…",
+		"undone": "анулат",
+		"error": "ероаре",
+		"unknownerror": "Ероаре: Резултат некуноскут дин API.",
+		"buttontext": "Ануларе AJAX"
+	},
+	"nap": {
+		"undoing": "Annullamentò...",
+		"undone": "annullàt",
+		"error": "errorè",
+		"unknownerror": "Errorè: risultàt sconosciùt dàll''API",
+		"buttontext": "Annùll AJAX"
+	},
+	"nl": {
+		"undoing": "Ongedaan maken...",
+		"undone": "ongedaan gemaakt",
+		"error": "fout",
+		"unknownerror": "Fout: Onbekend resultaat van de API.",
+		"buttontext": "AJAX Ongedaan maken"
+	},
+	"oc": {
+		"undoing": "En desfasent…",
+		"undone": "Desfach",
+		"error": "error",
+		"unknownerror": "Error : Resultat desconegut dempuèi l'API.",
+		"buttontext": "Desfar AJAX"
+	},
+	"pl": {
+		"undoing": "Cofanie…",
+		"undone": "cofnięto",
+		"error": "błąd",
+		"unknownerror": "Błąd: Nieznany rezultat z API.",
+		"buttontext": "Cofnij (AJAX)"
+	},
+	"pt": {
+		"undoing": "A desfazer…",
+		"undone": "desfeito",
+		"error": "erro",
+		"unknownerror": "Erro: Resultado desconhecido desde a API.",
+		"buttontext": "Desfazer AJAX"
+	},
+	"pt-br": {
+		"undoing": "Desfazendo…",
+		"undone": "desfeita",
+		"error": "erro",
+		"unknownerror": "Erro: Resultado desconhecido da API.",
+		"buttontext": "desfazer via AJAX",
+		"undotitle": "reverter instantaneamente esta edição sem sair da página",
+		"summaryprompt": "Insira o resumo de desfazer para sair ao desfazer esta edição:"
+	},
+	"ro": {
+		"undoing": "Anulând…",
+		"undone": "anulat",
+		"error": "eroare",
+		"unknownerror": "Eroare: Rezultat necunoscut din API.",
+		"buttontext": "Anulare AJAX"
+	},
+	"ru": {
+		"undoing": "Отмена…",
+		"undone": "отменено",
+		"error": "ошибка",
+		"unknownerror": "Ошибка: неизвестный результат от API.",
+		"buttontext": "AJAX-отмена",
+		"undotitle": "Мгновенно отмените это изменение, не покидая страницы",
+		"summaryprompt": "Введите описание отмены, которую нужно оставить при отмене этого редактирования:"
+	},
+	"sq": {
+		"undoing": "Po ç'behet...",
+		"undone": "U ç'be",
+		"error": "gabim",
+		"unknownerror": "Gabim: Rezultat i panjohur nga API",
+		"buttontext": "C'berje e AJAX-it"
+	},
+	"sr-ec": {
+		"undoing": "Поништавање...",
+		"undone": "поништено",
+		"error": "грешка",
+		"unknownerror": "Грешка: Непознат резултат од API-ја.",
+		"buttontext": "AJAX Поништи",
+		"undotitle": "Поништите ову измену одмах без напуштања странице",
+		"summaryprompt": "Унесите опис измене који остављате приликом поништавања:"
+	},
+	"sr-el": {
+		"undoing": "Poništavanje...",
+		"undone": "poništeno",
+		"error": "greška",
+		"unknownerror": "Greška: Nepoznat rezultat od API-ja.",
+		"buttontext": "AJAX Poništi",
+		"undotitle": "Poništite ovu izmenu odmah bez napuštanja stranice",
+		"summaryprompt": "Unesite opis izmene koji ostavljate prilikom poništavanja:"
+	},
+	"th": {
+		"undoing": "กำลังเลิกทำ...",
+		"undone": "เลิกทำแล้ว",
+		"error": "ผิดพลาด",
+		"unknownerror": "ผิดพลาก: ผลที่ไม่รู้จักจาก API",
+		"buttontext": "AJAX เลิกทำ"
+	},
+	"tr": {
+		"undoing": "Geri alınıyor...",
+		"undone": "geri alındı",
+		"error": "hata",
+		"unknownerror": "Hata: API'den bilinmeyen sonuç.",
+		"buttontext": "AJAX Geri Al",
+		"undotitle": "Sayfadan ayrılmadan bu düzenlemeyi anında geri alın",
+		"summaryprompt": "Bu düzenlemeyi geri alırken çıkmak için geri alma özetini girin:"
+	},
+	"uk": {
+		"undoing": "Скасування…",
+		"undone": "скасовано",
+		"error": "помилка",
+		"unknownerror": "Помилка: невідомий результат від API.",
+		"buttontext": "AJAX-скасування",
+		"undotitle": "Миттєво скасуйте це редагування, не залишаючи сторінки",
+		"summaryprompt": "Введіть причину скасування, щоб залишити при скасуванні цього редагування:"
+	},
+	"val": {
+		"undoing": "Desfent…",
+		"undone": "desfet",
+		"error": "erro",
+		"unknownerror": "Erro: Resultat desconegut des de l'API.",
+		"buttontext": "Desfer AJAX"
+	},
+	"zh-hans": {
+		"undoing": "撤销中...",
+		"undone": "已撤销",
+		"error": "发生错误",
+		"unknownerror": "错误：来自API的未知结果。",
+		"buttontext": "AJAX撤销",
+		"undotitle": "在不离开页面的情况下立即撤销此编辑",
+		"summaryprompt": "输入撤消此编辑时要保留的撤消摘要："
+	},
+	"zh-hant": {
+		"undoing": "撤銷中...",
+		"undone": "已撤銷",
+		"error": "發生錯誤",
+		"unknownerror": "錯誤：來自API的未知結果。",
+		"buttontext": "AJAX撤銷"
+	},
+	"zh-hk": {
+		"undoing": "撤銷中...",
+		"undone": "已撤銷",
+		"error": "發生錯誤",
+		"unknownerror": "錯誤：來自API的未知結果。",
+		"buttontext": "AJAX撤銷",
+		"undotitle": "無需離開頁面即可撤銷這次編緝",
+		"summaryprompt": "輸入編緝摘要"
+	},
+	"zh-tw": {
+		"undoing": "撤銷中...",
+		"undone": "已撤銷",
+		"error": "發生錯誤",
+		"unknownerror": "錯誤：來自API的未知結果。",
+		"buttontext": "AJAX撤銷"
+	}
+}
