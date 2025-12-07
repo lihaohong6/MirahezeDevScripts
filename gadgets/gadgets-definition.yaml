@@ -80,6 +80,20 @@ gadgets:
     i18n:
       - i18n.json
 
+  AjaxUndo:
+    description: "Script for adding an Ajax undo link on history pages and diffs."
+    authors:
+      - Grunny
+      - Cqm
+      - KockaAdmiralac
+      - CoolMikeHatsune22
+    links:
+      - https://dev.fandom.com/wiki/AjaxUndo
+    scripts:
+      - code.js
+    i18n:
+      - i18n.json
+
   Countdown:
     description: "Script that creates a countdown clock"
     authors:
