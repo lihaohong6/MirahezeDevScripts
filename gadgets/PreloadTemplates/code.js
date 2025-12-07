@@ -4,7 +4,7 @@
 /*  @author Grunny 
     From https://harrypotter.wikia.com/wiki/MediaWiki:Wikia.js
     edited by leviathan_89 (version 1.06 - 07/2021)
-	edited by CoolMikeHatsune22 (for use on Miraheze)
+    edited by CoolMikeHatsune22 (for use on Miraheze)
     
     Original Source Code:
     https://dev.fandom.com/wiki/MediaWiki:PreloadTemplates.js?oldid=208770
@@ -60,13 +60,13 @@
 	//   Run
 	// =================
 	var i18n, $main, $help;
-    var mwc = mw.config.get([
-        'wgAction',
-        'wgFormattedNamespaces',
-    ]),
-    $module = $('div#wpSummaryLabel'), // UCP source editors
-    $moduleOld = $('div.module_content:first'); // Old Non-UCP Source Editor
-    var visualEditorSelector = 'div.ve-ui-toolbar.ve-ui-positionedTargetToolbar'; // Visual Editor
+	var mwc = mw.config.get([
+			'wgAction',
+			'wgFormattedNamespaces',
+	]),
+	$module = $('div#wpSummaryLabel'), // UCP source editors
+	$moduleOld = $('div.module_content:first'); // Old Non-UCP Source Editor
+	var visualEditorSelector = 'div.ve-ui-toolbar.ve-ui-positionedTargetToolbar'; // Visual Editor
 
 	var LC_PREFIX_PLTEMPLATES_PRIMARY = 'wiki_preload_templates_data_primary',
 		LC_PREFIX_PLTEMPLATES_SECONDARY = 'wiki_preload_templates_data_secondary',
@@ -74,18 +74,18 @@
 		LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY = 'wiki_preload_templates_list-pagename_secondary',
 		LC_PREFIX_PLTEMPLATES_EXPIRATION = 'wiki_preload_templates_expiration';
 
-    if (mwc.wgAction !== 'edit') {
-    	return;
-    }
+	if (mwc.wgAction !== 'edit') {
+		return;
+	}
 
 	// =============
 	//   Functions  
 	// =============
 
 	// Get plain message from i18n
-    function msg(message) {
-        return i18n.msg(message).plain();
-    }
+	function msg(message) {
+			return i18n.msg(message).plain();
+	}
 
 	// Parse MediaWiki code to allow the use of includeonly and noninclude tags in the preload page
 	function parseMW(source){
@@ -93,37 +93,37 @@
 	}
 
 	// Error alert
-    function notFound(page){
-        alert(i18n.msg('error', '"' + page + '"').plain());
-    }
+	function notFound(page){
+		alert(i18n.msg('error', '"' + page + '"').plain());
+	}
     
-    // Save list of templates to local cache
-    function saveListOfTemplatesToCache(data) {
-    	localStorage.setItem(LC_PREFIX_PLTEMPLATES_PRIMARY, data.list);
-    	localStorage.setItem(LC_PREFIX_PLTEMPLATES_SECONDARY, data.listSecondary);
-    	localStorage.setItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY, data.pagename);
-    	localStorage.setItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY, data.pagenameSecondary);
-    	if (config.storageCacheAge > 0) {
-    		localStorage.setItem(
-    			LC_PREFIX_PLTEMPLATES_EXPIRATION, 
-    			new Date(Date.now() + config.storageCacheAge).getTime()
-    		);
-    	}
-    }
+	// Save list of templates to local cache
+	function saveListOfTemplatesToCache(data) {
+		localStorage.setItem(LC_PREFIX_PLTEMPLATES_PRIMARY, data.list);
+		localStorage.setItem(LC_PREFIX_PLTEMPLATES_SECONDARY, data.listSecondary);
+		localStorage.setItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY, data.pagename);
+		localStorage.setItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY, data.pagenameSecondary);
+		if (config.storageCacheAge > 0) {
+			localStorage.setItem(
+				LC_PREFIX_PLTEMPLATES_EXPIRATION, 
+				new Date(Date.now() + config.storageCacheAge).getTime()
+			);
+		}
+	}
     
-    // Clear list of templates from cache
-    function clearListOfTemplatesCache() {
-    	localStorage.removeItem(LC_PREFIX_PLTEMPLATES_PRIMARY);
-    	localStorage.removeItem(LC_PREFIX_PLTEMPLATES_SECONDARY);
-    	localStorage.removeItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY);
-    	localStorage.removeItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY);
-    }
-    
-    // Fetch list of templates to local cache
-    function getListOfTemplatesFromCache(pagename, pagenameSecondary) {
-    	var cacheExpiredTime = localStorage.getItem(LC_PREFIX_PLTEMPLATES_EXPIRATION);
-    	var cachedPagename = localStorage.getItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY);
-    	var cachedPagenameSecondary = localStorage.getItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY);
+	// Clear list of templates from cache
+	function clearListOfTemplatesCache() {
+		localStorage.removeItem(LC_PREFIX_PLTEMPLATES_PRIMARY);
+		localStorage.removeItem(LC_PREFIX_PLTEMPLATES_SECONDARY);
+		localStorage.removeItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY);
+		localStorage.removeItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY);
+	}
+	
+	// Fetch list of templates to local cache
+	function getListOfTemplatesFromCache(pagename, pagenameSecondary) {
+		var cacheExpiredTime = localStorage.getItem(LC_PREFIX_PLTEMPLATES_EXPIRATION);
+		var cachedPagename = localStorage.getItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY);
+		var cachedPagenameSecondary = localStorage.getItem(LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY);
 		if (
 			(cacheExpiredTime === null || isNaN(+cacheExpiredTime) || Date.now() > +cacheExpiredTime) ||
 			(cachedPagename !== pagename || cachedPagenameSecondary !== pagenameSecondary) 
@@ -134,9 +134,9 @@
 		
 		return [
 			localStorage.getItem(LC_PREFIX_PLTEMPLATES_PRIMARY),
-    		localStorage.getItem(LC_PREFIX_PLTEMPLATES_SECONDARY)
+			localStorage.getItem(LC_PREFIX_PLTEMPLATES_SECONDARY)
 		];
-    }
+	}
 
 	// Inserts text at the cursor's current position - originally from Wookieepedia
 	function insertAtCursor(myField, myValue) {
@@ -254,8 +254,8 @@
 		i18n = i18nData;
 		$main = $('<div>', { id: 'preload-templates' });
 		$main.append($('<span>', {
-            text: msg('preload')
-        }));
+			text: msg('preload')
+		}));
 		$help = $('<div>', {
 			id: 'pt-help'
 		}).append($('<a>', {
@@ -309,12 +309,12 @@
 		var primaryPlPagename = userConfig.primary || config.primary;
 		$main.append(
 			i18n.msg(
-                'error',
-                mw.html.element('a', {
-                    href: mw.util.getUrl(primaryPlPagename)
-                }, primaryPlPagename)
-            ).plain(),
-            $help
+				'error',
+				mw.html.element('a', {
+					href: mw.util.getUrl(primaryPlPagename)
+				}, primaryPlPagename)
+			).plain(),
+			$help
 		);
 	}
 	
@@ -358,11 +358,11 @@
 			} else {
 				populateDropdowns(listData, '');
 				saveListOfTemplatesToCache({
-						list: listData, 
-						listSecondary: '',
-						pagename: primaryPlPagename,
-						pagenameSecondary: null
-					});
+					list: listData, 
+					listSecondary: '',
+					pagename: primaryPlPagename,
+					pagenameSecondary: null
+				});
 			}
 		}).fail(initFail);
 	}
