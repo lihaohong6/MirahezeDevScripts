@@ -14,9 +14,6 @@
  * Version 1 authors:
  * - Splarka <https://c.fandom.com/wiki/User:Splarka>
  * - Eladkse <https://c.fandom.com/wiki/User:Eladkse>
- * 
- * Ported by: 
- * - CoolMikeHatsune22 <https://dev.miraheze.org/wiki/User:CoolMikeHatsune22>
  *
  * documentation and examples at:
  * <https://dev.fandom.com/wiki/Countdown>

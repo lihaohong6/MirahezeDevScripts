@@ -3,7 +3,6 @@
 * View Source
 *
 * © Peter Coester 2013 [[User_talk:Pecoes|Pecoes]]
-* Adapted for use on Vocaloid Lyrics Wiki - Miraheze by CoolMikeHatsune22
 *
 * Original code:
 * https://dev.fandom.com/wiki/MediaWiki:View_Source/code.js?oldid=207789

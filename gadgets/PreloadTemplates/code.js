@@ -4,7 +4,6 @@
 /*  @author Grunny 
     From https://harrypotter.wikia.com/wiki/MediaWiki:Wikia.js
     edited by leviathan_89 (version 1.06 - 07/2021)
-    edited by CoolMikeHatsune22 (for use on Miraheze)
     
     Original Source Code:
     https://dev.fandom.com/wiki/MediaWiki:PreloadTemplates.js?oldid=208770
