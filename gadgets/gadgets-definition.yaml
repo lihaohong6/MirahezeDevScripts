@@ -28,7 +28,7 @@ gadgets:
       - Grunny
       - KnazO
       - KockaAdmiralac
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchDelete
     requires: 
@@ -48,7 +48,7 @@ gadgets:
       - UltimateSupreme
       - Nerfmaster8
       - Noreplyz
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchUndelete
     requires: 
@@ -66,7 +66,7 @@ gadgets:
     description: "Allows redirecting a list of pages in a form."
     authors:
       - MonkeysHK
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchRedirect
     requires: 
@@ -86,7 +86,7 @@ gadgets:
       - Grunny
       - Cqm
       - KockaAdmiralac
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxUndo
     scripts:
@@ -101,7 +101,7 @@ gadgets:
       - Eladkse
       - Pecoes
       - Asaba
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/Countdown
     requires:
@@ -157,7 +157,7 @@ gadgets:
     authors:
       - Cqm
       - OneTwoThreeFall
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/I18n-js
     scripts:
@@ -168,7 +168,7 @@ gadgets:
     authors:
       - KnazO
       - Dorumin
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassCategorization
     requires:
@@ -198,7 +198,7 @@ gadgets:
       - KnazO
       - DarthKitty
       - OneTwoThreeFall 
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassNullEdit
     requires:
@@ -217,7 +217,7 @@ gadgets:
     authors:
       - KnazO
       - TheGoldenPatrik1
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassProtect
     requires:
@@ -236,7 +236,7 @@ gadgets:
     authors:
       - KnazO
       - TheGoldenPatrik1
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassRename
     requires:
@@ -256,7 +256,7 @@ gadgets:
       - Jr Mime
       - Foodbandlt
       - KockaAdmiralac
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/PageRenameAuto-update
     scripts:
@@ -281,7 +281,7 @@ gadgets:
       - leviathan_89
       - Grunny
       - KockaAdmiralac
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/PreloadTemplates
     requires:
@@ -299,7 +299,7 @@ gadgets:
     description: "Adds a \"View source\" link to the \"Edit\" menu"
     authors:
       - Pecoes
-      - CoolMikeHatsune22
+      - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/View_Source
     requires:
