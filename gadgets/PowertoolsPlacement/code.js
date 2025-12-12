@@ -215,7 +215,7 @@
       case 'cosmos':
         // In the case of Cosmos, use the manually-created floating portlet that is also used for unsupported skins 
         portlet = createFloatingMenuPowerEditorToolboxPortlet();
-        mw.loader.addStyleTag("#"+POWER_EDITOR_TOOLBOX_PORTLET_ID + "{--powertools-portlet-position-bottom:60px}");
+        mw.loader.addStyleTag("#"+POWER_EDITOR_TOOLBOX_PORTLET_ID + ".floating{--powertools-portlet-position-bottom:60px !important}");
         break;
       default:
         portlet = createFloatingMenuPowerEditorToolboxPortlet();
@@ -266,7 +266,7 @@
   * @return {jQuery.Element}
   */
   function createPowerEditorToolboxPortletForMedik() {
-    var portlet = $('<div>', { 'class': 'dropdown' })
+    var newMenu = $('<div>', { 'class': 'dropdown' })
       .append(
         $('<a>', { 
           'class': 'dropdown-toggle', 
@@ -300,8 +300,8 @@
           )
         )
     );
-    portlet = placeAfterNode(portlet, $('div.dropdown:has(#p-tb)'));
-    return portlet;
+    newMenu = placeAfterNode(newMenu, $('div.dropdown:has(#p-tb)'));
+    return newMenu.find('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID);
   }
       
   /*
@@ -311,18 +311,51 @@
   * @return {jQuery.Element}
   */
   function createPowerEditorToolboxPortletForCitizen() {
-    var portlet = $('<nav>', {
-      'class': 'citizen-menu mw-portlet',
-      'id': POWER_EDITOR_TOOLBOX_PORTLET_ID
-    })
-    .append(
-      $('<div>', { 'class': 'citizen-menu__heading' })
-        .text(POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT),
-      $('<div>', { 'class': 'citizen-menu__content' })
-        .append($('<ul>', { 'class': 'citizen-menu__content-list' }))
-    );
-    portlet = placeAfterNode(portlet, $('#p-tb'));
-    return portlet;
+    var newMenu = $('<div>', { 'class': 'citizen-header__item citizen-dropdown' })
+      .append(
+        $('<details>', { 
+          id: 'citizen-powertools-portlet-container-details', 
+          'class': 'citizen-dropdown-details' 
+        }).append(
+          $('<summary>', { 
+            'class': 'citizen-dropdown-summary', 
+            title: POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT, 
+            'aria-details': 'citizen-powertools-portlet-container__card' 
+          }).append(
+            $('<span>', { 'class': 'citizen-ui-icon mw-ui-icon-edit mw-ui-icon-wikimedia-edit' }),
+            $('<span>').text(POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT)
+          )
+        ),
+        
+        $('<div>', { 
+          id: 'citizen-powertools-portlet-container__card', 
+          'class': 'citizen-menu__card' 
+        }).append(
+          $('<div>', { 'class': 'citizen-menu__card-content' })
+            .append(
+              $('<div>', { 
+                id: 'citizen-powertools-portlet-container-content', 
+                'class': 'citizen-powertools-portlet-container-content' 
+              }).append(
+                $('<div>', { 
+                  'class': 'mw-portlet mw-portlet-skin-client-prefs-citizen-feature-custom-font-size mw-portlet-js citizen-menu', 
+                  id: 'p-power-editor-tools' 
+                }).append(
+                  $('<div>', { 'class': 'citizen-menu__heading' }).text(POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT),
+                  $('<div>', { 'class': 'citizen-menu__content' })
+                    .append($('<ul>', { 'class': 'citizen-menu__content-list' }))
+                )
+              )
+            )
+        )
+      );
+    $('.citizen-header__start').append(newMenu);
+    $('body').on('click', function () {
+      if ($('#citizen-powertools-portlet-container-details').attr('open')) {
+        $('#citizen-powertools-portlet-container-details').attr('open', null);
+      }
+    });
+    return newMenu.find('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID);
   }
       
   /*
@@ -332,7 +365,7 @@
   * @return {jQuery.Element}
   */
   function createFloatingMenuPowerEditorToolboxPortlet() {
-    var portlet = $('<div>', { id: POWER_EDITOR_TOOLBOX_PORTLET_ID })
+    var portlet = $('<div>', { id: POWER_EDITOR_TOOLBOX_PORTLET_ID, 'class': 'floating' })
       .append(
         $('<div>', { 'class': 'powertools-portlet-menu-label' })
         .append(
