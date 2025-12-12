@@ -907,6 +907,7 @@
         href: '#',
         cssClasses: 'custom',
         label: this.i18n.msg('my-tools-button').plain(),
+        tooltip: 'MassCategorization',
         onClick: this.showModal.bind(this)
       });
     },

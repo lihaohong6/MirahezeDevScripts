@@ -31,6 +31,7 @@ mw.loader.using('mediawiki.api', function() {
       id: 't-bud',
       href: '#',
       label: i18n.msg('toolsTitle').plain(),
+      tooltip: 'AjaxBatchUndelete',
       onClick: click
     });
   }

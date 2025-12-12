@@ -484,6 +484,7 @@
         id: 't-mne',
         href: '#',
         label: i18n('title').plain(),
+        tooltip: 'MassNullEdit',
         onClick: openModal
       });
     });
