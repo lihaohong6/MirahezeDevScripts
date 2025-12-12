@@ -1,4 +1,4 @@
-#p-power-editor-tools {
+#p-power-editor-tools.floating {
   --powertools-portlet-background-color: #fff;
   --powertools-portlet-background-hover-color: #f0f0f0;
   --powertools-portlet-text-color: #031f19;
@@ -109,5 +109,14 @@
         }
       }
     }
+  }
+}
+
+body.skin-citizen #citizen-powertools-portlet-container__card {
+  left: 50px;
+
+  @media (max-width: 1119.98px) {
+    left: 0;
+    bottom: 50px;
   }
 }
