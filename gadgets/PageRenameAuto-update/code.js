@@ -519,17 +519,23 @@
         document.title = i18n.msg('title').plain();
         PRA.updateQueueListing();
       } else {
-        mw.util.addPortletLink(
-          'p-tb',
-          mw.util.getUrl('Special:BlankPage', {
-            blankspecial: 'pageusageupdate',
-            pagename: PRA.wg.wgPageName,
-            namespace: PRA.wg.wgNamespaceNumber
-          }),
-          i18n.msg('buttonText').plain(),
-          't-page-rename-auto-update',
-          i18n.msg('buttonText').plain(),
-        );
+        /* Add a link to the special page running PageRenameAuto-update using the gadget PowertoolsPlacement */
+        var placementModuleName = MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement';
+        if (mw.loader.getState(placementModuleName) !== null) {
+          mw.loader.load(placementModuleName);
+          mw.hook('dev.powertools.placement').add(function (placement) {
+            placement.addPortletLink(mw.config.values.skin, {
+              id: 't-page-rename-auto-update',
+              href: mw.util.getUrl('Special:BlankPage', {
+                blankspecial: 'pageusageupdate',
+                pagename: PRA.wg.wgPageName,
+                namespace: PRA.wg.wgNamespaceNumber
+              }),
+              label: i18n.msg('buttonText').plain(),
+              tooltip: 'PageRenameAuto-update'
+            });
+          });
+        }
       }
     },
     preload: function() {
@@ -538,7 +544,7 @@
         mw.loader.using([
           'mediawiki.api',
           'mediawiki.user',
-          'mediawiki.util'
+          'mediawiki.util',
         ])
       ).then(this.initialize.bind(this));
     }
