@@ -124,6 +124,7 @@ mw.loader.using([
       href: '#',
       cssClasses: 'custom',
       label: i18n.msg('title').plain(),
+      tooltip: 'MassProtect',
       onClick: click
     });
   }

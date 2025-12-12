@@ -344,6 +344,7 @@ maxerr: 999999, forin: false, -W082, -W084
       id: 't-batchredirect',
       href: '#',
       label: i18n.msg('toolsTitle').plain(),
+      tooltip: 'AjaxBatchRedirect',
       onClick: click
     });
   }
