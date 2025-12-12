@@ -272,6 +272,8 @@ gadgets:
       - CoolMikeHatsune22
     scripts:
       - code.js
+    styles:
+      - style.less
 
   PreloadTemplates:
     description: "Allows inserting a pre-made syntax of a template selected from a list directly within the source editor."
