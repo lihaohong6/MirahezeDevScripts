@@ -4,6 +4,16 @@
   --qdmodal-background-color: #fff;
   --qdmodal-text-color: #222;
 }
+:root.skin-theme-clientpref-night, html.skin-theme-clientpref-night {
+  --qdmodal-background-color: #1c1c1c;
+  --qdmodal-text-color: #d9d9d9;
+}
+@media screen and (prefers-color-scheme: dark) {
+  :root.skin-theme-clientpref-os, html.skin-theme-clientpref-os {
+    --qdmodal-background-color: #1c1c1c;
+    --qdmodal-text-color: #d9d9d9;
+  }
+}
 
 body.qdmodal-is-visible {
   /* add a margin equivalent to the scrollbar width to

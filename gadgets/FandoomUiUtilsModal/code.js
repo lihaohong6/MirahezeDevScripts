@@ -69,17 +69,17 @@
     this.back = Boolean(options.back);
     this.close = Boolean(options.close);
     this.setText(options.text || options.value)
-    .setEvent(options.event)
-    .setClasses(options.classes)
-    .setID(options.id)
-    .setDisabled(options.disabled)
-    .setSprite(options.sprite || options.imageClass)
-    // Link-specific methods
-    .setHref(options.href)
-    .setTitle(options.title)
-    .setTarget(options.target)
-    // Input-specific methods
-    .setName(options.name);
+      .setEvent(options.event)
+      .setClasses(options.classes)
+      .setID(options.id)
+      .setDisabled(options.disabled)
+      .setSprite(options.sprite || options.imageClass)
+      // Link-specific methods
+      .setHref(options.href)
+      .setTitle(options.title)
+      .setTarget(options.target)
+      // Input-specific methods
+      .setName(options.name);
   }
   
   /**
@@ -285,14 +285,14 @@
     this.id = options.id;
     this.context = options.context || this;
     this.setSize(options.size)
-    .setContent(options.content)
-    .setTitle(options.title, options.isHTML)
-    .setCloseTitle(options.closeTitle)
-    .setButtons(options.buttons)
-    .setEvents(options.events)
-    .setClass(options.class || options.classes)
-    .setClose(options.close)
-    .setCloseEscape(options.closeEscape);
+      .setContent(options.content)
+      .setTitle(options.title, options.isHTML)
+      .setCloseTitle(options.closeTitle)
+      .setButtons(options.buttons)
+      .setEvents(options.events)
+      .setClass(options.class || options.classes)
+      .setClose(options.close)
+      .setCloseEscape(options.closeEscape);
     module.modals[this.id] = this;
   }
   
@@ -308,10 +308,10 @@
   */
   Modal.prototype.setButtons = function(buttons) {
     this.buttons = buttons instanceof Array ?
-    buttons
-    .map(createButton)
-    .filter(Boolean) :
-    [];
+      buttons
+        .map(createButton)
+        .filter(Boolean) :
+      [];
     this.buttons.push(new ModalButton({
       close: true,
       text: this.closeTitle,
@@ -578,8 +578,8 @@
     if ($('body').children('.modal-blackout.visible').length) {
       $('body').removeClass('with-blackout');
       $('.WikiaSiteWrapper')
-      .removeClass('fake-scrollbar')
-      .css('top', 'auto');
+        .removeClass('fake-scrollbar')
+        .css('top', 'auto');
       $(window).scrollTop(this.wScrollTop);
     }
     if (this.closeFunc) {
