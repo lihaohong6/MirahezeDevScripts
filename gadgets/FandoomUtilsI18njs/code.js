@@ -6,10 +6,6 @@
 * @author Cqm <https://dev.fandom.com/User:Cqm>
 * @author OneTwoThreeFall <https://dev.fandom.com/User:OneTwoThreeFall>
 *
-* @version 1.0.0 (forked from v0.6.7 in Fandom Developers Wiki)
-* Ported by
-* @author CoolMikeHatsune22 <https://dev.miraheze.org/User:CoolMikeHatsune22>
-*
 * @notes Also used by SOAP Wiki for their reporting forms (with a non-dev i18n.json page)
 * @notes This is apparently a commonly used library for a number of scripts and also
 *   includes a check to prevent double loading. This can make it painful to test from your
@@ -26,7 +22,7 @@ browser:true, devel:false, jquery:true,
 onevar:true
 */
 
-(function (window, $, mw, undefined) {
+(function ($, mw) {
   'use strict';
   
   window.dev = window.dev || {};
@@ -1190,20 +1186,6 @@ onevar:true
   }
   
   /*
-  * Strip block comments from a JSON string which are illegal under the JSON spec.
-  * This is a bit basic, so will remove comments inside strings too.
-  *
-  * @param {string} json The JSON string.
-  * @return {string} The JSON string after any comments have been removed.
-  */
-  function stripComments(json) {
-    json = json
-    .trim()
-    .replace(/\/\*[\s\S]*?\*\//g, '');
-    return json;
-  }
-  
-  /*
   * Save messages string to local storage for caching.
   *
   * @param {string} name The name of the script the messages are for.
@@ -1236,24 +1218,8 @@ onevar:true
   * @param {object} options Options set by the loading script.
   * @return {object} The resulting i18n object.
   */
-  function parseMessagesToObject(name, res, options) {
-    var json = {},
-    obj,
-    msg;
-    
-    // Handle parse errors gracefully
-    try {
-      res = stripComments(res);
-      json = JSON.parse(res);
-    } catch (e) {
-      msg = e.message;
-      
-      if (msg === 'Unexpected end of JSON input') {
-        msg += '. This may be caused by a non-existent i18n.json page.';
-      }
-      
-      console.warn('[I18n-js] SyntaxError in messages: ' + msg);
-    }
+  function parseMessagesToObject(name, json, options) {
+    var obj, msg;
     
     if (
       options.useCache &&
@@ -1293,6 +1259,12 @@ onevar:true
     
     // Cache exists, and its version is greater than or equal to requested version
     if (cacheContent && cacheVersion >= options.cacheVersion) {
+      try {
+        cacheContent = JSON.parse(cacheContent);
+      } catch (err) {
+        console.warn('[I18n-js] Malformed JSON found in cache for ' + keyPrefix);
+        return;
+      }
       options.loadedFromCache = true;
       parseMessagesToObject(name, cacheContent, options);
     }
@@ -1322,8 +1294,8 @@ onevar:true
     /*
     * @var {object} deferred
     * @var {string} entrypoint
-    * @var {string} page
     * @var {object} params
+    * @var {object} api
     */
     var deferred = $.Deferred(),
       // MH_DEVSCRIPTS_CDN_ENTRYPOINT is replaced during compilation
@@ -1333,7 +1305,6 @@ onevar:true
     
     options = options || {};
     options.entrypoint = options.entrypoint || entrypoint;
-    options.page = page;
     options.cacheVersion = Number(options.cacheVersion) || 0;
     options.language = options.language || conf.wgUserLanguage;
     options.useCache = (options.noCache || conf.debug) !== true;
@@ -1355,13 +1326,13 @@ onevar:true
     * Generally, we will implicitly depend on those anyway due to where/when this is loaded.
     */
     mw.loader.using(['mediawiki.language', 'mediawiki.util'/*, 'site', 'user'*/], function () {
-      $.get(entrypoint + '/' + name + '/i18n.json')
-      .done(function (res) {
-        deferred.resolve(parseMessagesToObject(name, res, options));
+      $.get(entrypoint.replace(/\/$/, '') + '/' + name + '/i18n.json')
+      .done(function (json) {
+        deferred.resolve(parseMessagesToObject(name, json, options));
       })
       .fail(function (xhr, err) {
         console.error(
-          'Failed to fetch contents from ' + options.entrypoint + ' for page ' + page, 
+          'Failed to fetch contents from ' + options.entrypoint + ' for gadget ' + name, 
           xhr, err
         );
         deferred.resolve();
@@ -1381,7 +1352,6 @@ onevar:true
     * Scripts should not rely on these existing or their output being in any particular format.
     */
     _bcp47: bcp47,
-    _stripComments: stripComments,
     _saveToCache: saveToCache,
     _getMsg: getMsg,
     _handleArgs: handleArgs,
@@ -1403,5 +1373,5 @@ onevar:true
   // Tidy the localStorage cache of old entries
   removeOldCacheEntries();
   
-} (this, jQuery, mediaWiki));
+} (jQuery, mediaWiki));
 // </nowiki>

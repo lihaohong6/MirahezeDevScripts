@@ -45,16 +45,16 @@
       case '#text': return document.createTextNode('');
       case undefined:
       case '#document-fragment':
-      return document.createDocumentFragment();
+        return document.createDocumentFragment();
       case 'svg':
       case 'use':
       case 'g':
       case 'path':
       case 'circle':
-      return document.createElementNS(
-        'http://www.w3.org/2000/svg',
-        type
-      );
+        return document.createElementNS(
+          'http://www.w3.org/2000/svg',
+          type
+        );
       default: return document.createElement(type);
     }
   }
