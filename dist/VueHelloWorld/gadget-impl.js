@@ -1,16 +1,16 @@
-(function(t){t.loader.impl(function(){return["ext.gadget.store.VueHelloWorld@2746309c",function(r,a,u,d){t.config.get("wgCanonicalNamespace")==="Special"&&t.config.get("wgCanonicalSpecialPageName")==="Blankpage"&&t.config.get("wgTitle").endsWith("/HelloWorld")&&t.loader.using(["vue","@wikimedia/codex"]).then(o=>{const n=o("vue"),c=o("@wikimedia/codex"),i=n.reactive({count:0,increment(){this.count++}}),e=n.createMwApp({template:`
+(function(e){e.loader.impl(function(){return["ext.gadget.store.VueHelloWorld@49debd17",function(r,a,u,d){e.config.get("wgCanonicalNamespace")==="Special"&&e.config.get("wgCanonicalSpecialPageName")==="Blankpage"&&e.config.get("wgTitle").endsWith("/HelloWorld")&&e.loader.using(["vue","@wikimedia/codex"]).then(o=>{const n=o("vue"),c=o("@wikimedia/codex"),i=n.reactive({count:0,increment(){this.count++}}),t=n.createMwApp({template:`
             <component-a/>
             <component-b/>
-            `});e.component("component-a",{template:`
+            `});t.component("component-a",{template:`
             <div style="margin-bottom: 1rem">
               <cdx-button action="progressive" type="primary" @click="store.increment()">
                 From A: {{ store.count }}
               </cdx-button>
             </div>
-            `,setup:()=>({store:i}),components:{CdxButton:c.CdxButton}}),e.component("component-b",{template:`
+            `,setup:()=>({store:i}),components:{CdxButton:c.CdxButton}}),t.component("component-b",{template:`
             <div>
               <cdx-button @click="store.increment()">
                 From B: {{ store.count }}
               </cdx-button>
             </div>
-            `,setup:()=>({store:i}),components:{CdxButton:c.CdxButton}}),e.mount("#content")})},{css:[]},{},{},null]})})(mediaWiki);
+            `,setup:()=>({store:i}),components:{CdxButton:c.CdxButton}}),t.mount("#content")})},{css:[]},{},{},null]})})(mediaWiki);

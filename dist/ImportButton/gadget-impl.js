@@ -1,4 +1,4 @@
-(function(i){i.loader.impl(function(){return["ext.gadget.store.ImportButton@f93ed42b",function(c,d,p,u){[10,828].includes(i.config.get("wgNamespaceNumber"))&&i.config.get("wgUserId")!==null&&i.loader.using("@wikimedia/codex").then(l=>{const r=l("vue"),a=l("@wikimedia/codex");i.hook("wikipage.content").add(o=>{o&&o.find(".how-to-export").each((m,n)=>{const s=document.createElement("div");n.append(s),r.createMwApp({data:()=>({wikis:[],selectedWikiUrl:null,templateName:i.config.get("wgPageName")}),template:`
+(function(i){i.loader.impl(function(){return["ext.gadget.store.ImportButton@e4ef94c3",function(c,d,p,u){[10,828].includes(i.config.get("wgNamespaceNumber"))&&i.config.get("wgUserId")!==null&&i.loader.using("@wikimedia/codex").then(l=>{const r=l("vue"),a=l("@wikimedia/codex");i.hook("wikipage.content").add(o=>{o&&o.find(".how-to-export").each((m,n)=>{const s=document.createElement("div");n.append(s),r.createMwApp({data:()=>({wikis:[],selectedWikiUrl:null,templateName:i.config.get("wgPageName")}),template:`
           <hr />
           <b>Pre-fill import parameters</b>
           <div style="display: flex; gap: 0.25em;">
