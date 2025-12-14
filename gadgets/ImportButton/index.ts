@@ -45,7 +45,7 @@
             templateName: mw.config.get( 'wgPageName' ),
           } ),
           template: /* html */ `
-          <hr />
+          <hr style="margin: 10px 0;" />
           <b>Pre-fill import parameters</b>
           <div style="display: flex; gap: 0.25em;">
           <cdx-select
