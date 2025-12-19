@@ -1,5 +1,5 @@
 [10,828].includes(mw.config.get("wgNamespaceNumber"))&&mw.config.get("wgUserId")!==null&&mw.loader.using("@wikimedia/codex").then(l=>{const r=l("vue"),a=l("@wikimedia/codex");mw.hook("wikipage.content").add(s=>{s&&s.find(".how-to-export").each((c,n)=>{const o=document.createElement("div");n.append(o),r.createMwApp({data:()=>({wikis:[],selectedWikiUrl:null,templateName:mw.config.get("wgPageName")}),template:`
-          <hr />
+          <hr style="margin: 10px 0;" />
           <b>Pre-fill import parameters</b>
           <div style="display: flex; gap: 0.25em;">
           <cdx-select
