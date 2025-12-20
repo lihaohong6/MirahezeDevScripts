@@ -17,11 +17,23 @@ mw.loader.using([
   }
   window.MassProtectLoaded = true;
   var Api = new mw.Api(),
-  i18n,
-  placement,
-  preloads = 3,
-  protectModal,
-  paused = true;
+      i18n,
+      placement,
+      preloads = 3,
+      protectModal,
+      paused = true;
+  var $form,
+      $pageListInput,
+      $errorOutput,
+      $protectExpiry,
+      $protectCreate,
+      $protectEdit,
+      $protectMove,
+      $protectUpload,
+      $protectComment,
+      $protectReason,
+      $startButton,
+      $pauseButton;
   /**
   * @method generateElement
   * @description Creates a select dropdown menu.
@@ -173,6 +185,18 @@ mw.loader.using([
       }
     });
     protectModal.create();
+    $form = $('#form-mass-protect');
+    $pageListInput = $form.find('#text-mass-protect');
+    $errorOutput = $form.find('#text-error-output');
+    $protectExpiry = $form.find('#protect-expiry');
+    $protectCreate = $form.find('#protect-create');
+    $protectEdit = $form.find('#protect-edit');
+    $protectMove = $form.find('#protect-move');
+    $protectUpload = $form.find('#protect-upload');
+    $protectComment = $form.find('#protect-comment');
+    $protectReason = $form.find('#protect-reason');
+    $startButton = $form.find('#mp-start');
+    $pauseButton = $form.find('#mp-pause');
     protectModal.show();
   }
   /**
@@ -181,8 +205,8 @@ mw.loader.using([
   */
   function pause () {
     paused = true;
-    document.getElementById('mp-pause').setAttribute('disabled', '');
-    document.getElementById('mp-start').removeAttribute('disabled');
+    $pauseButton.attr('disabled', '');
+    $startButton.removeAttr('disabled');
   }
   /**
   * @method start
@@ -190,8 +214,8 @@ mw.loader.using([
   */
   function start () {
     paused = false;
-    document.getElementById('mp-start').setAttribute('disabled', '');
-    document.getElementById('mp-pause').removeAttribute('disabled');
+    $startButton.attr('disabled', '');
+    $pauseButton.removeAttr('disabled');
     process();
   }
   /**
@@ -202,12 +226,11 @@ mw.loader.using([
     if (paused) {
       return;
     }
-    var txt = document.getElementById('text-mass-protect'),
-    pages = txt.value.split('\n'),
-    currentPage = pages[0];
+    var pages = $pageListInput.val().split('\n'),
+        currentPage = pages[0];
     if (!currentPage) {
       pause();
-      $('#text-error-output').append(
+      $errorOutput.append(
         i18n.msg('finished').escape() +
         ' ' +
         i18n.msg('done').escape() +
@@ -217,7 +240,7 @@ mw.loader.using([
       protectPage(currentPage);
     }
     pages = pages.slice(1, pages.length);
-    txt.value = pages.join('\n');
+    $pageListInput.val(pages.join('\n'));
   }
   /**
   * @method addCategoryContents
@@ -237,12 +260,12 @@ mw.loader.using([
     .done(function (d) {
       var data = d.query;
       for (var i in data.categorymembers) {
-        var currTitles = $('#text-mass-protect').val();
-        $('#text-mass-protect').val(currTitles + data.categorymembers[i].title + '\n');
+        var currTitles = $pageListInput.val();
+        $pageListInput.val(currTitles + data.categorymembers[i].title + '\n');
       }
     })
     .fail(function (code) {
-      $('#text-error-output').append(i18n.msg('categoryFail').escape() + category + ' : ' + code + '<br/>');
+      $errorOutput.append(i18n.msg('categoryFail').escape() + category + ' : ' + code + '<br/>');
     });
   }
   /**
@@ -253,11 +276,11 @@ mw.loader.using([
   function protectPage (page) {
     Api.post({
       action: 'protect',
-      expiry: $('#protect-expiry').val() || $('#protect-expiry').attr('placeholder'),
-      protections: $('#protect-create').val() || [$('#protect-edit').val(), $('#protect-move').val(), $('#protect-upload').val(), $('#protect-comment').val()].filter(Boolean).join('|'),
+      expiry: $protectExpiry.val() || $protectExpiry.attr('placeholder'),
+      protections: $protectCreate.val() || [$protectEdit.val(), $protectMove.val(), $protectUpload.val(), $protectComment.val()].filter(Boolean).join('|'),
       watchlist: 'preferences',
       title: page,
-      reason: $('#protect-reason').val(),
+      reason: $protectReason.val(),
       token: mw.user.tokens.get('csrfToken')
     })
     .done(function (d) {
@@ -265,7 +288,7 @@ mw.loader.using([
     })
     .fail(function (code) {
       console.log(i18n.msg('fail').escape() + page + ': ' + code);
-      $('#text-error-output').append(i18n.msg('fail').escape() + page + ': ' + code + '<br/>');
+      $errorOutput.append(i18n.msg('fail').escape() + page + ': ' + code + '<br/>');
     });
     setTimeout(process, window.massProtectDelay || 1000);
   }

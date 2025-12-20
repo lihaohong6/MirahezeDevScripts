@@ -18,11 +18,18 @@ mw.loader.using('mediawiki.api', function() {
   window.AjaxBatchDeleteLoaded = true;
   
   var api = new mw.Api(),
-  i18n,
-  placement,
-  preloads = 3,
-  deleteModal,
-  paused = true;
+      i18n,
+      placement,
+      preloads = 3,
+      deleteModal,
+      paused = true;
+  var $form, 
+      $deleteReasonInput,
+      $pageListInput,
+      $protectCheckInput,
+      $errorOutput,
+      $pauseButton,
+      $startButton;
   
   function preload() {
     if (--preloads === 0) { init(); }
@@ -75,6 +82,13 @@ mw.loader.using('mediawiki.api', function() {
       }
     });
     deleteModal.create();
+    $form = $('#form-batch-delete');
+    $errorOutput = $form.find('#text-error-output');
+    $pageListInput = $form.find('#text-mass-delete');
+    $deleteReasonInput = $form.find('#ajax-delete-reason');
+    $protectCheckInput = $form.find('#protect-check');
+    $pauseButton = $form.find('#abd-pause');
+    $startButton = $form.find('#abd-start');    
     deleteModal.show();
   }
   
@@ -120,18 +134,18 @@ mw.loader.using('mediawiki.api', function() {
   
   function pause() {
     paused = true;
-    document.getElementById('abd-pause').setAttribute('disabled', '');
-    document.getElementById('abd-start').removeAttribute('disabled');
+    $pauseButton.attr('disabled', '');
+    $startButton.removeAttr('disabled');
   }
   
   function start() {
-    if (!document.getElementById('ajax-delete-reason').value) {
+    if (!$deleteReasonInput.val()) {
       alert(i18n.msg('stateReason').plain());
       return;
     }
     paused = false;
-    document.getElementById('abd-start').setAttribute('disabled', '');
-    document.getElementById('abd-pause').removeAttribute('disabled');
+    $startButton.attr('disabled', '');
+    $pauseButton.removeAttr('disabled');
     process();
   }
   
@@ -139,19 +153,18 @@ mw.loader.using('mediawiki.api', function() {
     if (paused) {
       return;
     }
-    var txt = document.getElementById('text-mass-delete'),
-    pages = txt.value.split('\n'),
-    currentPage = pages[0];
+    var pages = $pageListInput.val().split('\n'),
+        currentPage = pages[0];
     if (!currentPage) {
-      $('#text-error-output').append(
-        i18n.msg('endTitle').escape() + ' ' + i18n.msg('endMsg').escape() + '<br />'
+      $errorOutput.append(
+        i18n.msg('endTitle').escape() + ' ' + i18n.msg('endMsg').escape() + '<br />',
       );
       pause();
     } else {
-      performAction(currentPage, document.getElementById('ajax-delete-reason').value);
+      performAction(currentPage, $deleteReasonInput.val());
     }
     pages = pages.slice(1,pages.length);
-    txt.value = pages.join('\n');
+    $pageListInput.val(pages.join('\n'));
   }
   
   function addCategoryContents() {
@@ -167,8 +180,8 @@ mw.loader.using('mediawiki.api', function() {
     }).done(function(d) {
       var data = d.query;
       for (var i in data.categorymembers) {
-        $('#text-mass-delete').val(
-          $('#text-mass-delete').val() +
+        $pageListInput.val(
+          $pageListInput.val() +
           data.categorymembers[i].title +
           '\n'
         );
@@ -179,7 +192,7 @@ mw.loader.using('mediawiki.api', function() {
   }
   
   function outputError(error, param1, param2) {
-    $('#text-error-output').append(i18n.msg('error' + error, param1, param2).escape(), '<br />');
+    $errorOutput.append(i18n.msg('error' + error, param1, param2).escape(), '<br />');
   }
   
   function performAction(page,reason) {
@@ -190,7 +203,7 @@ mw.loader.using('mediawiki.api', function() {
       reason: reason,
       bot: true
     }).done(function(d) {
-      if (document.getElementById('protect-check').checked) {
+      if ($protectCheckInput.prop('checked')) {
         api.postWithEditToken({
           action: 'protect',
           expiry: 'infinite',

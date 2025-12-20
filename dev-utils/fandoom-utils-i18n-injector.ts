@@ -90,6 +90,9 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
 
     `function loadFallbackMessages() {`,
       `mw.messages.set(${JSON.stringify(fallbackMessages)});`,
+      `if (mw.Message.prototype.escape === undefined) {`,
+        `mw.Message.prototype.escape = mw.Message.prototype.escaped;`,
+      `}`,
       `return {`,
         `msg: function () {`,
           `arguments[0] = "${name}__" + arguments[0];`,
