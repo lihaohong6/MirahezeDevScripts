@@ -70,6 +70,7 @@ mw.loader.using('mediawiki.api', function() {
           disabled: true
         },
         {
+          id: 'abd-add-pages-in-category',
           text: i18n.msg('addCategoryContents').escape(),
           primary: true,
           event: 'addCategoryContents'

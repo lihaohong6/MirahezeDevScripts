@@ -196,11 +196,11 @@ maxerr: 999999, forin: false, -W082, -W084
         return;
       }
       var pageinfo = {},
-      simpleRedirectList = [],
-      deleteRedirectList = [],
-      failureList = [],
-      tasksawait = 1,
-      i;
+          simpleRedirectList = [],
+          deleteRedirectList = [],
+          failureList = [],
+          tasksawait = 1,
+          i;
       var finished = function () {
         if (--tasksawait === 0) {
           var successCount = simpleRedirectList.length + deleteRedirectList.length - failureList.length;
