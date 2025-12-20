@@ -30,6 +30,11 @@ maxerr: 999999, forin: false, -W082, -W084
   colorWarning = "rgb(100, 149, 237)",
   colorInfo = "black",
   api, i18n, placement, myModal, processFlag;
+  var $form,
+      $progress,
+      $pagesFrom,
+      $pagesTo,
+      $errorOutput;
   
   if (window.AjaxBatchRedirectLoaded) {
     return;
@@ -45,7 +50,11 @@ maxerr: 999999, forin: false, -W082, -W084
   }
   
   function modalConsoleLog(messagekey, color, pagename, pagename2) {
-    $("#text-error-output").append("<div style=\"color:" + color + ";\">" + i18n.msg(messagekey, pagename, pagename2).escape() + "</div>");
+    $errorOutput.append(
+      $('<div>')
+        .css('color', color)
+        .text(i18n.msg(messagekey, pagename, pagename2).escape())
+    );
   }
   
   function makeSimpleRedirect(fromPage, toPage) {
@@ -116,7 +125,6 @@ maxerr: 999999, forin: false, -W082, -W084
   }
   
   function burstBuffer5x(pageList, actionFn, i, promisesHead, delay) {
-    var updateEl = $("#batchredirect-form #form-progress");
     return new Promise(function (resolve) {
       var segment = pageList.slice(i, i + 5);
       promisesHead = promisesHead.concat(segment.map(function (v) {
@@ -125,7 +133,13 @@ maxerr: 999999, forin: false, -W082, -W084
       if (i + 5 >= pageList.length)
         resolve(promisesHead);
       else {
-        updateEl.empty().append("<div style=\"color:" + colorProgress + ";\">" + i18n.msg("inCooldown", promisesHead.length, pageList.length).escape() + "</div>");
+        $progress.empty().append(
+          $('<div>')
+            .css('color', colorProgress)
+            .text(
+              i18n.msg("inCooldown", promisesHead.length, pageList.length).escape()
+            )
+        );
         setTimeout(function () {
           burstBuffer5x(pageList, actionFn, i + 5, promisesHead, delay).then(function (promisesHead) {
             resolve(promisesHead);
@@ -190,16 +204,22 @@ maxerr: 999999, forin: false, -W082, -W084
       var finished = function () {
         if (--tasksawait === 0) {
           var successCount = simpleRedirectList.length + deleteRedirectList.length - failureList.length;
-          $("#batchredirect-form #text-error-output").append("<div style=\"color:" + colorInfo + ";\">" + i18n.msg("finished", successCount).escape() + "</div>");
-          $("#batchredirect-form #text-pages-from").val(failureList.map(function (v) {
+          $errorOutput.append(
+            $('<div>')
+              .css('color', colorInfo)
+              .text(
+                i18n.msg("finished", successCount).escape()
+              )
+          );
+          $pagesFrom.val(failureList.map(function (v) {
             return v[0];
           }).join("\n"));
-          $("#batchredirect-form #text-pages-to").val(failureList.map(function (v) {
+          $pagesTo.val(failureList.map(function (v) {
             return v[1];
           }).join("\n"));
-          $("#batchredirect-form #form-progress").empty();
-          $("#text-pages-from").removeAttr("disabled");
-          $("#text-pages-to").removeAttr("disabled");
+          $progress.empty();
+          $pagesFrom.removeAttr("disabled");
+          $pagesTo.removeAttr("disabled");
           processFlag = false;
         }
       };
@@ -249,8 +269,8 @@ maxerr: 999999, forin: false, -W082, -W084
     if (processFlag) // already started
     return;
     processFlag = true;
-    var fromList = $("#text-pages-from").val().split("\n");
-    var toList = $("#text-pages-to").val().split("\n");
+    var fromList = $pagesFrom.val().split("\n");
+    var toList = $pagesTo.val().split("\n");
     var pageList = [];
     for (var i = 0; i < Math.max(fromList.length, toList.length); i++) {
       var fromPage = (fromList[i] || "").replaceAll("_", " ").trim();
@@ -265,18 +285,16 @@ maxerr: 999999, forin: false, -W082, -W084
       }
     }
     if (pageList.length > 0) {
-      $("#text-pages-from").attr("disabled", "");
-      $("#text-pages-to").attr("disabled", "");
-      $("#text-error-output").empty();
+      $pagesFrom.attr("disabled", "");
+      $pagesTo.attr("disabled", "");
+      $errorOutput.empty();
       redirectPages(pageList);
     } else
       processFlag = false;
   }
   
   function createForm() {
-    return $("<form>", {
-      "class": "WikiaForm"
-    }).append(
+    return $("<form>").append(
       $("<fieldset>").append(
         $("<p>", {
           text: i18n.msg("inputInstructions").plain()
@@ -335,6 +353,11 @@ maxerr: 999999, forin: false, -W082, -W084
       }
     });
     myModal.create();
+    $form = $('#batchredirect-form');
+    $progress = $form.find('#form-progress');
+    $pagesFrom = $form.find('#text-pages-from');
+    $pagesTo = $form.find('#text-pages-to');
+    $errorOutput = $form.find('#text-error-output');
     myModal.show();
   }
   

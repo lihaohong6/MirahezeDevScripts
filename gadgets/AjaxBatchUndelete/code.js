@@ -17,10 +17,16 @@ mw.loader.using('mediawiki.api', function() {
   window.AjaxBatchUndeleteLoaded = true;
   
   var i18n,
-  placement,
-  preloads = 3,
-  undeleteModal,
-  paused = true;
+      placement,
+      preloads = 3,
+      undeleteModal,
+      paused = true;
+  var $form, 
+      $undeleteReasonInput,
+      $pageListInput,
+      $errorOutput,
+      $pauseButton,
+      $startButton
   
   function preload() {
     if (--preloads === 0) { init(); }
@@ -71,13 +77,17 @@ mw.loader.using('mediawiki.api', function() {
       }
     });
     undeleteModal.create();
+    $form = $('#form-batch-undelete');
+    $undeleteReasonInput = $form.find('#undelete-reason');
+    $pageListInput = $form.find('#text-batch-undelete');
+    $errorOutput = $form.find('#text-error-output');
+    $pauseButton = $form.find('#abu-pause');
+    $startButton = $form.find('#abu-start');
     undeleteModal.show();
   }
   
   function formHtml() {
-    return $('<form>', {
-      'class': 'WikiaForm'
-    }).append(
+    return $('<form>').append(
       $('<fieldset>').append(
         $('<p>').append(
           $('<label>', {
@@ -108,18 +118,18 @@ mw.loader.using('mediawiki.api', function() {
   
   function pause() {
     paused = true;
-    document.getElementById('abu-pause').setAttribute('disabled', '');
-    document.getElementById('abu-start').removeAttribute('disabled');
+    $pauseButton.attr('disabled', '');
+    $startButton.removeAttr('disabled');
   }
   
   function start() {
-    if (!document.getElementById('undelete-reason').value) {
+    if (!$undeleteReasonInput.val()) {
       alert(i18n.msg('stateReason').plain());
       return;
     }
     paused = false;
-    document.getElementById('abu-start').setAttribute('disabled', '');
-    document.getElementById('abu-pause').removeAttribute('disabled');
+    $startButton.attr('disabled', '');
+    $pauseButton.removeAttr('disabled');
     process();
   }
   
@@ -127,20 +137,19 @@ mw.loader.using('mediawiki.api', function() {
     if (paused) {
       return;
     }
-    var txt = document.getElementById('text-batch-undelete'),
-    pages = txt.value.split('\n'),	
-    currentPage = pages[0];
+    var pages = $pageListInput.val().split('\n'),	
+        currentPage = pages[0];
     if (!currentPage) {
-      $('#text-error-output').append(
+      $errorOutput.append(
         i18n.msg('endMsg').escape() +
         '<br/>'
       );
       pause();
     } else {
-      undelete(currentPage, document.getElementById('undelete-reason').value);  
+      undelete(currentPage, $undeleteReasonInput.val());  
     }
     pages = pages.slice(1, pages.length);
-    txt.value = pages.join('\n');
+    $pageListInput.val(pages.join('\n'));
   }
   
   function undelete(page, reason) {
@@ -157,12 +166,12 @@ mw.loader.using('mediawiki.api', function() {
         console.log(i18n.msg('success', page).escape());
       } else {
         console.log(i18n.msg('failure').escape()+' '+page+': '+ d.error.code);
-        $('#text-error-output').append(i18n.msg('failure').escape()+' '+page+': '+d.error.code+'<br/>');
+        $errorOutput.append(i18n.msg('failure').escape()+' '+page+': '+d.error.code+'<br/>');
       }
     })
     .fail(function() {
       console.log(i18n.msg('failure').escape()+' '+page);
-      $('#text-error-output').append(i18n.msg('failure').escape()+' '+page+'<br/>');
+      $errorOutput.append(i18n.msg('failure').escape()+' '+page+'<br/>');
     });
     setTimeout(process, window.batchUndeleteDelay || 1000);
   }

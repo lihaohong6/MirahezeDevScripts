@@ -12,10 +12,18 @@ mw.loader.using('mediawiki.api', function () {
   }
   window.MassRenameLoaded = true;
   var i18n,
-    placement,
-    renameModal,
-    preloads = 3,
-    paused = false;
+      placement,
+      renameModal,
+      preloads = 3,
+      paused = false;
+  var $form,
+      $pageListInput,
+      $customSummary,
+      $redirectCheck,
+      $startButton,
+      $pauseButton,
+      $errorOutput;
+
   /**
   * @method formHtml
   * @description Creates the modal HTML
@@ -118,6 +126,13 @@ mw.loader.using('mediawiki.api', function () {
       }
     });
     renameModal.create();
+    $form = $('form-mass-rename');
+    $pageListInput = $form.find('#text-rename');
+    $startButton = $form.find('mr1-start');
+    $pauseButton = $form.find('#mr1-pause');
+    $customSummary = $form.find('#custom-summary');
+    $redirectCheck = $form.find('#redirect-check');
+    $errorOutput = $form.find('#text-error-output');
     renameModal.show();
   }
   /**
@@ -126,8 +141,8 @@ mw.loader.using('mediawiki.api', function () {
   */
   function pause () {
     paused = true;
-    document.getElementById('mr1-pause').setAttribute('disabled', '');
-    document.getElementById('mr1-start').removeAttribute('disabled');
+    $pauseButton.attr('disabled', '');
+    $startButton.removeAttr('disabled');
   }
   /**
   * @method start
@@ -135,8 +150,8 @@ mw.loader.using('mediawiki.api', function () {
   */
   function start () {
     paused = false;
-    document.getElementById('mr1-start').setAttribute('disabled', '');
-    document.getElementById('mr1-pause').removeAttribute('disabled');
+    $startButton.attr('disabled', '');
+    $pauseButton.removeAttr('disabled');
     process();
   }
   /**
@@ -147,11 +162,10 @@ mw.loader.using('mediawiki.api', function () {
     if (paused) {
       return;
     }
-    var txt = document.getElementById('text-rename'),
-    pages = txt.value.split('\n'),
-    page = pages[0];
+    var pages = $pageListInput.val().split('\n'),
+        page = pages[0];
     if (!page) {
-      $('#text-error-output').append(
+      $errorOutput.append(
         i18n.msg('finished').escape() +
         ' ' +
         i18n.msg('nothingLeftToDo').escape() +
@@ -171,7 +185,9 @@ mw.loader.using('mediawiki.api', function () {
   */
   function rename (name) {
     if (name.split(' ').length !== 2) {
-      $('#text-error-output').append(i18n.msg('invalidInput', name).escape() + '<br/>');
+      $errorOutput.append(
+        i18n.msg('invalidInput', name).escape() + '<br/>'
+      );
     } else {
       var oldName = name.split(' ')[0],
       newName = name.split(' ')[1],
@@ -181,13 +197,13 @@ mw.loader.using('mediawiki.api', function () {
         to: newName.replace('_', ' '),
         noredirect: '',
         reason:
-        ($('#custom-summary')[0].value.length > 0 && $('#custom-summary')[0].value) ||
-        window.massRenameSummary ||
-        i18n.inContentLang().msg('summary').plain(),
+          $customSummary.first().val() ||
+          window.massRenameSummary ||
+          i18n.inContentLang().msg('summary').plain(),
         bot: true,
         token: mw.user.tokens.get('csrfToken')
       };
-      if (document.getElementById('redirect-check').checked) {
+      if ($redirectCheck.prop('checked')) {
         delete config.noredirect;
       }
       new mw.Api().post(config)
@@ -196,12 +212,16 @@ mw.loader.using('mediawiki.api', function () {
           console.log(i18n.msg('renameDone', oldName, newName).plain());
         } else {
           console.error(i18n.msg('renameFail', oldName, newName).escape() + ': ' + d.error.code);
-          $('#text-error-output').append(i18n.msg('renameFail', oldName, newName).escape() + ': ' + d.error.code + '<br/>');
+          $errorOutput.append(
+            i18n.msg('renameFail', oldName, newName).escape() + ': ' + d.error.code + '<br/>'
+          );
         }
       })
       .fail(function (error) {
         console.error(i18n.msg('renameFail', oldName, newName).plain() + ': ' + error);
-        $('#text-error-output').append(i18n.msg('renameFail2', oldName, newName).escape() + '<br/>');
+        $errorOutput.append(
+          i18n.msg('renameFail2', oldName, newName).escape() + '<br/>'
+        );
       });
     }
     setTimeout(process, window.massRenameDelay || 1000);

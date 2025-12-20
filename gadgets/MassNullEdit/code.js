@@ -294,7 +294,7 @@
   }
   
   function addPagesCreateModalRow(mode) {
-    var $row = $('<p>').attr('class', 'mne-addpages-row');
+    var $row = $('<p>', { 'class': 'mne-addpages-row' });
     var $radio = $('<input>').attr({
       type: 'radio',
       name: 'mode',
