@@ -6,3 +6,4 @@
 
 load.js
 .env
+/selenium-test-suites/.env.*

@@ -1,32 +1,28 @@
 import { By, until } from 'selenium-webdriver';
 import TestSuiteClass from '../TestSuiteClass.ts';
-import { loadEnvFile } from 'node:process';
+import type { TestSuiteDriverArgs } from "../TestSuiteClass.ts";
 import assert from 'node:assert';
 
 const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
 
 /***********************************************************************
  * 
- * PREREQUISITE:
+ * PREREQUISITES:
  * 
  * 1) Build gadget implementation for FandoomUiUtilsQdmodal
  * 2) Serve using `npm run serve`
  * 
  ***********************************************************************/
 
-loadEnvFile();
-(async () => {
-  
-  const wikiDomain = process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT; 
-  if (!wikiDomain) {
-    console.error('The environment variable "SELENIUM_TESTING_WIKI_ENTRYPOINT" must be set!!');
-    return;
-  }
+export default async (args: TestSuiteDriverArgs) => {
 
   const testSuite = new TestSuiteClass(
     /* Test Suite ID */ 'FandoomUiUtilsQdmodal',
-    wikiDomain,
-    /* Navigate to page */ 'Special:BlankPage'
+    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
+    /* Navigate to page */ 'Special:BlankPage',
+    /* Additional URL Params */ {
+      'useskin': args.skin || 'vector-2022'
+    },
   );
 
   testSuite.beforeAll = async (driver) => {
@@ -206,7 +202,7 @@ loadEnvFile();
         const toastText = await toast.getText();
         assert(toastText === 'MY CUSTOM EVENT!!', `Toast message text does not match! (Got ${toastText})`);
         await driver.wait(
-          async () => (await driver.executeScript("return $('#mw-notification-area > .mw-notification').length === 0")) === true,
+          until.stalenessOf(toast),
           /* 1 minute */ 60*1000,
           'MediaWiki notification failed to auto-hide',
           /* 200ms */ 200
@@ -231,7 +227,6 @@ loadEnvFile();
     }
   );
 
-  testSuite.run();
+  await testSuite.run();
 
-})();
-
+};

@@ -1,32 +1,28 @@
 import { By, until } from 'selenium-webdriver';
 import TestSuiteClass from '../TestSuiteClass.ts';
-import { loadEnvFile } from 'node:process';
+import type { TestSuiteDriverArgs } from "../TestSuiteClass.ts";
 import assert from 'node:assert';
 
 const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
 
 /***********************************************************************
  * 
- * PREREQUISITE:
+ * PREREQUISITES:
  * 
  * 1) Build gadget implementation for FandoomUiUtilsUijs and FandoomUiUtilsModal
  * 2) Serve using `npm run serve`
  * 
  ***********************************************************************/
 
-loadEnvFile();
-(async () => {
-  
-  const wikiDomain = process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT; 
-  if (!wikiDomain) {
-    console.error('The environment variable "SELENIUM_TESTING_WIKI_ENTRYPOINT" must be set!!');
-    return;
-  }
+export default async (args: TestSuiteDriverArgs) => {
 
   const testSuite = new TestSuiteClass(
     /* Test Suite ID */ 'FandoomUiUtilsModal',
-    wikiDomain,
-    /* Navigate to page */ 'Special:BlankPage'
+    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
+    /* Navigate to page */ 'Special:BlankPage',
+    /* Additional URL Params */ {
+      'useskin': args.skin || 'vector-2022'
+    },
   );
 
   testSuite.beforeAll = async (driver) => {
@@ -281,14 +277,15 @@ loadEnvFile();
       const toast1 = await mwNotificationCanvas.findElement(By.className('mw-notification'));
       const toast1Text = await toast1.getText();
       assert(toast1Text === 'Custom event 1!', `Toast Custom Event 1 message text does not match! (Got ${toast1Text})`);
-      toast1.click();
+      await driver.sleep(500);
+      await toast1.click();
       await driver.wait(
-        async () => (await driver.executeScript("return $('#mw-notification-area > .mw-notification').length === 0")) === true,
+        until.stalenessOf(toast1),
         /* 1 minute */ 60*1000,
         'MediaWiki notification failed to hide',
         /* 200ms */ 200
       );
-      await driver.sleep(500);
+      await driver.sleep(1000);
 
       const disabledButton = await driver.findElement(By.id('my-disabled-btn'));
       assert((await disabledButton.getAttribute('aria-disabled')) === 'true', 'my-disabled-btn is not disabled!');
@@ -304,9 +301,10 @@ loadEnvFile();
       const toast2 = await mwNotificationCanvas.findElement(By.className('mw-notification'));
       const toast2Text = await toast2.getText();
       assert(toast2Text === 'Custom event 2!', `Toast Custom Event 2 message text does not match! (Got ${toast2Text})`);
-      toast2.click();
+      await driver.sleep(500);
+      await toast2.click();
       await driver.wait(
-        async () => (await driver.executeScript("return $('#mw-notification-area > .mw-notification').length === 0")) === true,
+        until.stalenessOf(toast2),
         /* 1 minute */ 60*1000,
         'MediaWiki notification failed to hide',
         /* 200ms */ 200
@@ -331,7 +329,6 @@ loadEnvFile();
     }
   );
 
-  testSuite.run();
+  await testSuite.run();
 
-})();
-
+};
