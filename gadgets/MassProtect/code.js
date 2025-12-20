@@ -169,6 +169,7 @@ mw.loader.using([
           disabled: true
         },
         {
+          id: 'mp-add-pages-in-category',
           text: i18n.msg('addCategory').escape(),
           primary: true,
           event: 'addCategoryContents'
