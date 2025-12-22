@@ -13,6 +13,11 @@ gadgets:
     styles:
       - style.less
 
+  CollapseJump:
+    description: "Jump to a collapsible element specified in the URL hash"
+    scripts:
+      - index.js
+
   ImportButton:
     scripts:
       - index.ts
