@@ -17,16 +17,13 @@ mw.loader.using('mediawiki.api', function() {
   window.AjaxBatchUndeleteLoaded = true;
   
   var i18n,
-      placement,
       preloads = 3,
       undeleteModal,
       paused = true;
   var $form, 
       $undeleteReasonInput,
       $pageListInput,
-      $errorOutput,
-      $pauseButton,
-      $startButton
+      $errorOutput;
   
   function preload() {
     if (--preloads === 0) { init(); }
@@ -81,8 +78,6 @@ mw.loader.using('mediawiki.api', function() {
     $undeleteReasonInput = $form.find('#undelete-reason');
     $pageListInput = $form.find('#text-batch-undelete');
     $errorOutput = $form.find('#text-error-output');
-    $pauseButton = $form.find('#abu-pause');
-    $startButton = $form.find('#abu-start');
     undeleteModal.show();
   }
   
@@ -118,8 +113,8 @@ mw.loader.using('mediawiki.api', function() {
   
   function pause() {
     paused = true;
-    $pauseButton.attr('disabled', '');
-    $startButton.removeAttr('disabled');
+    undeleteModal.disableActionButtons('abu-pause');
+    undeleteModal.enableActionButtons('abu-start');
   }
   
   function start() {
@@ -128,8 +123,8 @@ mw.loader.using('mediawiki.api', function() {
       return;
     }
     paused = false;
-    $startButton.attr('disabled', '');
-    $pauseButton.removeAttr('disabled');
+    undeleteModal.disableActionButtons('abu-start');
+    undeleteModal.enableActionButtons('abu-pause');
     process();
   }
   

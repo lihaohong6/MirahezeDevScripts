@@ -18,7 +18,6 @@ mw.loader.using([
   window.MassProtectLoaded = true;
   var Api = new mw.Api(),
       i18n,
-      placement,
       preloads = 3,
       protectModal,
       paused = true;
@@ -31,9 +30,7 @@ mw.loader.using([
       $protectMove,
       $protectUpload,
       $protectComment,
-      $protectReason,
-      $startButton,
-      $pauseButton;
+      $protectReason;
   /**
   * @method generateElement
   * @description Creates a select dropdown menu.
@@ -196,8 +193,6 @@ mw.loader.using([
     $protectUpload = $form.find('#protect-upload');
     $protectComment = $form.find('#protect-comment');
     $protectReason = $form.find('#protect-reason');
-    $startButton = $form.find('#mp-start');
-    $pauseButton = $form.find('#mp-pause');
     protectModal.show();
   }
   /**
@@ -206,8 +201,8 @@ mw.loader.using([
   */
   function pause () {
     paused = true;
-    $pauseButton.attr('disabled', '');
-    $startButton.removeAttr('disabled');
+    protectModal.disableActionButtons('mp-pause');
+    protectModal.enableActionButtons('mp-start');
   }
   /**
   * @method start
@@ -215,8 +210,8 @@ mw.loader.using([
   */
   function start () {
     paused = false;
-    $startButton.attr('disabled', '');
-    $pauseButton.removeAttr('disabled');
+    protectModal.disableActionButtons('mp-start');
+    protectModal.enableActionButtons('mp-pause');
     process();
   }
   /**
