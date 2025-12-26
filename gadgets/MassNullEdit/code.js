@@ -503,7 +503,7 @@
       loadMessages(),
       mw.loader.using(required)
     ).then(function (messages) {
-      i18n = messages.msg;
+      i18n = messages.msg.bind(messages);
       main();
     });
   }
