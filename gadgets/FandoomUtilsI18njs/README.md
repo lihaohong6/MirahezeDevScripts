@@ -96,9 +96,9 @@ There are several methods available for outputting the message stored in the <co
 - <code>escaped()</code><br />Synonymous with <code>escape()</code>.
 - <code>parse()</code><br />This outputs the message with all basic wikitext links converted into HTML and some locale-specific magic words parsed.
 
-> <code>parse()</code> works identically as [<code>mw.Message.parse()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parse). This means that <code>parse()</code> acts differently before and after <code>jqueryMsg</code> is loaded. If <code>jqueryMsg</code> is not loaded, then <code>escape()</code> and <code>parse()</code> works essentially the same as <code>plain()</code>. See *[the page "Manual:Messages API" on the official MediaWiki site](https://www.mediawiki.org/wiki/Manual:Messages_API#Using_messages_in_JavaScript)*.
+> <code>parse()</code> works identically with [<code>mw.Message.parse()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parse). This means that <code>parse()</code> acts differently before and after <code>jqueryMsg</code> is loaded. If <code>jqueryMsg</code> is not loaded, then <code>escape()</code> and <code>parse()</code> works essentially the same as <code>plain()</code>. See *[the page "Manual:Messages API" on the official MediaWiki site](https://www.mediawiki.org/wiki/Manual:Messages_API#Using_messages_in_JavaScript)*.
 
-- <code>parseDom()</code><br />This works identically as [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom). This is only available if <code>jqueryMsg</code> is loaded.
+- <code>parseDom()</code><br />This works identically with [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom). This is only available if <code>jqueryMsg</code> is loaded.
 
 If <code>inLang</code>, <code>inContentLang</code>, or <code>inUserLang</code> are being used, you can also chain the message call:
 
