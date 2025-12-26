@@ -196,6 +196,15 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
 }
 
 /**
+ * 
+ * @param gadget 
+ * @returns 
+ */
+function createScriptLoadingStatement(gadgetName: string) {
+  return `mw.loader.load("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
+}
+
+/**
  * Builds the entrypoint file (`load.js`) to be served by the Vite server and to be 
  * loaded on the MediaWiki client.
  * 
@@ -210,11 +219,7 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
   try {
     if (useRolledUpImplementation) {
       const writeScriptLoadingStatement = (gadget: GadgetDefinition) => {
-        return writeStream.write(
-          `mw.loader.load("${
-            getStaticUrlToFile(gadget.name, 'gadget-impl.js')
-          }");\n`
-        );
+        return writeStream.write(createScriptLoadingStatement(gadget.name)+'\n');
       }
       gadgetsToBuild.forEach(writeScriptLoadingStatement);
     } else {
@@ -246,13 +251,21 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
  * @returns
  */
 function generateGadgetImplementationLoadConditionsWrapperCode(
-  { resourceLoader: { 
-    dependencies = null, rights = null, skins = null, 
-    actions = null, categories = null, namespaces = null, 
-    contentModels = null 
-  } = {} }: GadgetDefinition
+  { 
+    resourceLoader: { 
+      dependencies = null,
+      rights = null, skins = null, 
+      actions = null, categories = null, namespaces = null, 
+      contentModels = null 
+    } = {}, 
+    requires = [],
+  }: GadgetDefinition
 ): [string[], string[]] {
-  if ([dependencies, rights, skins, actions, categories, namespaces, contentModels].every((v) => v === null)) {
+  if (
+    [dependencies, rights, skins, actions, categories, namespaces, contentModels].every((v) => v === null)
+    &&
+    requires.length === 0
+  ) {
     return [[], []];
   }
   const conditions: string[] = [];
@@ -304,6 +317,12 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
     tail.unshift(`}`);
   }
 
+  requires.forEach((gadgetName) => {
+    head.push(`if (mw.loader.getState('${namespace}.${gadgetName}') === null) { ${
+      createScriptLoadingStatement(gadgetName)
+    } }`);
+  });
+    
   if (!!dependencies) {
     dependencies = normalizeVariable(dependencies);
     head.push(`mw.loader.using([ ${dependencies.map(el => `"${el}"`).join(`, `)} ], function (require) {`);
