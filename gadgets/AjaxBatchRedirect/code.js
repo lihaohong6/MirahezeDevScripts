@@ -29,7 +29,7 @@ maxerr: 999999, forin: false, -W082, -W084
   colorError = "rgb(220, 20, 60)",
   colorWarning = "rgb(100, 149, 237)",
   colorInfo = "black",
-  api, i18n, placement, myModal, processFlag;
+  api, i18n, myModal, processFlag;
   var $form,
       $progress,
       $pagesFrom,

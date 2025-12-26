@@ -12,7 +12,6 @@ mw.loader.using('mediawiki.api', function () {
   }
   window.MassRenameLoaded = true;
   var i18n,
-      placement,
       renameModal,
       preloads = 3,
       paused = false;
@@ -128,8 +127,6 @@ mw.loader.using('mediawiki.api', function () {
     renameModal.create();
     $form = $('form-mass-rename');
     $pageListInput = $form.find('#text-rename');
-    $startButton = $form.find('mr1-start');
-    $pauseButton = $form.find('#mr1-pause');
     $customSummary = $form.find('#custom-summary');
     $redirectCheck = $form.find('#redirect-check');
     $errorOutput = $form.find('#text-error-output');
@@ -141,8 +138,8 @@ mw.loader.using('mediawiki.api', function () {
   */
   function pause () {
     paused = true;
-    $pauseButton.attr('disabled', '');
-    $startButton.removeAttr('disabled');
+    renameModal.disableActionButtons('mr1-pause');
+    renameModal.enableActionButtons('mr1-start');
   }
   /**
   * @method start
@@ -150,8 +147,8 @@ mw.loader.using('mediawiki.api', function () {
   */
   function start () {
     paused = false;
-    $startButton.attr('disabled', '');
-    $pauseButton.removeAttr('disabled');
+    renameModal.disableActionButtons('mr1-start');
+    renameModal.enableActionButtons('mr1-pause');
     process();
   }
   /**

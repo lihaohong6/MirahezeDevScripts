@@ -19,7 +19,6 @@ mw.loader.using('mediawiki.api', function() {
   
   var api = new mw.Api(),
       i18n,
-      placement,
       preloads = 3,
       deleteModal,
       paused = true;
@@ -27,9 +26,7 @@ mw.loader.using('mediawiki.api', function() {
       $deleteReasonInput,
       $pageListInput,
       $protectCheckInput,
-      $errorOutput,
-      $pauseButton,
-      $startButton;
+      $errorOutput;
   
   function preload() {
     if (--preloads === 0) { init(); }
@@ -67,7 +64,7 @@ mw.loader.using('mediawiki.api', function() {
           text: i18n.msg('pause').escape(),
           primary: true,
           event: 'pause',
-          disabled: true
+            disabled: true
         },
         {
           id: 'abd-add-pages-in-category',
@@ -80,7 +77,7 @@ mw.loader.using('mediawiki.api', function() {
         addCategoryContents: addCategoryContents,
         pause: pause,
         start: start
-      }
+        }
     });
     deleteModal.create();
     $form = $('#form-batch-delete');
@@ -88,8 +85,6 @@ mw.loader.using('mediawiki.api', function() {
     $pageListInput = $form.find('#text-mass-delete');
     $deleteReasonInput = $form.find('#ajax-delete-reason');
     $protectCheckInput = $form.find('#protect-check');
-    $pauseButton = $form.find('#abd-pause');
-    $startButton = $form.find('#abd-start');    
     deleteModal.show();
   }
   
@@ -135,8 +130,8 @@ mw.loader.using('mediawiki.api', function() {
   
   function pause() {
     paused = true;
-    $pauseButton.attr('disabled', '');
-    $startButton.removeAttr('disabled');
+    deleteModal.disableActionButtons('abd-pause');
+    deleteModal.enableActionButtons('abd-start');
   }
   
   function start() {
@@ -145,8 +140,8 @@ mw.loader.using('mediawiki.api', function() {
       return;
     }
     paused = false;
-    $startButton.attr('disabled', '');
-    $pauseButton.removeAttr('disabled');
+    deleteModal.disableActionButtons('abd-start');
+    deleteModal.enableActionButtons('abd-pause');
     process();
   }
   
