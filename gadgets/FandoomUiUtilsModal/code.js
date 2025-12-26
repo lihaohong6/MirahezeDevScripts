@@ -42,7 +42,7 @@
   */
   var BUTTON_TYPES = [
     'link',
-    'input',
+    // 'input',
     'button'
   ];
   
@@ -68,7 +68,9 @@
     this.safe = Boolean(options.close || options.safe);
     this.back = Boolean(options.back);
     this.close = Boolean(options.close);
-    this.setText(options.text || options.value)
+    this
+      .setType(options.type || 'button')
+      .setText(options.text || options.value)
       .setEvent(options.event)
       .setClasses(options.classes)
       .setID(options.id)
@@ -144,6 +146,7 @@
   * @param {String} name Input button name
   * @returns {ModalButton} Current instance
   * @throws {Error} If not validly specified when the button is an input
+  * @deprecated
   */
   ModalButton.prototype.setName = function(name) {
     if (this.type === 'input') {
@@ -177,6 +180,9 @@
   * @returns {ModalButton} Current instance
   */
   ModalButton.prototype.setType = function(type) {
+    if (typeof type === 'string' && BUTTON_TYPES.indexOf(type) > -1) {
+      this.type = type;
+    }
     return this;
   };
   
@@ -235,17 +241,19 @@
         flags.push(flag);
       }
     }, this);
-    return {
+    var o = {
       action: this.event,
       classes: this.classes,
       disabled: this.disabled,
       flags: flags,
       href: this.href,
+      target: this.target,
       icon: this.sprite,
       id: this.id,
       label: this.text,
       title: this.title
     };
+    return o;
   };
   
   /**
@@ -481,8 +489,8 @@
   */
   Modal.prototype.setTitle = function(title, isHTML) {
     this.title = typeof title === 'string' ?
-    title :
-    'Modal';
+      title :
+      'Modal';
     this.titleIsHTML = Boolean(isHTML);
     if (this._modal && !isHTML) {
       this._modal.title.setLabel(this.title);
