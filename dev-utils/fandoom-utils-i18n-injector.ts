@@ -60,10 +60,7 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
   const i18nMessages = JSON.parse(await readFile(resolveSrcGadgetsPath(name, i18n![0]), { encoding: 'utf-8', flag: 'r' }));
   if (i18nMessages.en === undefined) return null;
   
-  const fallbackMessages: { [key: string]: string } = {};
-  Object.entries(i18nMessages.en).forEach(([messageKey, message]) => {
-    fallbackMessages[`${name}__${messageKey}`] = message as string;
-  });
+  const fallbackMessages: Record<string, string> = i18nMessages.en;
 
   return [
     `function loadMessages() {`,
@@ -80,7 +77,7 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
               loadOptions?.useContentLang ? `messages.useContentLang();` : '',
               loadOptions?.useUserLang ? `messages.useUserLang();` : '',
               `deferred.resolve(messages);`,
-            `});`,
+            `})`,
         `});`,
         `return deferred;`,
       `}`,
@@ -89,14 +86,19 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
     `}`,
 
     `function loadFallbackMessages() {`,
-      `mw.messages.set(${JSON.stringify(fallbackMessages)});`,
+      `var msgMap = new mw.Map();`,
+      `msgMap.set(${JSON.stringify(fallbackMessages)});`,
       `if (mw.Message.prototype.escape === undefined) {`,
         `mw.Message.prototype.escape = mw.Message.prototype.escaped;`,
       `}`,
       `return {`,
         `msg: function () {`,
-          `arguments[0] = "${name}__" + arguments[0];`,
-          `return mw.message.apply(null, arguments);`,
+          `var args = Array.prototype.slice.call(arguments);`,
+          `if (args.length === 0) {`,
+            `return;`,
+          `}`,
+          `var key = args.shift();`,
+          `return new mw.Message(msgMap, key, args);`,
         `}`,
       `};`,
     `}`

@@ -1,28 +1,17 @@
-// <nowiki>
-/*
-* Library for accessing i18n messages for use in Fandom Dev Wiki scripts.
-* See (https://dev.fandom.com/wiki/MediaWiki:I18n-js/code.js?oldid=207266) for documentation.
-*
-* @author Cqm <https://dev.fandom.com/User:Cqm>
-* @author OneTwoThreeFall <https://dev.fandom.com/User:OneTwoThreeFall>
-*
-* @notes Also used by SOAP Wiki for their reporting forms (with a non-dev i18n.json page)
-* @notes This is apparently a commonly used library for a number of scripts and also
-*   includes a check to prevent double loading. This can make it painful to test from your
-*   JS console. To get around this, add ?usesitejs=0&useuserjs=0 to your URL.
+/**
+* Library for enabling multiple-language support in Fandom Dev Wiki scripts.
+* This is a fork of i18n-js (https://dev.fandom.com/wiki/I18n-js) with significant changes, 
+* those primarily being:
+*  - A less-trusted third-party vendor should not be responsible for the parsing and embedding 
+*    of i18n messages to minimize the risk of XSS. Therefore this module has been changed so 
+*    that parsing of messages is handled by `mediawiki.message` instead, which is a core module
+*    that is shipped with every MediaWiki installation.
+*  - This version of i18n-js makes a request for an i18n.json file that is served from 
+*    the latest version of the gadgets CDN, whereas the original version of i18n-js makes
+*    a request against a wikipage in Fandom Dev Wiki.
 */
 
-/*global mediaWiki*/
-
-/*jshint bitwise:true, camelcase:true, curly:true, eqeqeq:true, es3:false,
-forin:true, immed:true, indent:4, latedef:true, newcap:true,
-noarg:true, noempty:true, nonew:true, plusplus:true, quotmark:single,
-undef:true, unused:true, strict:true, trailing:true,
-browser:true, devel:false, jquery:true,
-onevar:true
-*/
-
-(function ($, mw) {
+(function () {
   'use strict';
   
   window.dev = window.dev || {};
@@ -33,7 +22,7 @@ onevar:true
     return;
   }
   
-  /*
+ /**
   * Cache of mw config variables.
   *
   * @var {object} conf Cache of mw config variables:
@@ -67,59 +56,50 @@ onevar:true
     'wgServer'
   ]),
   
-  /*
-  * @var {number} Current time in milliseconds, used to set and check cache age.
-  */
+  /**
+   * @var {number} Current time in milliseconds, used to set and check cache age.
+   */
   now = Date.now(),
   
-  /*
-  * @var {number} Length of one day in milliseconds, used in cache age calculations.
-  */
+  /**
+   * @var {number} Length of one day in milliseconds, used in cache age calculations.
+   */
   oneDay = 1000 * 60 * 60 * 24,
   
-  /*
-  * @var {string} Prefix used for localStorage keys that contain i18n-js cache data.
-  */
+  /**
+   * @var {string} Prefix used for localStorage keys that contain i18n-js cache data.
+   */
   cachePrefix = 'i18n-cache-',
   
-  /*
-  * @var {boolean} Whether a fallback loop warning been shown
-  */
+  /**
+   * @var {boolean} Whether a fallback loop warning been shown
+   */
   warnedAboutFallbackLoop = false,
   
-  /*
-  * @var {object} Cache of loaded I18n instances.
-  */
+  /**
+   * @var {object} Cache of loaded I18n instances.
+   */
   cache = {},
   
   /*
-  * Initial overrides object, initialised below with the i18n global variable.
-  * Allows end-users to override specific messages.
-  * See documentation for how to use.
-  *
-  * @var {(null|object)} overrides
-  */
-  overrides = null,
-  
-  /*
-  * Mapping of deprecated language codes that were used in previous
-  * versions of MediaWiki to up-to-date, current language codes.
-  *
-  * These codes shouldn't be used to store translations unless there are
-  * language changes to /includes/language/LanguageCode.php in mediawiki/core.
-  *
-  * These may or may not be valid BCP 47 codes; they are included here
-  * because MediaWiki renamed these particular codes at some point.
-  *
-  * Note that 'als' is actually a valid ISO 639 code (Tosk Albanian), but it
-  * was previously used in MediaWiki for Alsatian, which comes under 'gsw'.
-  *
-  * @var {object.<string, string>} Mapping from deprecated MediaWiki-internal
-  *   language code to replacement MediaWiki-internal language code.
-  *
-  * @see /includes/language/LanguageCode.php in MediaWiki core
-  * @see https://meta.wikimedia.org/wiki/Special_language_codes
-  */
+   * Mapping of deprecated language codes that were used in previous
+   * versions of MediaWiki to up-to-date, current language codes.
+   *
+   * These codes shouldn't be used to store translations unless there are
+   * language changes to /includes/language/LanguageCode.php in mediawiki/core.
+   *
+   * These may or may not be valid BCP 47 codes; they are included here
+   * because MediaWiki renamed these particular codes at some point.
+   *
+   * Note that 'als' is actually a valid ISO 639 code (Tosk Albanian), but it
+   * was previously used in MediaWiki for Alsatian, which comes under 'gsw'.
+   *
+   * @var {object.<string, string>} Mapping from deprecated MediaWiki-internal
+   *   language code to replacement MediaWiki-internal language code.
+   *
+   * @see /includes/language/LanguageCode.php in MediaWiki core
+   * @see https://meta.wikimedia.org/wiki/Special_language_codes
+   */
   deprecatedCodes = {
     'als': 'gsw', // T25215
     'bat-smg': 'sgs', // T27522
@@ -132,16 +112,16 @@ onevar:true
   },
   
   /**
-  * Mapping of non-standard language codes used in MediaWiki to
-  * standardized BCP 47 codes.
-  *
-  * @var {object.<string, string>} Mapping from nonstandard
-  *   MediaWiki-internal codes to BCP 47 codes
-  *
-  * @see /includes/language/LanguageCode.php in MediaWiki core
-  * @see https://meta.wikimedia.org/wiki/Special_language_codes
-  * @see https://phabricator.wikimedia.org/T125073
-  */
+   * Mapping of non-standard language codes used in MediaWiki to
+   * standardized BCP 47 codes.
+   *
+   * @var {object.<string, string>} Mapping from nonstandard
+   *   MediaWiki-internal codes to BCP 47 codes
+   *
+   * @see /includes/language/LanguageCode.php in MediaWiki core
+   * @see https://meta.wikimedia.org/wiki/Special_language_codes
+   * @see https://phabricator.wikimedia.org/T125073
+   */
   nonStandardCodes = {
     'cbk-zam': 'cbk', // T124657
     'crh-ro': 'crh-Latn-RO',
@@ -168,28 +148,28 @@ onevar:true
     'zh-mo': 'zh-Hant-MO'
   },
   
-  /*
-  * Language fallbacks for those that don't only fallback to 'en' or have no
-  * fallbacks ('en').
-  *
-  * Current revision: mediawiki-core 5097563cd53
-  *
-  * Shouldn't need updating unless there're language fallback chain changes
-  * to /languages/messages files in mediawiki/core.
-  *
-  * To generate this, use `$ grep -R "fallback =" /path/to/messages/`,
-  * pipe the result to a text file and format the result.
-  *
-  * Another way to generate the list is to copy from
-  * https://github.com/wikimedia/jquery.i18n/blob/master/src/jquery.i18n.fallbacks.js
-  * AND remove deprecated codes from the copied list.
-  *
-  * Please note that there's bidirectional/multidirectional fallback in languages,
-  * including 'cdo' <=> 'nan', 'pt' <=> 'pt-br', 'zh' <=> 'zh-hans' <=> 'zh-hant'
-  *
-  * @var {object.<string, string[]>} Mapping from language codes to fallback
-  * language codes
-  */
+  /**
+   * Language fallbacks for those that don't only fallback to 'en' or have no
+   * fallbacks ('en').
+   *
+   * Current revision: mediawiki-core 5097563cd53
+   *
+   * Shouldn't need updating unless there're language fallback chain changes
+   * to /languages/messages files in mediawiki/core.
+   *
+   * To generate this, use `$ grep -R "fallback =" /path/to/messages/`,
+   * pipe the result to a text file and format the result.
+   *
+   * Another way to generate the list is to copy from
+   * https://github.com/wikimedia/jquery.i18n/blob/master/src/jquery.i18n.fallbacks.js
+   * AND remove deprecated codes from the copied list.
+   *
+   * Please note that there's bidirectional/multidirectional fallback in languages,
+   * including 'cdo' <=> 'nan', 'pt' <=> 'pt-br', 'zh' <=> 'zh-hans' <=> 'zh-hant'
+   *
+   * @var {object.<string, string[]>} Mapping from language codes to fallback
+   * language codes
+   */
   fallbacks = {
     'aae': [ 'it' ],
     'ab': [ 'ru' ],
@@ -481,33 +461,33 @@ onevar:true
     'zh-tw': [ 'zh-hant', 'zh-hk', 'zh', 'zh-hans' ]
   };
   
-  /*
-  * Override the if wgPageContentModel is not wikitext.
-  * This is to fix the behavior in non-wikitext pages like Scribunto Lua
-  * module pages
-  *
-  * - {string} conf.wgPageContentModel The content modal of the current page.
-  * - {string} conf.wgPageContentLanguage The page language.
-  * - {string} conf.wgContentLanguage The site language.
-  */
+  /**
+   * Override the if wgPageContentModel is not wikitext.
+   * This is to fix the behavior in non-wikitext pages like Scribunto Lua
+   * module pages
+   *
+   * - {string} conf.wgPageContentModel The content modal of the current page.
+   * - {string} conf.wgPageContentLanguage The page language.
+   * - {string} conf.wgContentLanguage The site language.
+   */
   if ( conf.wgPageContentModel && conf.wgPageContentModel !== 'wikitext' ) {
     conf.wgPageContentLanguage = conf.wgContentLanguage;
   }
   
-  /*
-  * Get the normalised IETF/BCP 47 language tag.
-  * 
-  * mediawiki.language.bcp47 doesn't handle deprecated language codes, and
-  * some non-standard language codes are missed from LanguageCode.php, so
-  * this function is added to override the behavior.
-  *
-  * @param {string} lang The language code to convert.
-  * @return {string} The language code complying with BCP 47 standards.
-  *
-  * @see https://gerrit.wikimedia.org/r/c/mediawiki/core/+/376506/
-  * @see /resources/src/mediawiki.language/mediawiki.language.js in MediaWiki core
-  * @see /includes/language/LanguageCode.php in MediaWiki core
-  */
+  /**
+   * Get the normalised IETF/BCP 47 language tag.
+   * 
+   * mediawiki.language.bcp47 doesn't handle deprecated language codes, and
+   * some non-standard language codes are missed from LanguageCode.php, so
+   * this function is added to override the behavior.
+   *
+   * @param {string} lang The language code to convert.
+   * @return {string} The language code complying with BCP 47 standards.
+   *
+   * @see https://gerrit.wikimedia.org/r/c/mediawiki/core/+/376506/
+   * @see /resources/src/mediawiki.language/mediawiki.language.js in MediaWiki core
+   * @see /includes/language/LanguageCode.php in MediaWiki core
+   */
   function bcp47(lang) {
     if (nonStandardCodes[lang]) {
       return nonStandardCodes[lang];
@@ -517,21 +497,21 @@ onevar:true
       return bcp47(deprecatedCodes[lang]);
     }
     
-    /*
-    * @var {string[]} formatted
-    * @var {boolean} isFirstSegment Whether is the first segment
-    * @var {boolean} isPrivate Whether the code of the segment is private use
-    * @var {string[]} segments The segments of language code
-    */
+    /**
+     * @var {string[]} formatted
+     * @var {boolean} isFirstSegment Whether is the first segment
+     * @var {boolean} isPrivate Whether the code of the segment is private use
+     * @var {string[]} segments The segments of language code
+     */
     var formatted,
-    isFirstSegment = true,
-    isPrivate = false,
-    segments = lang.split('-');
+        isFirstSegment = true,
+        isPrivate = false,
+        segments = lang.split('-');
     
     formatted = segments.map(function (segment) {
-      /*
-      * @var {string} newSegment The converted segment of language code
-      */
+      /**
+       * @var {string} newSegment The converted segment of language code
+       */
       var newSegment;
       
       // when previous segment is x, it is a private segment and should be lc
@@ -557,13 +537,13 @@ onevar:true
     return formatted.join('-');
   }
   
-  /*
-  * Log a warning message to the browser console if the language fallback chain is
-  * about to start a loop. Only logs once to prevent flooding the browser console.
-  *
-  * @param {string} lang Language in use when loop was found.
-  * @param {string[]} fallbackChain Array of languages involved in the loop.
-  */
+  /**
+   * Log a warning message to the browser console if the language fallback chain is
+   * about to start a loop. Only logs once to prevent flooding the browser console.
+   *
+   * @param {string} lang Language in use when loop was found.
+   * @param {string[]} fallbackChain Array of languages involved in the loop.
+   */
   function warnOnFallbackLoop(lang, fallbackChain) {
     if (warnedAboutFallbackLoop) {
       return;
@@ -574,27 +554,27 @@ onevar:true
     console.error('[I18n-js] Duplicated fallback language found. Please leave a message at <https://dev.fandom.com/wiki/Talk:I18n-js> and include the following line: \nLanguage fallback chain:', fallbackChain.join(', '));
   }
   
-  /*
-  * Get a translation of a message from the messages object in the requested
-  * language.
-  *
-  * - Missing `messages`, `msgName`, `lang` parameters: `return false;` .
-  * - Didn't find message in the current language: Try the fallback list.
-  * - Didn't find a fallback list for current language: Try to find `en` message.
-  * - Didn't find message in the current fallback language: Try to find message
-  *     in the next fallback language.
-  * - Found duplicated language code in the fallback list:
-  *     `warnOnFallbackLoop(lang, fallbackChain)`.
-  * - Didn't find more language code in the fallback list: Try to find `en` message.
-  * - Didn't find message in `en`: `return false;`.
-  *
-  * @param {object} messages The message object to look translations up in.
-  * @param {string} msgName The name of the message to get.
-  * @param {string} lang The language to get the message in.
-  * @param {string[]} fallbackChain Array of languages that have already been checked.
-  *     Used to detect if the fallback chain is looping.
-  * @return {(string|boolean)} The requested translation or `false` if no message could be found.
-  */
+  /**
+   * Get a translation of a message from the messages object in the requested
+   * language.
+   *
+   * - Missing `messages`, `msgName`, `lang` parameters: `return false;` .
+   * - Didn't find message in the current language: Try the fallback list.
+   * - Didn't find a fallback list for current language: Try to find `en` message.
+   * - Didn't find message in the current fallback language: Try to find message
+   *     in the next fallback language.
+   * - Found duplicated language code in the fallback list:
+   *     `warnOnFallbackLoop(lang, fallbackChain)`.
+   * - Didn't find more language code in the fallback list: Try to find `en` message.
+   * - Didn't find message in `en`: `return false;`.
+   *
+   * @param {object} messages The message object to look translations up in.
+   * @param {string} msgName The name of the message to get.
+   * @param {string} lang The language to get the message in.
+   * @param {string[]} fallbackChain Array of languages that have already been checked.
+   *     Used to detect if the fallback chain is looping.
+   * @return {(string|boolean)} The requested translation or `false` if no message could be found.
+   */
   function getMsg(messages, msgName, lang, fallbackChain) {
     if (!lang || !messages || !msgName) {
       return false;
@@ -612,27 +592,27 @@ onevar:true
       fallbackChain = [];
     }
     
-    /*
-    * Try to find fallback messages by using the fallback chain.
-    * We need to check whether the lang is defined in the fallback list before
-    * trying to go through them.
-    *
-    * @var {number} i The current index in fallbacks[lang]
-    */
+    /**
+     * Try to find fallback messages by using the fallback chain.
+     * We need to check whether the lang is defined in the fallback list before
+     * trying to go through them.
+     *
+     * @var {number} i The current index in fallbacks[lang]
+     */
     for (var i = 0; (fallbacks[lang] && i < fallbacks[lang].length); i += 1) {
-      /*
-      * @var {string} fallbackLang
-      */
+      /**
+       * @var {string} fallbackLang
+       */
       var fallbackLang = fallbacks[lang][i];
       if (messages[fallbackLang] && messages[fallbackLang][msgName]) {
         return messages[fallbackLang][msgName];
       }
       
       if (fallbackChain.indexOf(fallbackLang) !== -1) {
-        /*
-        * Duplicated language code in fallback list.
-        * Try to find next fallback language from list.
-        */
+        /**
+         * Duplicated language code in fallback list.
+         * Try to find next fallback language from list.
+         */
         warnOnFallbackLoop(fallbackLang, fallbackChain);
         continue;
       }
@@ -646,300 +626,78 @@ onevar:true
     
     return false;
   }
-  
-  /*
-  * Substitute arguments into the string, where arguments are represented
-  * as $n where n > 0.
-  *
-  * @param {string} message The message to substitute arguments into
-  * @param {array} arguments The arguments to substitute in.
-  * @return {string} The resulting message.
-  */
-  function handleArgs(message, args) {
-    args.forEach(function (elem, index) {
-      /*
-      * @var {RegExp} rgx
-      */
-      var rgx = new RegExp('\\$' + (index + 1), 'g');
-      message = message.replace(rgx, elem);
-    });
-    
-    return message;
-  }
-  
-  /*
-  * Generate a HTML link using the supplied parameters.
-  *
-  * @param {string} href The href of the link which will be converted to
-  *     '/wiki/href'.
-  * @param {string} text The text and title of the link. If this is not supplied, it
-  *     will default to href.
-  * @param {boolean} hasProtocol True if the href parameter already includes the
-  *     protocol (i.e. it begins with 'http://', 'https://', or '//').
-  * @return {string} The generated link.
-  */
-  function makeLink(href, text, hasProtocol) {
-    text = text || href;
-    href = hasProtocol ? href : mw.util.getUrl(href);
-    
-    text = mw.html.escape(text);
-    href = mw.html.escape(href);
-    
-    return '<a href="' + href + '" title="' + text + '">' + text + '</a>';
-  }
-  
-  /*
-  * Allow basic inline HTML tags in wikitext.does not support <a> as that's handled by the
-  * wikitext links instead.
-  *
-  * Supports the following tags:
-  * - <i>
-  * - <b>
-  * - <s>
-  * - <br>
-  * - <em>
-  * - <strong>
-  * - <span>
-  *
-  * Supports the following tag attributes:
-  * - title
-  * - style
-  * - class
-  *
-  * @param html
-  * @return The sanitised HTML code.
-  */
-  function sanitiseHtml(html) {
-    /*
-    * @var context
-    */
-    var context = document.implementation.createHTMLDocument(''),
-    $html = $.parseHTML(html, /* document */ context, /* keepscripts */ false),
-    $div = $('<div>', context).append($html),
-    allowedAttrs = [
-      'title',
-      'style',
-      'class'
-    ],
-    allowedTags = [
-      'i',
-      'b',
-      's',
-      'br',
-      'em',
-      'strong',
-      'span',
-    ];
-    
-    $div.find('*').each(function () {
-      var $this = $(this),
-      tagname = $this.prop('tagName').toLowerCase(),
-      attrs,
-      array,
-      style;
-      
-      if (allowedTags.indexOf(tagname) === -1) {
-        mw.log('[I18n-js] Disallowed tag in message: ' + tagname);
-        $this.remove();
-        return;
-      }
-      
-      attrs = $this.prop('attributes');
-      array = Array.prototype.slice.call(attrs);
-      
-      array.forEach(function (attr) {
-        if (allowedAttrs.indexOf(attr.name) === -1) {
-          mw.log('[I18n-js] Disallowed attribute in message: ' + attr.name + ', tag: ' + tagname);
-          $this.removeAttr(attr.name);
-          return;
-        }
-        
-        // Make sure there's nothing nasty in style attributes
-        if (attr.name === 'style') {
-          style = $this.attr('style');
-          
-          if (style.indexOf('url(') > -1) {
-            mw.log('[I18n-js] Disallowed url() in style attribute');
-            $this.removeAttr('style');
-            
-            // https://phabricator.wikimedia.org/T208881
-          } else if (style.indexOf('var(') > -1) {
-            mw.log('[I18n-js] Disallowed var() in style attribute');
-            $this.removeAttr('style');
-          }
-        }
-      });
-    });
-    
-    return $div.prop('innerHTML');
-  }
-  
-  /*
-  * Parse some basic wikitext into HTML. Also supports basic inline HTML tags.
-  *
-  * Will process:
-  * - [url text]
-  * - [[pagename]]
-  * - [[pagename|text]]
-  * - {{PLURAL:count|singular|plural}}
-  * - {{GENDER:gender|masculine|feminine|neutral}}
-  *
-  * @param {string} message The message to process.
-  * @return {string} The resulting string.
-  */
-  function parse(message) {
-    // [url text] -> [$1 $2]
-    var urlRgx = /\[((?:https?:)?\/\/.+?) (.+?)\]/g,
-    // [[pagename]] -> [[$1]]
-    simplePageRgx = /\[\[([^|]*?)\]\]/g,
-    // [[pagename|text]] -> [[$1|$2]]
-    pageWithTextRgx = /\[\[(.+?)\|(.+?)\]\]/g,
-    // {{PLURAL:count|singular|plural}} -> {{PLURAL:$1|$2}}
-    pluralRgx = /\{\{PLURAL:(\d+)\|(.+?)\}\}/gi,
-    // {{GENDER:gender|masculine|feminine|neutral}} -> {{GENDER:$1|$2}}
-    genderRgx = /\{\{GENDER:([^|]*)\|(.+?)\}\}/gi;
-    
-    if (message.indexOf('<') > -1) {
-      message = sanitiseHtml(message);
-    }
-    
-    return message
-    .replace(urlRgx, function (_match, href, text) {
-      return makeLink(href, text, true);
-    })
-    .replace(simplePageRgx, function (_match, href) {
-      return makeLink(href);
-    })
-    .replace(pageWithTextRgx, function (_match, href, text) {
-      return makeLink(href, text);
-    })
-    .replace(pluralRgx, function (_match, count, forms) {
-      return mw.language.convertPlural(Number(count), forms.split('|'));
-    })
-    .replace(genderRgx, function (_match, gender, forms) {
-      return mw.language.gender(gender, forms.split('|'));
-    });
-  }
-  
-  /*
-  * Create a new Message instance.
-  *
-  * @param {object} messages The message object to look translations up in.
-  * @param {string} lang The language to get the message in.
-  * @param {array} args Any arguments to substitute into the message, [0] is message name.
-  * @param {string} name The name of the script the messages are for.
-  * @return
-  */
-  function message(messages, lang, args, name) {
-    if (!args.length) {
-      return;
-    }
-    
-    /*
-    * @var msgName
-    * @var {string} descriptiveMsgName
-    * @var {object} msg
-    * @var {boolean} msgExists
-    */
-    var msgName = args.shift(),
-    descriptiveMsgName = 'i18njs-' + name + '-' + msgName,
-    msg = getMsg(messages, msgName, lang),
-    msgExists = msg !== false;
-    
-    if (!msgExists) {
-      // use name wrapped in < > for missing message, per MediaWiki convention
-      msg = '<' + descriptiveMsgName + '>';
-    }
-    
-    if (conf.wgUserLanguage === 'qqx' && msgExists) {
-      // https://www.mediawiki.org/wiki/Help:System_message#Finding_messages_and_documentation
-      msg = '(' + descriptiveMsgName + ')';
-    } else if (overrides[name] && overrides[name][msgName]) {
-      // if the message has been overridden, use that without checking the language
-      msg = overrides[name][msgName];
-      msgExists = true;
-    }
-    
-    if (args.length) {
-      msg = handleArgs(msg, args);
-    }
-    
-    return {
-      /*
-      * @return {boolean} Representing whether the message exists.
-      */
-      exists: msgExists,
-      
-      /*
-      * Parse wikitext links in the message and return the result.
-      *
-      * @return {string} The resulting string.
-      */
-      parse: function () {
-        /*
-        * Skip parsing if the message wasn't found; otherwise
-        * the sanitisation will mess with it.
-        */
-        if (!this.exists) {
-          return this.escape();
-        }
-        
-        return parse(msg);
-      },
-      
-      /*
-      * Escape any HTML in the message and return the result.
-      *
-      * @return {string} The resulting string.
-      */
-      escape: function () {
-        return mw.html.escape(msg);
-      },
-      escaped: function () {
-        return mw.html.escape(msg);
-      },
-      
-      /*
-      * Return the message as is.
-      *
-      * @return {string} The resulting string.
-      */
-      plain: function () {
-        return msg;
-      }
-    };
-  }
-  
-  /*
-  * Create a new i18n object.
-  *
-  * @param {object} messages The message object to look translations up in.
-  * @param {string} name The name of the script the messages are for.
-  * @param {object} options Options set by the loading script.
-  * @return {object}
-  */
+
+  /**
+   * Create a new i18n object.
+   *
+   * @param {object} messages The message object to look translations up in.
+   * @param {string} name The name of the script the messages are for.
+   * @param {object} options Options set by the loading script.
+   * @return {object}
+   */
   function i18n(messages, name, options) {
     var defaultLang = options.language,
-    tempLang = null;
+        defaultLangMsgMap = null,
+        tempLang = null;
     
     return {
-      /*
-      * Set the default language.
-      *
-      * @deprecated since v0.6 (2020-08-25), no longer supported.
-      */
+      /**
+       * Actually sets the message key-value pairs to mw.messages
+       * @param {string} lang The language to pick from the fetched messages object 
+       * @param {boolean} isTemp Only load a language set temporarily
+       * @returns {mw.Map}
+       */
+      loadMwMessages: function (lang, isTemp) {
+        if (!isTemp && defaultLang === lang && defaultLangMsgMap !== null) {
+          return defaultLangMsgMap;
+        }
+        var messagesToLoad = messages[lang];
+        if (messagesToLoad === undefined) {
+          if (messages.en) {
+            console.warn('[I18n-js] Unable to find messages for the script \'' + name + '\' and the language \'' + lang + '\'. Switching to English as fallback.');
+            messagesToLoad = messages.en;
+          } else {
+            console.error('[I18n-js] No messages to load for ' + name );
+            messagesToLoad = {};
+          }
+        }
+
+        // Override i18n messages
+        if (window.dev && window.dev.overrides && window.dev.overrides[name]) {
+          Object.entries(window.dev.overrides[name]).forEach(function (kv) {
+            messagesToLoad[kv[0]] = kv[1];
+          });
+        }
+
+        if (isTemp) {
+          var tempLangMsgMap = new mw.Map();
+          tempLangMsgMap.set(messagesToLoad);
+          return tempLangMsgMap;
+        } else {
+          defaultLang = lang;
+          defaultLangMsgMap = new mw.Map();
+          defaultLangMsgMap.set(messagesToLoad);
+          return defaultLangMsgMap;
+        }
+      },
+
+      /**
+       * Set the default language.
+       *
+       * @deprecated since v0.6 (2020-08-25), no longer supported.
+       */
       useLang: function () {
         console.warn('[I18n-js] “useLang()” is no longer supported by I18n-js (used in “' + name + '”) - using user language.');
         this.useUserLang();
       },
       
-      /*
-      * Set the language for the next msg call.
-      *
-      * @param {string} lang The language code to use for the next `msg` call.
-      *
-      * @return {object} The current object for use in chaining.
-      */
+      /**
+       * Set the language for the next msg call.
+       *
+       * @param {string} lang The language code to use for the next `msg` call.
+       *
+       * @return {object} The current object for use in chaining.
+       */
       inLang: function (lang) {
         if (!options.cacheAll) {
           console.warn('[I18n-js] “inLang()” is not supported without configuring `options.cacheAll` (used in “' + name + '”) - using user language.');
@@ -949,123 +707,125 @@ onevar:true
         return this;
       },
       
-      /*
-      * Set the default language to the content language.
-      */
+      /**
+       * Set the default language to the content language.
+       */
       useContentLang: function () {
         defaultLang = conf.wgContentLanguage;
       },
       
-      /*
-      * Set the language for the next `msg` call to the content language.
-      *
-      * @return {object} The current object for use in chaining.
-      */
+      /**
+       * Set the language for the next `msg` call to the content language.
+       *
+       * @return {object} The current object for use in chaining.
+       */
       inContentLang: function () {
         tempLang = conf.wgContentLanguage;
         return this;
       },
       
-      /*
-      * Set the default language to the page language.
-      */
+      /**
+       * Set the default language to the page language.
+       */
       usePageLang: function () {
         defaultLang = conf.wgPageContentLanguage;
       },
       
-      /*
-      * Set the language for the next `msg` call to the page language.
-      *
-      * @return {object} The current object for use in chaining.
-      */
+      /**
+       * Set the language for the next `msg` call to the page language.
+       *
+       * @return {object} The current object for use in chaining.
+       */
       inPageLang: function () {
         tempLang = conf.wgPageContentLanguage;
         return this;
       },
       
-      /*
-      * Set the default language to the page view language.
-      * This is also known as the user language variant.
-      */
+      /**
+       * Set the default language to the page view language.
+       * This is also known as the user language variant.
+       */
       usePageViewLang: function () {
         defaultLang = conf.wgUserVariant || conf.wgPageContentLanguage || conf.wgContentLanguage;
       },
       
-      /*
-      * Set the language for the next `msg` call to the page view language.
-      * This is also known as the user language variant.
-      *
-      * @return {object} The current object for use in chaining.
-      */
+      /**
+       * Set the language for the next `msg` call to the page view language.
+       * This is also known as the user language variant.
+       *
+       * @return {object} The current object for use in chaining.
+       */
       inPageViewLang: function () {
         tempLang = conf.wgUserVariant || conf.wgPageContentLanguage || conf.wgContentLanguage;
         return this;
       },
       
-      /*
-      * Set the default language to the user's language.
-      */
+      /**
+       * Set the default language to the user's language.
+       */
       useUserLang: function () {
         defaultLang = options.language;
       },
-      
-      /*
-      * Set the language for the next msg call to the user's language.
-      *
-      * @return {object} The current object for use in chaining.
-      */
+
+      /**
+       * Set the language for the next msg call to the user's language.
+       *
+       * @return {object} The current object for use in chaining.
+       */
       inUserLang: function () {
         tempLang = options.language;
         return this;
       },
-      
-      /*
-      * Create a new instance of Message.
-      *
-      * @return {object}
-      */
+
+      /**
+       * Create a new instance of mw.Message.
+       *
+       * @return {object}
+       */
       msg: function () {
-        var args = Array.prototype.slice.call(arguments),
-        lang = defaultLang;
-        
-        if (tempLang !== null) {
-          lang = tempLang;
+        var isTemp = tempLang !== undefined;
+        var map = this.loadMwMessages(tempLang || defaultLang, isTemp);
+        if (isTemp) {
           tempLang = null;
         }
-        
-        return message(messages, lang, args, name);
+        var args = Array.prototype.slice.call(arguments);
+        if (args.length === 0) {
+          return;
+        }
+        var key = args.shift();
+        return new mw.Message(map, key, args);
       },
       
-      /*
-      * For accessing the raw messages.
-      * Scripts should not rely on it or any of its properties existing.
-      */
+      /**
+       * For accessing the raw messages.
+       * Scripts should not rely on it or any of its properties existing.
+       */
       _messages: messages
     };
   }
   
-  /*
-  * Preprocess each message's fallback chain for the user and content languages.
-  * This allows us to save only those messages needed to the cache.
-  *
-  * @param {string} name The name of the script the messages are for.
-  * @param {object} messages The message object to look translations up in.
-  * @param {object} options Options set by the loading script.
-  */
+  /**
+   * Preprocess each message's fallback chain for the user and content languages.
+   * This allows us to save only those messages needed to the cache.
+   *
+   * @param {string} name The name of the script the messages are for.
+   * @param {object} messages The message object to look translations up in.
+   * @param {object} options Options set by the loading script.
+   */
   function optimiseMessages(name, messages, options) {
     var existingLangs = cache[name] && cache[name]._messages._isOptimised,
-    langs = [options.language],
-    msgKeys = Object.keys(messages.en || {}),
-    optimised = {};
+        langs = [options.language],
+        msgKeys = Object.keys(messages.en || {}),
+        optimised = {};
     
     if (!msgKeys.length) {
       // No English messages, don't bother optimising
       return messages;
     }
     
-    /*
-    * @var addMsgsForLanguage
-    */
+    /**
+     * @var addMsgsForLanguage
+     */
     var addMsgsForLanguage = function (lang) {
       if (optimised[lang]) {
         // Language already exists
@@ -1075,9 +835,9 @@ onevar:true
       optimised[lang] = {};
       
       msgKeys.forEach(function (msgName) {
-        /*
-        * @var msg
-        */
+        /**
+         * @var msg
+         */
         var msg = getMsg(messages, msgName, lang);
         
         if (msg !== false) {
@@ -1090,11 +850,11 @@ onevar:true
       langs.push(conf.wgContentLanguage);
     }
     
-    /*
-    * If cache exists and is optimised, preserve existing languages.
-    * This allows an optimised cache even when using different
-    * language wikis on same domain (i.e. sharing same cache).
-    */
+    /**
+     * If cache exists and is optimised, preserve existing languages.
+     * This allows an optimised cache even when using different
+     * language wikis on same domain (i.e. sharing same cache).
+     */
     if (existingLangs) {
       existingLangs.forEach(function (lang) {
         if (langs.indexOf(lang) === -1) {
@@ -1105,10 +865,10 @@ onevar:true
     
     langs.forEach(addMsgsForLanguage);
     
-    /*
-    * `cacheAll` is an array of message names for which translations
-    * should not be optimised - save all translations of these messages
-    */
+    /**
+     * `cacheAll` is an array of message names for which translations
+     * should not be optimised - save all translations of these messages
+     */
     if (Array.isArray(options.cacheAll)) {
       msgKeys = options.cacheAll;
       Object.keys(messages).forEach(addMsgsForLanguage);
@@ -1119,14 +879,14 @@ onevar:true
     return optimised;
   }
   
-  /*
-  * Check that the cache for a script exists and, if optimised, contains the
-  * necessary languages.
-  *
-  * @param {string} name The name of the script to check for.
-  * @param {object} options Options set by the loading script.
-  * @return {boolean} Whether the cache should be used.
-  */
+  /**
+   * Check that the cache for a script exists and, if optimised, contains the
+   * necessary languages.
+   *
+   * @param {string} name The name of the script to check for.
+   * @param {object} options Options set by the loading script.
+   * @return {boolean} Whether the cache should be used.
+   */
   function cacheIsSuitable(name, options) {
     var messages = cache[name] && cache[name]._messages;
     
@@ -1135,10 +895,10 @@ onevar:true
       return false;
     }
     
-    /*
-    * Optimised messages missing user or content language.
-    * We'll need to load from server in this case.
-    */
+    /**
+     * Optimised messages missing user or content language.
+     * We'll need to load from server in this case.
+     */
     if (
       messages._isOptimised &&
       !(messages[options.language] && messages[conf.wgContentLanguage])
@@ -1149,11 +909,11 @@ onevar:true
     return true;
   }
   
-  /*
-  * Remove out-of-date entries in the i18n cache (those older than two days).
-  *
-  * This can never be perfect: it will only work on wikis that are visited.
-  */
+  /**
+   * Remove out-of-date entries in the i18n cache (those older than two days).
+   *
+   * This can never be perfect: it will only work on wikis that are visited.
+   */
   function removeOldCacheEntries() {
     var isCacheKey = new RegExp('^(' + cachePrefix + '.+)-content$'),
     storageKeys = [];
@@ -1185,13 +945,13 @@ onevar:true
     });
   }
   
-  /*
-  * Save messages string to local storage for caching.
-  *
-  * @param {string} name The name of the script the messages are for.
-  * @param {object} json The JSON object.
-  * @param {number} cacheVersion Cache version requested by the loading script.
-  */
+  /**
+   * Save messages string to local storage for caching.
+   *
+   * @param {string} name The name of the script the messages are for.
+   * @param {object} json The JSON object.
+   * @param {number} cacheVersion Cache version requested by the loading script.
+   */
   function saveToCache(name, json, cacheVersion) {
     /*
     * @var {string} keyPrefix
@@ -1210,14 +970,14 @@ onevar:true
     } catch (e) {}
   }
   
-  /*
-  * Parse JSON string loaded from page and create an i18n object.
-  *
-  * @param {string} name The name of the script the messages are for.
-  * @param {string} res The JSON string.
-  * @param {object} options Options set by the loading script.
-  * @return {object} The resulting i18n object.
-  */
+  /**
+   * Parse JSON string loaded from page and create an i18n object.
+   *
+   * @param {string} name The name of the script the messages are for.
+   * @param {object} json The JSON object.
+   * @param {object} options Options set by the loading script.
+   * @return {object} The resulting i18n object.
+   */
   function parseMessagesToObject(name, json, options) {
     var obj, msg;
     
@@ -1241,16 +1001,16 @@ onevar:true
     return obj;
   }
   
-  /*
-  * Load messages string from local storage cache and add to cache object.
-  *
-  * @param {string} name The name of the script the messages are for.
-  * @param {object} options Options set by the loading script.
-  */
+  /**
+   * Load messages string from local storage cache and add to cache object.
+   *
+   * @param {string} name The name of the script the messages are for.
+   * @param {object} options Options set by the loading script.
+   */
   function loadFromCache(name, options) {
     var keyPrefix = cachePrefix + name,
-    cacheContent,
-    cacheVersion;
+        cacheContent,
+        cacheVersion;
     
     try {
       cacheContent = localStorage.getItem(keyPrefix + '-content');
@@ -1270,38 +1030,39 @@ onevar:true
     }
   }
   
-  /*
-  * Load messages stored as JSON on a page.
-  *
-  * @param {string} name The page title under which the the i18n.json file is a subpage of. 
-  *     This will be used to get messages from 
-  *     https://some-cdn-domain/<gadget-name>/i18n.json
-  *
-  * @param {object} options Options set by the loading script:
-  * - {string} entrypoint
-  *     No validation check is done against this supplied API entrypoint.
-  *     Depending on your wiki's Content Security Policy, requests to some wiki domains may be blocked.
-  * - {(array|boolean)} cacheAll: Either an array of message names for which
-  *     translations should not be optimised, or `true` to disable the optimised cache.
-  * - {number} cacheVersion: Minimum cache version requested by the loading script.
-  * - {string} language: Set a default language for the script to use, instead of wgUserLanguage.
-  * - noCache: Never load i18n from cache (not recommended for general use).
-  *
-  * @return {object} A jQuery.Deferred instance.
-  * For backwards compatibility with Fandom Script the jQuery.Deferred object always resolves.
-  */
+  /**
+   * Load messages stored as JSON on a page.
+   *
+   * @param {string} name The page title under which the the i18n.json file is a subpage of. 
+   *     This will be used to get messages from 
+   *     https://some-cdn-domain/<gadget-name>/i18n.json
+   *
+   * @param {object} options Options set by the loading script:
+   * - {string} entrypoint
+   *     No validation check is done against this supplied API entrypoint.
+   *     Depending on your wiki's Content Security Policy, requests to some wiki domains may be blocked.
+   * - {(array|boolean)} cacheAll: Either an array of message names for which
+   *     translations should not be optimised, or `true` to disable the optimised cache.
+   * - {number} cacheVersion: Minimum cache version requested by the loading script.
+   * - {string} language: Set a default language for the script to use, instead of wgUserLanguage.
+   * - noCache: Never load i18n from cache (not recommended for general use).
+   *
+   * @return {object} A jQuery.Deferred instance. This jQuery.Deferred object instance will always resolve, 
+   * regardless of the method's success/failure in actually fetching & parsing the messages.  
+   * 
+   */
   function loadMessages(name, options) {
-    /*
-    * @var {object} deferred
-    * @var {string} entrypoint
-    * @var {object} params
-    * @var {object} api
-    */
+    /**
+     * @var {object} deferred
+     * @var {string} entrypoint
+     * @var {object} params
+     * @var {object} api
+     */
     var deferred = $.Deferred(),
-      // MH_DEVSCRIPTS_CDN_ENTRYPOINT is replaced during compilation
-      entrypoint = MH_DEVSCRIPTS_CDN_ENTRYPOINT,
-      params, 
-      api;
+        // MH_DEVSCRIPTS_CDN_ENTRYPOINT is replaced during compilation
+        entrypoint = MH_DEVSCRIPTS_CDN_ENTRYPOINT,
+        params, 
+        api;
     
     options = options || {};
     options.entrypoint = options.entrypoint || entrypoint;
@@ -1320,16 +1081,11 @@ onevar:true
     // Cache isn't suitable - loading from server
     options.loadedFromCache = false;
     
-    /*
-    * 'site' and 'user' are dependencies so end-users can set overrides in their local JS
-    * and have it take effect before we load the messages.
-    * Generally, we will implicitly depend on those anyway due to where/when this is loaded.
-    */
-    mw.loader.using(['mediawiki.language', 'mediawiki.util'/*, 'site', 'user'*/], function () {
-      $.get(entrypoint.replace(/\/$/, '') + '/' + name + '/i18n.json')
+    $.getJSON(entrypoint + '/' + name + '/i18n.json')
       .done(function (json) {
         deferred.resolve(parseMessagesToObject(name, json, options));
       })
+      // .fail() will be called instead of .done() in the event of network failure or JSON parsing failure
       .fail(function (xhr, err) {
         console.error(
           'Failed to fetch contents from ' + options.entrypoint + ' for gadget ' + name, 
@@ -1337,41 +1093,44 @@ onevar:true
         );
         deferred.resolve();
       });
-    });
     
     return deferred;
+  }
+
+  /**
+   * Maintain backwards compatibility with Fandom's version of i18n-js:
+   * Proxy i18n-js's `escape()` method with mw.Message's native `escaped()`
+   */
+  if (mw.Message.prototype.escape === undefined) {
+    mw.Message.prototype.escape = mw.Message.prototype.escaped;
   }
   
   // Expose under the dev global
   window.dev.i18n = $.extend(window.dev.i18n, {
     loadMessages: loadMessages,
     
-    /*
-    * "Hidden" functions to allow testing and debugging
-    * they may be changed or removed without warning.
-    * Scripts should not rely on these existing or their output being in any particular format.
-    */
+    /**
+     * "Hidden" functions to allow testing and debugging
+     * they may be changed or removed without warning.
+     * Scripts should not rely on these existing or their output being in any particular format.
+     */
     _bcp47: bcp47,
     _saveToCache: saveToCache,
     _getMsg: getMsg,
-    _handleArgs: handleArgs,
-    _parse: parse,
     _fallbacks: fallbacks,
     _cache: cache
   });
   
   // Initialise overrides object
   window.dev.i18n.overrides = window.dev.i18n.overrides || {};
-  overrides = window.dev.i18n.overrides;
   
   /*
-  * Fire an event on load.
-  * Alternatively, use $.getScript (or mw.loader) and use the returned promise.
-  */
+   * Fire an event on load.
+   * Alternatively, use $.getScript (or mw.loader) and use the returned promise.
+   */
   mw.hook('dev.i18n').fire(window.dev.i18n);
   
   // Tidy the localStorage cache of old entries
   removeOldCacheEntries();
   
-} (jQuery, mediaWiki));
-// </nowiki>
+}());
