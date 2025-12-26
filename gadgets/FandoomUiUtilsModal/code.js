@@ -101,7 +101,7 @@
     this.disabled = Boolean(disabled);
     return this;
   };
-  
+
   /**
   * Sets event data.
   * @param {String} event Event to assign to the button
@@ -490,6 +490,84 @@
     }
     return this;
   };
+
+  /**
+  * Gets the action buttons defined within the modal based on the given filters
+  * @param {String|Object} filters
+  * If `filters` is given as a string, then this function will search for the action buttons
+  * with the given string as its element ID.
+  * @param {String} filters.id
+  * @param {String} filters.actions
+  * @param {String} filters.flags
+  * @returns {Array} Filtered action widgets
+  */
+  Modal.prototype.filterActionButtons = function (filters) {
+    var o = undefined, id = undefined;
+    if (typeof filters === 'string') {
+      id = filters;
+    } else if (typeof filters === 'object') {
+      if (filters.actions !== undefined || filters.flags !== undefined) {
+        o = {
+          actions: filters.actions,
+          flags: filters.flags
+        };
+      }
+      id = filters.id;
+    }
+    var l = this._modal.actions.get(o);
+    if (id === undefined) {
+      return l;
+    } 
+    return l.filter(function (el) {
+      return el.getElementId() === id;
+    });
+  }
+
+  /**
+  * Disables the specified action buttons
+  * @param {String|Object} filters
+  * @param {String} filters.id
+  * @param {String} filters.actions
+  * @param {String} filters.flags
+  * @returns {Modal} Current instance
+  */
+  Modal.prototype.disableActionButtons = function (filters) {
+    this.filterActionButtons(filters).forEach(function (actionWidget) {
+      actionWidget.setDisabled(true);
+    });
+    return this;
+  }
+
+  /**
+  * Enables the specified action buttons
+  * @param {String|Object} filters
+  * @param {String} filters.id
+  * @param {String} filters.actions
+  * @param {String} filters.flags
+  * @returns {Modal} Current instance
+  */
+  Modal.prototype.enableActionButtons = function (filters) {
+    this.filterActionButtons(filters).forEach(function (actionWidget) {
+      actionWidget.setDisabled(false);
+    });
+    return this;
+  }
+  
+  /**
+  * Toggles `disabled` attribute of the specified action buttons
+  * @param {String|Object} filters
+  * @param {String} filters.id
+  * @param {String} filters.actions
+  * @param {String} filters.flags
+  * @returns {Modal} Current instance
+  */
+  Modal.prototype.toggleActionButtons = function (filters) {
+    this.filterActionButtons(filters).forEach(function (actionWidget) {
+      var isDisabled = actionWidget.isDisabled();
+      actionWidget.setDisabled(!isDisabled);
+    });
+    return this;
+  }
   
   /**
   * Creates a modal component.
@@ -547,7 +625,7 @@
     * Close modal when clicked outside of the modal
     * (by [[User:Noreplyz]] for [[WHAM]]).
     */
-    this._modal.$frame.parent().prepend('<div class="oo-ui-window-backdrop"></div>');
+    this._modal.$frame.parent().prepend($('<div>', { 'class': "oo-ui-window-backdrop" }));
     this._modal.$frame.prev().click((function(event) {
       if ($(event.target).parent().attr('id') === this.id) {
         this._modal.close();
@@ -565,23 +643,6 @@
   Modal.prototype._close = function() {
     this._modal = null;
     this.create();
-    /*
-    * This is a hack around the bug with scrollbar not restoring
-    * upon closing the modal. Fandom's modal that should
-    * automatically do this assumes that, when the .modal-blackout
-    * class is present in the document, a modal is still showing
-    * and the scrollbar needs not be removed. However, due to Modal's
-    * caching behavior, this is no longer true and we have to
-    * supply our own implementation of the code that restores the
-    * scrollbar, as seen below.
-    */
-    if ($('body').children('.modal-blackout.visible').length) {
-      $('body').removeClass('with-blackout');
-      $('.WikiaSiteWrapper')
-        .removeClass('fake-scrollbar')
-        .css('top', 'auto');
-      $(window).scrollTop(this.wScrollTop);
-    }
     if (this.closeFunc) {
       return this.closeFunc.bind(this.context)();
     }
@@ -620,15 +681,6 @@
   };
   
   /**
-  * Proxy certain methods to the modal component.
-  */
-  ['activate', 'deactivate'].forEach(function(method) {
-    Modal.prototype[method] = function() {
-      return; // Not supported on UCP yet.
-    };
-  });
-  
-  /**
   * Closes the modal
   */
   Modal.prototype.close = function() {
@@ -655,10 +707,4 @@
     // Begin initialization.
     init();
   });
-  // This must be done before wikia.ui.modal is loaded in chat
-  if (typeof $.msg !== 'function') {
-    $.msg = function() {
-      return mw.message.call(this, arguments).text();
-    };
-  }
 })();
