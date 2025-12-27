@@ -490,26 +490,12 @@
     });
   }
   
-  function initDependencies() {
-    var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsQdmodal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-    var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
-    if (missing.length > 0) {
-      for (var i = 0; i < missing.length; i++) {
-        console.error('Missing dependency: ' + missing[i] + ' must be loaded to use MassNullEdit');
-      }
-      return;
-    }
-    $.when(
-      loadMessages(),
-      mw.loader.using(required)
-    ).then(function (messages) {
-      i18n = messages.msg.bind(messages);
-      main();
-    });
-  }
+  loadMessages().then(function (messages) {
+    i18n = messages.msg.bind(messages);
+    main();
+  });
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
   
-  initDependencies();
 }(jQuery, mediaWiki));

@@ -1,16 +1,17 @@
-#text-batch-undelete {
+#form-batch-undelete #text-batch-undelete {
 	height: 20em;
 	resize: none;
 	width: 100%;
 }
  
-#text-error-output {
+#form-batch-undelete #text-error-output {
 	background-color: #ffbfbf;
 	color: black;
 	font-weight: bold;
 	width: 100%;
 }
- 
-#t-bd {
-	cursor: pointer;
+
+#form-batch-undelete .edit-input-controls > * {
+	display: block;
+	width: 100%;
 }

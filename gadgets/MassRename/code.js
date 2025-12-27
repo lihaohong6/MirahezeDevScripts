@@ -45,14 +45,15 @@ mw.loader.using('mediawiki.api', function () {
             id: 'redirect-check'
           })
         ),
-        $('<br>'),
-        $('<label>', {
-          'for': 'custom-summary',
-          text: i18n.msg('custom-summary').plain()
-        }).append(
-          $('<input>', {
-            id: 'custom-summary'
-          })
+        $('<div>', { 'class': 'edit-input-control' }).append(
+          $('<label>', {
+            'for': 'custom-summary'
+          }).append(
+            $('<div>').text(i18n.msg('custom-summary').plain()),
+            $('<input>', {
+              id: 'custom-summary'
+            })
+          ),
         ),
         $('<textarea>', {
           id: 'text-rename',
@@ -226,33 +227,11 @@ mw.loader.using('mediawiki.api', function () {
   mw.hook('dev.modal').add(preload);
   mw.hook('dev.powertools.placement').add(preload);
   
-  /**
-  * @method initDependencies
-  * @description Loads messages & userscript dependencies
-  */
-  function initDependencies() {
-    var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-    var availableModules = new Set(mw.loader.getModuleNames());
-    var missing = required.filter(function (dep) {
-      return !availableModules.has(dep);
-    });
-    if (missing.length > 0) {
-      for (var i = 0; i < missing.length; i++) {
-        console.error('Missing dependency: ' + missing[i] + ' must be loaded to use AjaxBatchDelete');
-      }
-      return;
-    }
-    $.when(
-      loadMessages(),
-      mw.loader.using(required)
-    ).then(function (messages) {
-      i18n = messages;
-      preload();
-    });
-  }
+  loadMessages().then(function (messages) {
+    i18n = messages;
+    preload();
+  });
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
-  
-  initDependencies();
 });

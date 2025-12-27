@@ -91,26 +91,29 @@ mw.loader.using('mediawiki.api', function() {
   function formHtml() {
     return $('<form>').append(
       $('<fieldset>').append(
-        $('<p>').append(
-          $('<label>', {
-            'for': 'ajax-delete-reason',
-            text: i18n.msg('inputReason').plain()
-          }),
-          $('<input>', {
-            type: 'text',
-            name: 'ajax-delete-reason',
-            id: 'ajax-delete-reason'
-          }),
-          $('<br>'),
-          $('<label>', {
-            'for': 'protect-check',
-            text: i18n.msg('inputProtect').plain()
-          }),
-          $('<input>', {
-            type: 'checkbox',
-            id: 'protect-check',
-            name: 'protect-check'
-          })
+        $('<div>', { 'class': 'edit-input-controls' }).append(
+          $('<div>', { 'class': 'edit-input-control' }).append(
+            $('<label>', {
+              'for': 'ajax-delete-reason',
+              text: i18n.msg('inputReason').plain()
+            }),
+            $('<input>', {
+              type: 'text',
+              name: 'ajax-delete-reason',
+              id: 'ajax-delete-reason'
+            }),
+          ),
+          $('<div>', { 'class': 'edit-input-control' }).append(
+            $('<label>', {
+              'for': 'protect-check',
+              text: i18n.msg('inputProtect').plain()
+            }),
+            $('<input>', {
+              type: 'checkbox',
+              id: 'protect-check',
+              name: 'protect-check'
+            })
+          )
         ),
         $('<p>', {
           text: i18n.msg('inputPages').plain() + ':'
@@ -223,27 +226,12 @@ mw.loader.using('mediawiki.api', function() {
   
   mw.hook('dev.modal').add(preload);
   mw.hook('dev.powertools.placement').add(preload);
+  loadMessages().then(function (messages) {
+    i18n = messages;
+    preload();
+  });
 
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
-  
-  function initDependencies() {
-    var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-    var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
-    if (missing.length > 0) {
-      for (var i = 0; i < missing.length; i++) {
-        console.error('Missing dependency: ' + missing[i] + ' must be loaded to use AjaxBatchDelete');
-      }
-      return;
-    }
-    $.when(
-      loadMessages(),
-      mw.loader.using(required)
-    ).then(function (messages) {
-      i18n = messages;
-      preload();
-    });
-  }
-  
-  initDependencies();
+
 });

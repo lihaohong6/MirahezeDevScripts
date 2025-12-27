@@ -37,9 +37,8 @@ mw.loader.using([
   * @parama {String} type - The protection type.
   */
   function generateElement (type) {
-    return  $('<p>', {
-      text: i18n.msg(type).plain()
-    }).append(
+    return  $('<div>', { 'class': 'edit-input-control' }).append(
+      $('<div>').text(i18n.msg(type).plain()),
       $('<select>', {
         id: 'protect-' + type
       }).append(
@@ -71,7 +70,7 @@ mw.loader.using([
       $('<fieldset>').append(
         $('<p>', {
           text: i18n.msg('protection').plain(),
-          id: 'protection-bold'
+          'class': 'protection-bold'
         }),
         generateElement('edit'),
         generateElement('move'),
@@ -79,10 +78,10 @@ mw.loader.using([
         generateElement('create'),
         generateElement('comment'),
         $('<hr/>'),
-        $('<p>', {
-          text: i18n.msg('expiry').plain(),
-          id: 'protection-bold'
+        $('<div>', {
+          'class': 'protection-bold edit-input-control'
         }).append(
+          $('<div>').text(i18n.msg('expiry').plain()),
           $('<input>', {
             type: 'text',
             id: 'protect-expiry',
@@ -90,10 +89,10 @@ mw.loader.using([
           })
         ),
         $('<hr/>'),
-        $('<p>', {
-          text: i18n.msg('reason').plain(),
-          id: 'protection-bold'
+        $('<div>', {
+          'class': 'protection-bold edit-input-control'
         }).append(
+          $('<div>').text(i18n.msg('reason').plain()),
           $('<input>', {
             type: 'text',
             id: 'protect-reason'
@@ -291,26 +290,12 @@ mw.loader.using([
   mw.hook('dev.modal').add(preload);
   mw.hook('dev.powertools.placement').add(preload);
   
-  function initDependencies() {
-    var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-    var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
-    if (missing.length > 0) {
-      for (var i = 0; i < missing.length; i++) {
-        console.error('Missing dependency: ' + missing[i] + ' must be loaded to use MassProtect');
-      }
-      return;
-    }
-    $.when(
-      loadMessages(),
-      mw.loader.using(required)
-    ).then(function (messages) {
-      i18n = messages;
-      preload();
-    });
-  }
+  loadMessages().then(function (messages) {
+    i18n = messages;
+    preload();
+  });
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
 
-  initDependencies();
 });

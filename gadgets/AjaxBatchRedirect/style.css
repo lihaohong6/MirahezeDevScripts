@@ -21,6 +21,7 @@
 	background-color: #ffbfbf;
 	color: black;
 	width: 100%;
+	box-sizing: border-box;
 	min-height: 120px;
 	padding: 8px 12px;
 	overflow: auto;

@@ -6,7 +6,7 @@
 }
 
 /* Main modal input textarea */
-#mne-input {
+#mne-main #mne-input {
   border: 1px solid #aaa;
   box-sizing: border-box;
   height: 20em;
@@ -15,7 +15,7 @@
 }
 
 /* Main modal notices element */
-#mne-output {
+#mne-main #mne-output {
   background-color: #fdd;
   border: 1px solid #aaa;
   box-sizing: border-box;
@@ -35,29 +35,29 @@
 }
 
 /* "Add pages" modal rows */
-.mne-addpages-row {
+#mne-main .mne-addpages-row {
   padding: 4px 0;
 }
-.mne-addpages-row > label {
+#mne-main .mne-addpages-row > label {
   margin-right: 4px;
 }
 
 /* "Add pages" modal: disable while processing */
-#mne-addpages.processing #mne-addpages-start,
-#mne-addpages.processing > section {
+#mne-main #mne-addpages.processing #mne-addpages-start,
+#mne-main #mne-addpages.processing > section {
   opacity: 0.6;
   pointer-events: none;
 }
 
 /* Modal footer message */
-.mne-modal .qdmodal-spinner-container {
+#mne-main .mne-modal .qdmodal-spinner-container {
   --qdmodal-spinner-size: 40px;
 }
-.mne-modal #mne-processing-msg {
+#mne-main .mne-modal #mne-processing-msg {
   flex-grow: 1;
   text-indent: 8px;
 }
-.mne-modal:not(.processing) .qdmodal-spinner-container,
-.mne-modal:not(.processing) #mne-processing-msg {
+#mne-main .mne-modal:not(.processing) .qdmodal-spinner-container,
+#mne-main .mne-modal:not(.processing) #mne-processing-msg {
   display: none;
 }
