@@ -1,9 +1,9 @@
-#text-mass-protect {
+#form-mass-protect #text-mass-protect {
   height: 20em;
   width: 100%;
 }
 
-#text-error-output {
+#form-mass-protect #text-error-output {
   width: 100%;
   margin: 5px auto 0 auto;
   color: black;
@@ -14,10 +14,34 @@
   min-height: 120px;
 }
 
-#t-mp {
-  cursor: pointer;
+#form-mass-protect .protection-bold {
+  font-weight: bold;
 }
 
-#protection-bold {
-  font-weight: bold;
+#form-mass-protect .edit-input-control {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+#form-mass-protect .edit-input-control > div {
+  min-width: 120px;
+}
+#form-mass-protect .edit-input-control > select, #form-mass-protect .edit-input-control > input[type="text"] {
+  flex-grow: 2;
+}
+
+@media (max-width: 500px) {
+  #form-mass-protect .edit-input-control {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  #form-mass-protect .edit-input-control > div {
+    min-width: auto;
+  }
+  #form-mass-protect .edit-input-control > select, #form-mass-protect .edit-input-control > input[type="text"] {
+    width: 100%;
+    display: block;
+  }
 }

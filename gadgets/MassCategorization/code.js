@@ -101,18 +101,7 @@
       });
     },
     preload: function() {
-      var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsDorui', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-      var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
-      if (missing.length > 0) {
-        for (var i = 0; i < missing.length; i++) {
-          console.error('Missing dependency: ' + missing[i] + ' must be loaded to use MassCategorization');
-        }
-        return;
-      }
-      $.when(
-        loadMessages(),
-        mw.loader.using(required)
-      ).then(this.onload.bind(this, 'i18n'));
+      loadMessages().then(this.onload.bind(this, 'i18n'));
       
       mw.hook('dev.modal').add(this.onload.bind(this, 'modal-js'));
       mw.hook('dev.doru.ui').add(this.onload.bind(this, 'dorui'));
@@ -157,7 +146,9 @@
             child: ui.div({
               class: 'MassCat-category-input-wrapper',
               children: [
-                this.i18n.msg('category-label').plain() + ' ',
+                ui.div({
+                  text: this.i18n.msg('category-label').plain() + ' '
+                }),
                 ui.input({
                   type: 'text',
                   class: 'MassCat-category-input',
@@ -914,14 +905,14 @@
     init: function() {
       this.categoryLocal = this.wg.wgFormattedNamespaces['14'];
       this.categoryAliases = Object.keys(this.wg.wgNamespaceIds)
-      .filter(function(key) {
-        return this.wg.wgNamespaceIds[key] === 14
-      }.bind(this))
-      .map(function(namespace) {
-        var ns = namespace.replace(/_/g, ' ');
-        
-        return this.upcaseFirst(ns);
-      }.bind(this));
+        .filter(function(key) {
+          return this.wg.wgNamespaceIds[key] === 14
+        }.bind(this))
+        .map(function(namespace) {
+          var ns = namespace.replace(/_/g, ' ');
+          
+          return this.upcaseFirst(ns);
+        }.bind(this));
       
       this.setDefaultDelay();
       

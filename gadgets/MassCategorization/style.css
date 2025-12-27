@@ -52,6 +52,9 @@
 .MassCat-category-input-wrapper {
   padding-bottom: 4px;
 }
+.MassCat-category-input {
+  width: 90%;
+}
 
 .MassCat-mode-select-wrapper {
   padding-bottom: 4px;

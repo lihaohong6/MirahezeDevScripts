@@ -384,27 +384,11 @@ maxerr: 999999, forin: false, -W082, -W084
   }
   mw.hook("dev.modal").add(preload);
   mw.hook('dev.powertools.placement').add(preload);
-  
-  function initDependencies() {
-    var required = [MH_DEVSCRIPTS_GADGET_NAMESPACE+'.FandoomUiUtilsModal', MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement'];
-    var missing = required.filter(function (dep) { return mw.loader.getState(dep) === null; });
-    if (missing.length > 0) {
-      for (var i = 0; i < missing.length; i++) {
-        console.error('Missing dependency: ' + missing[i] + ' must be loaded to use AjaxBatchRedirect');
-      }
-      return;
-    }
-    $.when(
-      loadMessages(),
-      mw.loader.using(required)
-    ).then(function (messages) {
-      i18n = messages;
-      preload();
-    });
-  }
+  loadMessages().then(function (messages) {
+    i18n = messages;
+    preload();
+  });
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
-  
-  initDependencies();
 })(jQuery, mediaWiki);
