@@ -502,18 +502,20 @@
 
   /**
   * Gets the action buttons defined within the modal based on the given filters
-  * @param {String|Object} filters
-  * If `filters` is given as a string, then this function will search for the action buttons
-  * with the given string as its element ID.
+  * @param {String|Object|Array} filters
+  * If `filters` is given as a string or an array of strings, then this function 
+  * will search for the action buttons with the given string(s) as its element ID.
   * @param {String} filters.id
   * @param {String} filters.actions
   * @param {String} filters.flags
   * @returns {Array} Filtered action widgets
   */
   Modal.prototype.filterActionButtons = function (filters) {
-    var o = undefined, id = undefined;
+    var o = undefined, ids = [];
     if (typeof filters === 'string') {
-      id = filters;
+      ids = [filters];
+    } else if (filters instanceof Array) {
+      ids = filters;
     } else if (typeof filters === 'object') {
       if (filters.actions !== undefined || filters.flags !== undefined) {
         o = {
@@ -521,20 +523,20 @@
           flags: filters.flags
         };
       }
-      id = filters.id;
+      ids = [filters.id];
     }
     var l = this._modal.actions.get(o);
-    if (id === undefined) {
+    if (ids.length === 0) {
       return l;
     } 
     return l.filter(function (el) {
-      return el.getElementId() === id;
+      return ids.indexOf(el.getElementId()) > -1;
     });
   }
 
   /**
   * Disables the specified action buttons
-  * @param {String|Object} filters
+  * @param {String|Object|Array} filters
   * @param {String} filters.id
   * @param {String} filters.actions
   * @param {String} filters.flags
@@ -549,7 +551,7 @@
 
   /**
   * Enables the specified action buttons
-  * @param {String|Object} filters
+  * @param {String|Object|Array} filters
   * @param {String} filters.id
   * @param {String} filters.actions
   * @param {String} filters.flags
@@ -564,7 +566,7 @@
   
   /**
   * Toggles `disabled` attribute of the specified action buttons
-  * @param {String|Object} filters
+  * @param {String|Object|Array} filters
   * @param {String} filters.id
   * @param {String} filters.actions
   * @param {String} filters.flags

@@ -64,7 +64,7 @@ Here are the available methods of a Modal instance. Most of them as used as sett
 - <code>create()</code> — Starts the creation of the modal component and returns a promise that resolves when the creation is done.
 - <code>show()</code> — Shows the modal. If its creation hasn't finished yet, it will wait until the creation and then show the modal.
 - <code>close()</code> / <code>hide()</code> — Closes the modal.
-- <code>enableActionButtons(opts)</code> — Enable the specified action buttons. You can either pass the button element ID as an argument or a Javascript object containing various properties (`opts.actions`, `opts.flags`) to filter the loaded action buttons.
+- <code>enableActionButtons(opts)</code> — Enable the specified action buttons. You can either pass a string (representing the button element ID), an array of strings (representing the button element IDs) or a Javascript object containing various properties (`opts.actions`, `opts.flags`) to filter the loaded action buttons.
 - <code>disableActionButtons(opts)</code> — Disable the specified action buttons.
 - <code>toggleActionButtons(opts)</code> — Toggle the disabled status of the specified action buttons.
 - <code>setButtons(buttons)</code>
