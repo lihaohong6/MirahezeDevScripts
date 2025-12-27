@@ -77,7 +77,7 @@ mw.loader.using('mediawiki.api', function() {
         addCategoryContents: addCategoryContents,
         pause: pause,
         start: start
-        }
+      }
     });
     deleteModal.create();
     $form = $('#form-batch-delete');
@@ -131,7 +131,9 @@ mw.loader.using('mediawiki.api', function() {
   function pause() {
     paused = true;
     deleteModal.disableActionButtons('abd-pause');
-    deleteModal.enableActionButtons('abd-start');
+    deleteModal.enableActionButtons(['abd-start', 'abd-add-pages-in-category']);
+    $pageListInput.removeAttr('disabled');
+    $deleteReasonInput.removeAttr('disabled');
   }
   
   function start() {
@@ -140,8 +142,10 @@ mw.loader.using('mediawiki.api', function() {
       return;
     }
     paused = false;
-    deleteModal.disableActionButtons('abd-start');
+    deleteModal.disableActionButtons(['abd-start', 'abd-add-pages-in-category']);
     deleteModal.enableActionButtons('abd-pause');
+    $pageListInput.attr('disabled', '');
+    $deleteReasonInput.attr('disabled', '');
     process();
   }
   
@@ -149,7 +153,7 @@ mw.loader.using('mediawiki.api', function() {
     if (paused) {
       return;
     }
-    var pages = $pageListInput.val().split('\n'),
+    var pages = ($pageListInput.val() || '').split('\n'),
         currentPage = pages[0];
     if (!currentPage) {
       $errorOutput.append(
@@ -177,7 +181,7 @@ mw.loader.using('mediawiki.api', function() {
       var data = d.query;
       for (var i in data.categorymembers) {
         $pageListInput.val(
-          $pageListInput.val() +
+          ($pageListInput.val() || '') +
           data.categorymembers[i].title +
           '\n'
         );
