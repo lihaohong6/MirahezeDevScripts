@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
 import { loadEnvFile } from 'node:process';
 import { URLSearchParams } from 'node:url';
-import { styleText } from 'node:util';
 import { Builder, Browser, WebDriver, until, By } from 'selenium-webdriver';
+import { LogUtils } from './utils.ts';
 
 export interface TestSuiteDriverArgs {
   skin?: string
@@ -21,20 +21,24 @@ export interface TestSuiteClassConfig {
 export interface TestCase {
   id: string
   fn: TestCaseFn
+  stopFurtherTestsOnFailure: boolean
 }
 export type TestCaseFn = (driver: WebDriver) => void | Promise<void>;
 export type TestAssertionFn = (driver: WebDriver) => boolean | Promise<boolean>;
 
-class LogUtils {
-  static info(msg: string) {
-    console.info(styleText(['magenta', 'cyan'], msg));
-  }
-  static error(msg: string) {
-    console.error(styleText(['redBright', 'red'], msg));
-  }
-  static success(msg: string) {
-    console.info(styleText(['green', 'greenBright', 'cyan'], msg));
-  }
+export interface TestCaseOptions {
+  stopFurtherTestsOnFailure?: boolean
+  onlyTestThisTestCase?: boolean
+}
+
+interface TestSuiteFailedLog {
+  id: string
+  reason: string
+}
+export interface TestSuiteRunResults {
+  successes: number
+  total: number
+  failed: TestSuiteFailedLog[]
 }
 
 class TestSuiteClass {
@@ -53,6 +57,7 @@ class TestSuiteClass {
   navigateToPage: string;
   navigateToPageUrlParams: { [paramKey: string]: any };
   testCases: TestCase[];
+  onlyTest: number[];
   config?: TestSuiteClassConfig;
 
   /**
@@ -97,6 +102,7 @@ class TestSuiteClass {
       ...(urlParams || {})
     };
     this.testCases = [];
+    this.onlyTest = [];
     this.config = config;
   }
 
@@ -105,11 +111,22 @@ class TestSuiteClass {
    * 
    * Test cases are run sequentially.
    * 
-   * @param testCaseId  Test Case ID for logging purposes
+   * @param testCaseId 
+   * Test Case ID for logging purposes
    * @param testCase
+   * @param stopFurtherTestsOnFailure 
+   * If set to `true` then the test suite will not run successive test cases (instead marking
+   * them as failed) 
    */
-  addTestCase(testCaseId: string, testCase: TestCaseFn): void {
-    this.testCases.push({ id: testCaseId, fn: testCase });
+  addTestCase(testCaseId: string, testCase: TestCaseFn, options: TestCaseOptions = {} ): void {
+    this.testCases.push({ 
+      id: testCaseId, 
+      fn: testCase, 
+      stopFurtherTestsOnFailure: options.stopFurtherTestsOnFailure || false 
+    });
+    if (options.onlyTestThisTestCase) {
+      this.onlyTest.push(this.testCases.length - 1);
+    }
   }
 
   /**
@@ -156,7 +173,8 @@ class TestSuiteClass {
   }
 
   /**
-   * Login with the given credentials
+   * Login with the given credentials, then navigate to the page first passed to the test suite 
+   * contructor
    * 
    * @param driver 
    */
@@ -184,12 +202,9 @@ class TestSuiteClass {
       'Failed to get a response after login attempt',
       /* 250 ms */ 200
     );
-    await driver.wait(
-      async () => (await driver.executeScript(`return $('#userloginForm').length === 0`)) === true,
-      /* 1 minute */ 1*60*1000,
-      'Failed to login',
-      /* 250 ms */ 200
-    );
+    if (!(await this.waitForContextToLoad(driver))) {
+      throw new Error('Failed to get context to load after login');
+    }
   };
 
   /**
@@ -201,24 +216,25 @@ class TestSuiteClass {
     await driver.get(this.getUrlToWikiPage('Special:UserLogout'));
   }
 
-  async runSingleTestCase(driver: WebDriver, testCase: TestCase): Promise<boolean> {
+  async runSingleTestCase(driver: WebDriver, testCase: TestCase): Promise<{ isSuccess: boolean, error?: string }> {
     try {
       await testCase.fn(driver);
       LogUtils.success(`${this.id} - ${testCase.id}: Test completed successfully`);
-      return true;
+      return { isSuccess: true };
     } catch (err) {
       LogUtils.error(`${this.id} - ${testCase.id}: ${err}`);
-      return false;
+      return { isSuccess: false, error: `${err}` };
     }
   }
 
   /**
    * Run test cases sequentially
    */
-  async run(): Promise<void> {
+  async run(): Promise<TestSuiteRunResults> {
     let driver = await new Builder().forBrowser(Browser.EDGE).build();
     let successes = 0;
-    let total = 0;
+    let total = this.testCases.length;
+    const failedTestCases: TestSuiteFailedLog[] = [];
     try {
       
       const contextLoaded = await this.waitForContextToLoad(driver);
@@ -235,10 +251,15 @@ class TestSuiteClass {
         LogUtils.info(`${this.id} - beforeAll: Passed successfully`);
       }
 
+      let tcs: TestCase[] = this.testCases;
+      if (this.onlyTest.length > 0) {
+        tcs = this.onlyTest.map((idx) => {
+          return this.testCases[idx];
+        });
+      }
+
       /* Run tests sequentially */
-      for (const testCase of this.testCases) {
-        
-        total++;
+      for (const testCase of tcs) {
         
         /* Assert before each test case */
         if (!!this.beforeEach) {
@@ -246,16 +267,29 @@ class TestSuiteClass {
           if (!asserted) { continue; }
         }
 
-        const isSuccess = await this.runSingleTestCase(driver, testCase);
-        if (isSuccess) { successes++; }
+        const { isSuccess, error } = await this.runSingleTestCase(driver, testCase);
+        if (isSuccess) { 
+          successes++; 
+        } else {
+          let reason = error!;
+          if (testCase.stopFurtherTestsOnFailure) {
+            reason += ' Test cases following this test case are skipped and considered to have failed';
+          }
+          failedTestCases.push({ id: testCase.id, reason });
+        }
 
         /* Assert after each test case */
         if (!!this.afterEach) {
           const asserted = await this.afterEach(driver);
           if (!asserted) { 
-            LogUtils.error(`${this.id} - afterEach: Failed to complete`)
+            LogUtils.error(`${this.id} - afterEach: Failed to complete`);
             continue; 
           }
+        }
+
+        if (!isSuccess && testCase.stopFurtherTestsOnFailure) {
+          LogUtils.error(`${this.id} - Stopping further tests...`);
+          break;
         }
         
       }
@@ -275,6 +309,7 @@ class TestSuiteClass {
       LogUtils.success(`${this.id}: Successfully completed ${successes} test(s) out of ${total}`);
       await driver.quit();
     }
+    return { successes, total, failed: failedTestCases };
   }
 }
 
@@ -298,84 +333,6 @@ export const loadTestEnvironment = () => {
       throw new Error(msg);
     }
   });
-}
-
-/**
- * Utility function for testing
- * 
- * Click a link located on the menu created by the gadget PowertoolsPlacement
- * 
- * @param driver    Selenium WebDriver
- * @param navLinkId HTML ID of the navigation link located on the PowertoolsPlacement menu
- * @param skin      MediaWiki skin
- */
-export const clickLinkOnPowertoolsMenu = async (driver: WebDriver, navLinkId: string, skin?: string) => {
-  if (skin === undefined) {
-    skin = await driver.executeScript('return mw.config.values.skin;');
-  }
-  let powertoolsDropdown;
-  switch (skin) {
-    case 'vector':
-    case 'modern':
-    case 'monobook':
-    case 'gamepress':
-      // Do nothing
-      break;
-    
-    case 'vector-2022':
-      const vectorMenu = await driver.findElement(By.id('vector-main-menu'));
-      const vectorMenuIsVisible = await vectorMenu.isDisplayed();
-      if (!vectorMenuIsVisible) {
-        const hamburgerMenuButton = await driver.findElement(By.id('vector-main-menu-dropdown'));
-        await hamburgerMenuButton.click();
-      }
-      break;
-    
-    case 'timeless':
-      const timelessSiteTools = await driver.findElement(By.css('#site-tools > .sidebar-inner'));
-      const timelessSiteToolsIsVisible = await timelessSiteTools.isDisplayed();
-      if (!timelessSiteToolsIsVisible) {
-        const siteToolsMenuButton = await driver.findElement(By.css('#site-tools > h2'));
-        await siteToolsMenuButton.click();
-      }
-      break;
-    
-    case 'minerva':
-      powertoolsDropdown = await driver.findElement(
-        By.css('.minerva-header > .navigation-drawer')
-      );
-      await powertoolsDropdown.click();
-      break;
-
-    case 'medik':
-      powertoolsDropdown = await driver.findElement(
-        By.js("return $('.dropdown').filter(function () { $(this).find('#p-power-editor-tools').length > 0 })")
-      );
-      await powertoolsDropdown.click();
-      break;
-
-    case 'citizen':
-      powertoolsDropdown = await driver.findElement(
-        By.id('citizen-powertools-portlet-container-details')
-      );
-      await powertoolsDropdown.click();
-      break;
-
-    case 'cosmos':
-    default:
-      powertoolsDropdown = await driver.findElement(
-        By.id('p-power-editor-tools')
-      );
-      await powertoolsDropdown.click();
-  }
-  const navLink = await driver.findElement(By.id(navLinkId));
-  await driver.wait(
-    until.elementIsVisible(navLink),
-    /* 1 minute */ 1*60*1000,
-    `Nav link ${navLinkId} is not visible`,
-    /* 250 ms */ 250
-  )
-  await navLink.click();
 }
 
 export default TestSuiteClass;

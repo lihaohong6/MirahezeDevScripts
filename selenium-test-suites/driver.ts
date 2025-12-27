@@ -3,8 +3,9 @@ import { join, resolve } from "node:path";
 import { styleText } from "node:util";
 import { normalizePath } from "vite";
 
-import { loadTestEnvironment } from "./TestSuiteClass.ts";
+import TestSuiteClass, { loadTestEnvironment } from "./TestSuiteClass.ts";
 import type { TestSuiteDriverArgs } from "./TestSuiteClass.ts";
+import { LogUtils } from "./utils.ts";
 
 const __dirname = import.meta.dirname;
 
@@ -66,12 +67,21 @@ function getTestSuitesToRun(arrInput: string[]): string[] {
   return res;
 }
 
+interface LogRecord {
+  testSuiteName: string
+  successes: number
+  total: number
+  failedTestCases: { id: string, reason: string }[]
+}
+
 /**
  * Load the testing environment and run Selenium test suites
  */
 async function runTestSuites(): Promise<void> {
   const [args, suites] = parseCliArguments();
   loadTestEnvironment();
+
+  const logRecords: LogRecord[] = [];
 
   for (const testSuiteFilePath of suites) {
     /* Check the file's existence before trying to import */
@@ -81,11 +91,33 @@ async function runTestSuites(): Promise<void> {
     }
     
     /* Execute each test suite sequentially */
-    const { default: testSuite } = await import(`file:///${normalizePath(testSuiteFilePath)}`);
-    if (typeof testSuite === 'function') {
-      // console.log(testSuite);
-      await testSuite(args);
+    const { default: fts } = await import(`file:///${normalizePath(testSuiteFilePath)}`);
+    if (typeof fts === 'function') {
+      const testSuite: TestSuiteClass = await fts(args);
+      const { 
+        successes: testSuiteSuccesses, 
+        total: testSuiteTotal, 
+        failed: failedTestCases 
+      } = await testSuite.run();
+      logRecords.push({
+        testSuiteName: testSuiteFilePath,
+        successes: testSuiteSuccesses,
+        total: testSuiteTotal,
+        failedTestCases
+      });
     }
   }
+
+  LogUtils.success('\n\n====Finished executing test suites====');
+  logRecords.forEach(({ testSuiteName, successes, total, failedTestCases }) => {
+    const lf = (successes < total) ? LogUtils.info : LogUtils.success;
+    lf(`${testSuiteName}\t: Successfully completed ${successes} test(s) out of ${total}`);
+    if (failedTestCases.length > 0) {
+      LogUtils.error(`${testSuiteName}\t: Failed the following test suites:`);
+      failedTestCases.forEach(({ id, reason }) => {
+        LogUtils.error(`${id}\t: ${reason}`);
+      })
+    }
+  })
 }
 runTestSuites();
