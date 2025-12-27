@@ -1,5 +1,3 @@
-import { resolve } from 'node:path';
-import { loadEnvFile } from 'node:process';
 import { URLSearchParams } from 'node:url';
 import { Builder, Browser, WebDriver, until, By } from 'selenium-webdriver';
 import { LogUtils } from './utils.ts';
@@ -216,15 +214,15 @@ class TestSuiteClass {
     await driver.get(this.getUrlToWikiPage('Special:UserLogout'));
   }
 
-  async runSingleTestCase(driver: WebDriver, testCase: TestCase): Promise<{ isSuccess: boolean, error?: string }> {
+  async runSingleTestCase(driver: WebDriver, testCase: TestCase): Promise<{ isSuccess: boolean, error?: any }> {
     try {
       await testCase.fn(driver);
       LogUtils.success(`${this.id} - ${testCase.id}: Test completed successfully`);
       return { isSuccess: true };
     } catch (err) {
       LogUtils.error(`${this.id} - ${testCase.id}: ${err}`);
-      return { isSuccess: false, error: `${err}` };
-    }
+      return { isSuccess: false, error: err } 
+    };
   }
 
   /**
@@ -311,28 +309,6 @@ class TestSuiteClass {
     }
     return { successes, total, failed: failedTestCases };
   }
-}
-
-/**
- * Load environment variables from ./selenium-test-suites/.env.test
- */
-export const loadTestEnvironment = () => {
-
-  const __dirname = import.meta.dirname;
-
-  loadEnvFile(resolve(__dirname, './.env.test'));
-
-  const mandatoryVars = [
-    'SELENIUM_TESTING_WIKI_ENTRYPOINT',
-    'SELENIUM_TESTING_SERVE_GADGETS_FROM',
-  ];
-  mandatoryVars.forEach((varName) => {
-    if (!process.env[varName]) {
-      const msg = `The environment variable "${varName}" must be set!!`;
-      LogUtils.error(msg);
-      throw new Error(msg);
-    }
-  });
 }
 
 export default TestSuiteClass;

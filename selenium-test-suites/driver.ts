@@ -1,11 +1,11 @@
 import { statSync, existsSync, readdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { join, relative, resolve } from "node:path";
 import { styleText } from "node:util";
 import { normalizePath } from "vite";
 
-import TestSuiteClass, { loadTestEnvironment } from "./TestSuiteClass.ts";
-import type { TestSuiteDriverArgs } from "./TestSuiteClass.ts";
-import { LogUtils } from "./utils.ts";
+import TestSuiteClass from "./.utils/TestSuiteClass.ts";
+import type { TestSuiteDriverArgs } from "./.utils/TestSuiteClass.ts";
+import { LogUtils, loadTestEnvironment } from "./.utils/utils.ts";
 
 const __dirname = import.meta.dirname;
 
@@ -33,7 +33,15 @@ function parseCliArguments(): [TestSuiteDriverArgs, string[]] {
  */
 function walkThroughDirectory(dir: string): string[] {
   let testSuiteFiles = readdirSync(dir, { withFileTypes: true, recursive: true })
-    .filter((file) => file.isFile() && file.name.endsWith('TestSuite.ts'))
+    .filter((file) => {
+      return (
+        file.isFile() && 
+        // excludes files that are in folders starting with . (e.g. selenium-test-suites/.seeds)
+        !relative(__dirname, file.parentPath).startsWith('.') &&
+        // enforce naming convention 
+        file.name.endsWith('TestSuite.ts')
+      )
+    })
     .map(entry => join(entry.parentPath, entry.name))
     .sort();
   return testSuiteFiles;

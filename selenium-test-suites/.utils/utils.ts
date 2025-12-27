@@ -1,16 +1,40 @@
+import { resolve } from "node:path";
+import { loadEnvFile } from "node:process";
 import { styleText } from "node:util";
 import { WebDriver, WebElement, By, until } from "selenium-webdriver";
 
 export class LogUtils {
-  static info(msg: string) {
-    console.info(styleText(['magenta', 'cyan'], msg));
+  static info(msg: any) {
+    console.info(styleText(['magenta', 'cyan'], `${msg}`));
   }
-  static error(msg: string) {
-    console.error(styleText(['redBright', 'red'], msg));
+  static error(msg: any) {
+    console.error(styleText(['redBright', 'red'], `${msg}`));
   }
-  static success(msg: string) {
-    console.info(styleText(['green', 'greenBright', 'cyan'], msg));
+  static success(msg: any) {
+    console.info(styleText(['green', 'greenBright', 'cyan'], `${msg}`));
   }
+}
+
+/**
+ * Load environment variables from ./selenium-test-suites/.env.test
+ */
+export const loadTestEnvironment = () => {
+
+  const __dirname = import.meta.dirname;
+
+  loadEnvFile(resolve(__dirname, '../.env.test'));
+
+  const mandatoryVars = [
+    'SELENIUM_TESTING_WIKI_ENTRYPOINT',
+    'SELENIUM_TESTING_SERVE_GADGETS_FROM',
+  ];
+  mandatoryVars.forEach((varName) => {
+    if (!process.env[varName]) {
+      const msg = `The environment variable "${varName}" must be set!!`;
+      LogUtils.error(msg);
+      throw new Error(msg);
+    }
+  });
 }
 
 /**
@@ -21,8 +45,35 @@ export class LogUtils {
  * @returns 
  */
 export const webElementHasCssClass = async (webElement: WebElement, cssClass: string): Promise<boolean> => {
-  const cssClasses = new Set((await webElement.getAttribute('class')).split(' '));
+  const attr = await webElement.getAttribute('class');
+  const cssClasses = new Set(attr.split(' '));
   return cssClasses.has(cssClass);
+}
+
+/**
+ * Utility function used to interact with a browser's global script environment and check whether a given
+ * jQuery element has the given class
+ * 
+ * @param driver 
+ * @param elementSelector 
+ * @param cssClass 
+ */
+export const jqueryElementHasCssClass = async (driver: WebDriver, elementSelector: string, cssClass: string): Promise<boolean> => {
+  return (await driver.executeScript(`
+    return $('${elementSelector}').hasClass('${cssClass}');
+  `));
+}
+
+/**
+ * Utility function used to determine whether an OOUI action button with the given element ID is disabled
+ * 
+ * @param driver 
+ * @param button 
+ * @returns 
+ */
+export const isOOUIActionButtonDisabled = async (driver: WebDriver, button: WebElement): Promise<boolean> => {
+  const selector = `#${await button.getAttribute('id')}`;
+  return await jqueryElementHasCssClass(driver, selector, 'oo-ui-widget-disabled');
 }
 
 /**
@@ -111,37 +162,31 @@ export const clickLinkOnPowertoolsMenu = async (driver: WebDriver, navLinkId: st
  * @param driver 
  * @returns 
  */
-export const preemptivelyDisableI18n = async (driver: WebDriver, gadgetNamespace: string): Promise<boolean> => {
-  try {
-    let isI18nJsLoaded = await driver.executeScript(`return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;`);
-    if (isI18nJsLoaded === false) {
-      throw new Error('DISABLE FandoomUtilsI18njs ON THE WIKI BEFORE RUNNING THIS TEST!!');
-    }
-    isI18nJsLoaded = await driver.executeScript(`
-      mw.loader.impl(function() {
-        return [
-          "${gadgetNamespace}.FandoomUtilsI18njs",
-          function () {
-            mw.hook('dev.i18n').fire({ 
-              loadMessages: function () {
-                var deferred = $.Deferred();
-                deferred.resolve();
-                return deferred;
-              } 
-            });
-          }, 
-          { "css": [] }, 
-          {}, {}, null
-        ]
-      ));
-      return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;
-      `);
-    if (isI18nJsLoaded === true) {
-      throw new Error('Failed to disable FandoomUtilsI18njs');
-    }
-    return true;
-  } catch (err) {
-    LogUtils.error(err as string);
-    return false;
+export const preemptivelyDisableI18n = async (driver: WebDriver, gadgetNamespace: string): Promise<void> => {
+  let isI18nJsLoaded = await driver.executeScript(`return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;`);
+  if (isI18nJsLoaded === true) {
+    throw new Error('DISABLE FandoomUtilsI18njs ON THE WIKI BEFORE RUNNING THIS TEST!!');
+  }
+  isI18nJsLoaded = await driver.executeScript(`
+    mw.loader.impl(function() {
+      return [
+        "${gadgetNamespace}.FandoomUtilsI18njs",
+        function () {
+          mw.hook('dev.i18n').fire({ 
+            loadMessages: function () {
+              var deferred = $.Deferred();
+              deferred.resolve();
+              return deferred;
+            } 
+          });
+        }, 
+        { "css": [] }, 
+        {}, {}, null
+      ]
+    });
+    return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;
+    `);
+  if (isI18nJsLoaded === false) {
+    throw new Error('Failed to disable FandoomUtilsI18njs');
   }
 }
