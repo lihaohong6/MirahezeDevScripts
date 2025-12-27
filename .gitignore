@@ -3,6 +3,7 @@
 /build
 .eslintcache
 .stylelintcache
+/.idea
 
 load.js
 .env
