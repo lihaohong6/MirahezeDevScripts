@@ -85,10 +85,13 @@ Here are the available methods of a Modal instance. Most of them as used as sett
 Class representing a button in the modal's footer.
 
 #### Parameters
+<!--
+`type=link` does not work
 - <code>type</code><br />Type of the button. Set to <code>button</code> by default. Can be set to either:
  - <code>link</code>
  - <code>input</code>
  - <code>button</code>
+-->
 - <code>primary</code><br />Whether the button is a primary one or not. Adds a <code>primary</code> class to the button.
 - <code>normal</code><br />Adds a <code>normal</code> class to the button.
 - <code>text</code> / <code>value</code><br />Text on the button. <b>This parameter is required.</b>
@@ -100,9 +103,12 @@ Class representing a button in the modal's footer.
 
 > e.g. For example, `sprite: 'edit'` will load the [Edit icon](https://doc.wikimedia.org/oojs-ui/master/demos/dist/themes/wikimediaui/images/icons/edit.svg) on the respective modal button. [Note that you need to also load the respective OOUI icon styles through ResourceLoader](https://www.mediawiki.org/wiki/OOUI/Widgets/Icons,_Indicators,_and_Labels#Icons:~:text=You%20need%20to%20load%20related%20styles%20somewhere%20before%20creating%20IconWidget%2C%20e.g.%20via%20ResourceLoader.%20Modules%20named%20by%20mask%20oojs%2Dui.styles.icons%2D*%2C%20e.g.%20oojs%2Dui.styles.icons%2Dinteractions%20for%20check%20icon.). In this example, the Edit icon is a part of `editing-core`, so the module `oojs-ui.styles.icons-editing-core` also needs to be loaded. Refer to [the official list of OOUI icons](https://doc.wikimedia.org/oojs-ui/master/demos/?page=icons&theme=wikimediaui&direction=ltr&platform=desktop) for these group names.
 
+<!--
+`type=link` does not work
 - <code>href</code><br />Location the button is linking to if <code>type</code> is set to <code>link</code>.
 - <code>title</code><br />Title of the link, if <code>type</code> is set to <code>link</code>.
 - <code>target</code><br />Target of the link, if <code>type</code> is set to <code>link</code>.
+-->
 
 #### Properties
 Available properties of the button object. Their purpose is described in the parameters.
@@ -111,14 +117,17 @@ Available properties of the button object. Their purpose is described in the par
 - <code>classes</code>
 - <code>disabled</code>
 - <code>events</code>
-- <code>href</code>
 - <code>id</code>
 - <code>name</code>
 - <code>text</code>
-- <code>type</code>
 - <code>sprite</code>
+<!--
+`type=link` does not work
+- <code>type</code>
+- <code>href</code>
 - <code>target</code>
 - <code>title</code>
+-->
 
 #### Methods
 Available methods of the button object. Most of these are setters for the properties described above.
@@ -126,14 +135,17 @@ Available methods of the button object. Most of these are setters for the proper
 - <code>setClasses</code>
 - <code>setDisabled</code>
 - <code>setEvents</code> / <code>setEvent</code>
-- <code>setHref</code>
 - <code>setID</code>
 - <code>setName</code>
 - <code>setText</code>
-- <code>setType</code>
 - <code>setSprite</code>
+<!--
+`type=link` does not work
+- <code>setType</code>
+- <code>setHref</code>
 - <code>setTarget</code>
 - <code>setTitle</code>
+-->
 
 ## Examples
 As the documentation above might be confusing, here are a few examples with demonstrations. Wrappers mentioned in the [Usage](#usage) section won't be used.
@@ -209,13 +221,6 @@ var modal = new window.dev.modal.Modal({
       event: 'custom3',
       sprite: 'edit',
       text: ' '
-    },
-    {
-      href: mw.util.getUrl('Special:Random'),
-      target: 'hmm',
-      text: 'This is a link!',
-      title: 'This is the link\'s title!',
-      type: 'link'
     }
   ],
   content: 'This modal has buttons!',

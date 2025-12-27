@@ -42,7 +42,7 @@
   */
   var BUTTON_TYPES = [
     'link',
-    // 'input',
+    'input',
     'button'
   ];
   
@@ -68,8 +68,8 @@
     this.safe = Boolean(options.close || options.safe);
     this.back = Boolean(options.back);
     this.close = Boolean(options.close);
+    this.type = 'button';
     this
-      .setType(options.type || 'button')
       .setText(options.text || options.value)
       .setEvent(options.event)
       .setClasses(options.classes)
@@ -178,11 +178,12 @@
   * @param {String} type Button type
   * @see BUTTON_TYPES
   * @returns {ModalButton} Current instance
+  * @deprecated
   */
   ModalButton.prototype.setType = function(type) {
-    if (typeof type === 'string' && BUTTON_TYPES.indexOf(type) > -1) {
-      this.type = type;
-    }
+    // if (typeof type === 'string' && BUTTON_TYPES.indexOf(type) > -1) {
+    //   this.type = type;
+    // }
     return this;
   };
   
