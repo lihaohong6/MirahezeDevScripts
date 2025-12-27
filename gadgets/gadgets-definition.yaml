@@ -22,6 +22,10 @@ gadgets:
     scripts:
       - index.ts
 
+  StatDisplay:
+    scripts:
+      - index.ts
+
   Tab:
     scripts:
       - index.js
