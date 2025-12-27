@@ -21,11 +21,7 @@ const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
  * 2) Serve using `npm run serve`
  * 3) Create a wiki account (preferably on a testing wiki) with delete rights
  *    credentials to said account should be provided in .env
- * 4) Create 20 pages on a testing wiki with the titles "AjaxBatchDelete 1" to 
- *    "AjaxBatchDelete 20" (not belonging to any category)
- * 5) Create 10 pages on a testing wiki with the titles "AjaxBatchDelete 
- *    Category Test 1" to "AjaxBatchDelete Category Test 10" 
- *    belonging to the category Category:AjaxBatchDelete_Test_Category
+ * 4) Seed pages using .seeds/AjaxBatchDelete.ts
  * 
  ***********************************************************************/
 
@@ -596,14 +592,17 @@ export default async (args: TestSuiteDriverArgs) => {
           'Failed to finish AjaxBatchDelete operation',
           /* 500 ms */ 500
         );
-        await driver.sleep(200);
-
-        const outputMsg = (await errorOutput.getText());
-        assert(outputMsg.includes(
-          (i18nMessages['errorDelete'] as string)
-            .replace('$1', 'This page does not exist')
-            .replace('$2', 'missingtitle')
-        ));
+        await driver.wait(
+          until.elementTextContains(
+            errorOutput, 
+            (i18nMessages['errorDelete'] as string)
+              .replace('$1', 'This page does not exist')
+              .replace('$2', 'missingtitle')
+          ),
+          /* 3 minutes */ 3*60*1000,
+          'Unable to fetch an error message',
+          /* 500 ms */ 500
+        );
 
         await driver.sleep(pauseUiCheckingForHumanReview);
       } catch (err) {
