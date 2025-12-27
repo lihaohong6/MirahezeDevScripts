@@ -1,5 +1,5 @@
-import TestSuiteClass from '../TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from "../TestSuiteClass.ts";
+import TestSuiteClass from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
 import assert from 'node:assert';
 
 /***********************************************************************
