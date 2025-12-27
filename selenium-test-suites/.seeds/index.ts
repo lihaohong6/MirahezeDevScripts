@@ -21,7 +21,7 @@ runBotOperation(
   /* SEEDING OPERATIONS */
   [
     seedAjaxBatchDelete,
-    // seedAjaxBatchUndelete,
+    seedAjaxBatchUndelete,
   ], 
 
   {
