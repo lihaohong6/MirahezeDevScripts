@@ -6,16 +6,21 @@
     "build": "vite build",
     "serve": "vite preview",
     "watch": "vite build --watch",
-    "test": "grunt test"
+    "test": "grunt test",
+    "selenium-seed": "node ./selenium-test-suites/prereq.ts",
+    "selenium-test": "node ./selenium-test-suites/driver.ts"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "@types/selenium-webdriver": "^4.35.4",
     "eslint-config-wikimedia": "^0.31.0",
     "grunt": "^1.6.1",
     "grunt-eslint": "^24.0.0",
     "grunt-stylelint": "^0.20.1",
     "jiti": "^2.6.1",
     "less": "^4.4.1",
+    "mwn": "^3.0.1",
+    "selenium-webdriver": "^4.39.0",
     "stylelint-config-wikimedia": "^0.18.0",
     "types-mediawiki": "^2.0.0",
     "typescript": "^5.9.2",

@@ -116,6 +116,6 @@ export default async (args: TestSuiteDriverArgs) => {
     }
   );
 
-  await testSuite.run();
+  return testSuite;
 
 };
