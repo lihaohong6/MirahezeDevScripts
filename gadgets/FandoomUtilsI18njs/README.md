@@ -83,7 +83,7 @@ By default, the cache only keeps translations for the user's language (<code>wgU
 - <code>msg(message, arg1, arg2, arg3, ...)</code><br />Create a <code>Message</code> instance representing the message in the closest language to the default language possible with any arguments substituted in. See [§Message usage](#message-usage) for details on how to use this.
 
 ### Message usage
-> Unlike Fandom's version of i18n-js, which provides its own version of `Message` to parse its messages, this version of i18n-js simply provides a wrapped version of Mediawiki's native `mw.Message` object. Both versions share most of their APIs and have roughly similar functionalities, so you shouldn't need to worry too much about compatibility. However, there may be some caveats and gotchas to Mediawiki's `mw.Message` that you should take note of.
+> Unlike Fandom's version of i18n-js, which provides its own version of `Message` to parse its messages, this version of i18n-js simply provides a wrapped version of Mediawiki's native `mw.Message` object. Both versions share most of their APIs and have roughly similar functionalities, so you shouldn't need to worry too much about compatibility. <!--However, there may be some caveats and gotchas to Mediawiki's `mw.Message` that you should take note of.-->
 
 <code>Message</code> represents a translated message in the closest language to the default language set in the <code>i18n</code> instance as possible. If a translation could not be found in the requested language, then it will try a fallback language instead, until it falls back to English. If the English translation could not be found, then it will contain the name of the message wrapped in <code>&lt; ... &gt;</code>, e.g. <code>&lt;i18njs-Example-some-message&gt;</code>, where <code>Example</code> is the name of the script and <code>some-message</code> is the name of the message that could not be found.
 
@@ -95,10 +95,10 @@ There are several methods available for outputting the message stored in the <co
 - <code>escape()</code><br />This outputs the message with any HTML characters escaped.
 - <code>escaped()</code><br />Synonymous with <code>escape()</code>.
 - <code>parse()</code><br />This outputs the message with all basic wikitext links converted into HTML and some locale-specific magic words parsed.
-
-> <code>parse()</code> works identically with [<code>mw.Message.parse()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parse). This means that <code>parse()</code> acts differently before and after <code>jqueryMsg</code> is loaded. If <code>jqueryMsg</code> is not loaded, then <code>escape()</code> and <code>parse()</code> works essentially the same as <code>plain()</code>. See *[the page "Manual:Messages API" on the official MediaWiki site](https://www.mediawiki.org/wiki/Manual:Messages_API#Using_messages_in_JavaScript)*.
-
-- <code>parseDom()</code><br />This works identically with [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom). This is only available if <code>jqueryMsg</code> is loaded.
+<!--
+This was fixed by having mediawiki.jqueryMsg be loaded along with FandoomUtilsI18njs
+> <code>parse()</code> works identically with [<code>mw.Message.parse()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parse). This means that <code>parse()</code> acts differently before and after <code>mediawiki.jqueryMsg</code> is loaded. If <code>mediawiki.jqueryMsg</code> is not loaded, then <code>escape()</code> and <code>parse()</code> works essentially the same as <code>plain()</code>. See *[the page "Manual:Messages API" on the official MediaWiki site](https://www.mediawiki.org/wiki/Manual:Messages_API#Using_messages_in_JavaScript)*.-->
+- <code>parseDom()</code><br />This works identically with [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom).<!--This is only available if <code>jqueryMsg</code> is loaded.-->
 
 If <code>inLang</code>, <code>inContentLang</code>, or <code>inUserLang</code> are being used, you can also chain the message call:
 
