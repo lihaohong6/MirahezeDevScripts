@@ -1128,7 +1128,11 @@
    * Fire an event on load.
    * Alternatively, use $.getScript (or mw.loader) and use the returned promise.
    */
-  mw.hook('dev.i18n').fire(window.dev.i18n);
+  mw.loader.using([
+    'mediawiki.jqueryMsg'
+  ]).then(function () {
+    mw.hook('dev.i18n').fire(window.dev.i18n);
+  });
   
   // Tidy the localStorage cache of old entries
   removeOldCacheEntries();
