@@ -128,21 +128,39 @@ class TestSuiteClass {
   }
 
   /**
+   * Navigate to another page and wait for the context to load
+   * 
+   * @param driver 
+   * @param pagename 
+   * @param additionalParams 
+   * @returns 
+   */
+  async moveToAnotherPage(driver: WebDriver, pagename: string, additionalParams: { [key: string]: any } = {}): Promise<boolean> {
+    return (await this.waitForContextToLoad(driver, pagename, {
+      ...this.navigateToPageUrlParams,
+      ...additionalParams
+    }));
+  }
+
+  /**
    * Upon starting a test suite run, navigate to the given page and wait for ResourceLoader
    * to load jQuery and the `mw` Javascript library onto the context.
    * 
    * @param driver 
    * @returns 
    */
-  async waitForContextToLoad(driver: WebDriver): Promise<boolean> {
+  async waitForContextToLoad(driver: WebDriver, navigateToPage?: string, navigateToPageUrlParams?: { [key: string]: any }): Promise<boolean> {
     try {
       await driver.get(
-        this.getUrlToWikiPage(this.navigateToPage, this.navigateToPageUrlParams)
+        this.getUrlToWikiPage(
+          navigateToPage || this.navigateToPage, 
+          navigateToPageUrlParams || this.navigateToPageUrlParams
+        )
       );
       await driver.wait(
         async () => {
           const documentIsLoaded = (await driver.executeScript("return document.readyState")) === 'complete';
-          const jqIsLoaded = (await driver.executeScript("return $ !== undefined")) === true;
+          const jqIsLoaded = (await driver.executeScript("return window.$ !== undefined")) === true;
           const mwIsLoaded = (await driver.executeScript("return window.mw !== undefined")) === true;
           return [documentIsLoaded, jqIsLoaded, mwIsLoaded].every(Boolean);
         }, 

@@ -255,35 +255,35 @@
     // mode-specific adjustments
     switch (mode) {
       case 'namespace':
-      // use namespace name for displaying namespace requests
-      displayValue = value === '0'
-      ? i18n('namespace-main').escape()
-      : config.wgFormattedNamespaces[value];
-      break;
+        // use namespace name for displaying namespace requests
+        displayValue = value === '0'
+        ? i18n('namespace-main').escape()
+        : config.wgFormattedNamespaces[value];
+        break;
       case 'category':
-      // add namespace to category value if not included,
-      // else remove it from display for brevity
-      if (value.indexOf(nsCategory) !== 0) {
-        value = nsCategory + value;
-      } else {
-        displayValue = displayValue.slice(nsCategory.length);
-      }
-      break;
+        // add namespace to category value if not included,
+        // else remove it from display for brevity
+        if (value.indexOf(nsCategory) !== 0) {
+          value = nsCategory + value;
+        } else {
+          displayValue = displayValue.slice(nsCategory.length);
+        }
+        break;
       case 'fileusage':
-      // add namespace to file value if not included,
-      // else remove it from display for brevity
-      if (value.indexOf(nsFile) !== 0) {
-        value = nsFile + value;
-      } else {
-        displayValue = displayValue.slice(nsFile.length);
-      }
-      break;
+        // add namespace to file value if not included,
+        // else remove it from display for brevity
+        if (value.indexOf(nsFile) !== 0) {
+          value = nsFile + value;
+        } else {
+          displayValue = displayValue.slice(nsFile.length);
+        }
+        break;
       case 'prefix':
-      // separate namespace id
-      var nsAndTitle = pageToNamespaceIdAndTitle(value);
-      query.apnamespace = nsAndTitle.namespaceId;
-      value = nsAndTitle.title;
-      break;
+        // separate namespace id
+        var nsAndTitle = pageToNamespaceIdAndTitle(value);
+        query.apnamespace = nsAndTitle.namespaceId;
+        value = nsAndTitle.title;
+        break;
     }
     
     query.list = modeData.name;

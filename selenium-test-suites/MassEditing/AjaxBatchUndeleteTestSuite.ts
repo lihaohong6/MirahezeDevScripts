@@ -78,7 +78,7 @@ export default async (args: TestSuiteDriverArgs) => {
     await (driver.wait(
       async () => (await driver.executeScript(`return $('#t-bud').length > 0`)) === true,
       /* 1 minute */ 60*1000,
-      'Failed to load AjaxBatchDelete',
+      'Failed to load AjaxBatchUndelete',
       /* 200 ms */ 200
     ));
     return true;
