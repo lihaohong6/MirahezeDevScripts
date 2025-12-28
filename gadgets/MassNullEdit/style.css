@@ -35,29 +35,34 @@
 }
 
 /* "Add pages" modal rows */
-#mne-main .mne-addpages-row {
+#mne-addpages .mne-addpages-row {
   padding: 4px 0;
 }
-#mne-main .mne-addpages-row > label {
+#mne-addpages .mne-addpages-row > label {
   margin-right: 4px;
+}
+#mne-addpages .mne-addpages-row > label, 
+#mne-addpages .mne-addpages-row > input[type="text"],
+#mne-addpages .mne-addpages-row > select {
+    width: 100%;
 }
 
 /* "Add pages" modal: disable while processing */
-#mne-main #mne-addpages.processing #mne-addpages-start,
-#mne-main #mne-addpages.processing > section {
+#mne-addpages.processing #mne-addpages-start,
+#mne-addpages.processing > section {
   opacity: 0.6;
   pointer-events: none;
 }
 
 /* Modal footer message */
-#mne-main .mne-modal .qdmodal-spinner-container {
+.mne-modal .qdmodal-spinner-container {
   --qdmodal-spinner-size: 40px;
 }
-#mne-main .mne-modal #mne-processing-msg {
+.mne-modal #mne-processing-msg {
   flex-grow: 1;
   text-indent: 8px;
 }
-#mne-main .mne-modal:not(.processing) .qdmodal-spinner-container,
-#mne-main .mne-modal:not(.processing) #mne-processing-msg {
+.mne-modal:not(.processing) .qdmodal-spinner-container,
+.mne-modal:not(.processing) #mne-processing-msg {
   display: none;
 }

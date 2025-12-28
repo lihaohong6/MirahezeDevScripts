@@ -5,6 +5,7 @@ import {
 
 import { seedAjaxBatchDelete } from "./AjaxBatchDelete.ts";
 import { seedAjaxBatchUndelete } from "./AjaxBatchUndelete.ts";
+import { seedMassNullEdit } from "./MassNullEdit.ts";
 
 resolveEnv();
 
@@ -22,6 +23,7 @@ runBotOperation(
   [
     seedAjaxBatchDelete,
     seedAjaxBatchUndelete,
+    seedMassNullEdit,
   ], 
 
   {
