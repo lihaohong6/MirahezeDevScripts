@@ -1,10 +1,10 @@
-import { seedPage } from "./utils.ts";
+import { seedPage } from "./.utils.ts";
+import type { SeedingWikipageOperations } from "./.utils.ts";
 
-export function seedMassNullEdit(pages: Map<string, string>) {
+export function seedMassNullEdit(operations: SeedingWikipageOperations) {
   for (let j = 0; j < 20; j++) {
-    seedPage(pages, {
-      title: `MassNullEdit`,
-      n: j+1,
+    seedPage(operations, {
+      title: `MassNullEdit ${j+1}`,
       additionalDescription: '\n\n[[Category:MassNullEdit]]'
     });
   }
