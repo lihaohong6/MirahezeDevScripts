@@ -17,6 +17,7 @@
     "jiti": "^2.6.1",
     "less": "^4.4.1",
     "stylelint-config-wikimedia": "^0.18.0",
+    "terser": "^5.44.1",
     "types-mediawiki": "^2.0.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.45.0",
