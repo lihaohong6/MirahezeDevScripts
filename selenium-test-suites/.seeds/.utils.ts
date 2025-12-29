@@ -58,23 +58,23 @@ interface SeedingBotOptions {
   concurrencies: number
   maxRetries: number
 }
-type SeedingWikipageContents = Map<string, string>;
-type SeedingWikipageBotCallbacks = Map<string, SeedingCallback>;
-type SeedingOp = (pages: SeedingWikipageContents, callbacks: SeedingWikipageBotCallbacks) => void | Promise<void>;
-type SeedingCallback = (bot: Mwn, defaultEditSummary: string) => Promise<void>;
+export type SeedingOp = (wikipageOperations: SeedingWikipageOperations) => void | Promise<void>;
+export type SeedingCallback = (bot: Mwn, currentPageTitle: string, defaultEditSummary: string) => Promise<void>;
+export type SeedingWikipageOperations = Map<string, { contents?: string, callbacks: SeedingCallback[] }>;
 
 /**
- * @param pages 
+ * @param operations 
  * @param title
- * @param n
  * @param featureBeingTested
  * @param additionalDescription
  */
-export function seedPage(pages: SeedingWikipageContents, { title, n, featureBeingTested, additionalDescription }: { title: string, n: number, featureBeingTested?: string, additionalDescription?: string }): void {
-  pages.set(
-    /* Title */ `${title} ${n}`,
-    /* Page contents */
-    `==Test Description==\n\nThis is a test page for the gadget/feature ${featureBeingTested || title} ${additionalDescription || ''}`
+export function seedPage(operations: SeedingWikipageOperations, { title, featureBeingTested, additionalDescription, callback }: { title: string, featureBeingTested?: string, additionalDescription?: string, callback?: SeedingCallback }): void {
+  operations.set(
+    title,
+    {
+      contents: `==Test Description==\n\nThis is a test page for the gadget/feature ${featureBeingTested || title} ${additionalDescription || ''}`,
+      callbacks: callback === undefined ? [] : [callback]
+    }
   );
 }
 
@@ -82,25 +82,24 @@ export function seedPage(pages: SeedingWikipageContents, { title, n, featureBein
  * Creates and runs the Mwn Bot
  * 
  * @param seeds
- * An array of functions that take in two arguments: a hashmap record of wikipage titles (as key) and 
- * wikipage contents (as value), and a hashmap record of wikipage titles (as key) and callbacks to perform 
- * with the Mwn bot. Each of these functions should set the corresponding wikipage titles, contents, and 
- * possible bot callbacks onto the given hashmaps, for example:
+ * An array of functions that take in one arguments: a hashmap record of wikipage titles (as key) and 
+ * an object (as value) containing the wikipage contents and callback to perform with the Mwn bot. 
+ * To seed the wikipages, each of these functions should add a value to the passed hashmap, for 
+ * example:
  * 
  * ```js
- * function seed (pages, callbacks) {
- *    // You must set pages!
- *    pages.set('Example Page', '== Heading ==\n\nExample Contents');
- * 
- *    // Setting callbacks is perfectly optional!
- *    callbacks.set(
- *      'Example Page', 
- *      async (bot, defaultEditingSummary) => {
- *          // For example, we might want to delete our recently created page, 
- *          // in order to test our recently made undeleting bot
- *          await bot.delete('Example Page', defaultEditingSummary);
- *      }
- *    );
+ * function seed (operations) {
+ *    // For example, we want to add a page titled 'Example Page', and then we want to 
+ *    // delete this page to test our undeleting bot
+ *    operations.set(
+ *       'Example Page',
+ *       {
+ *          contents: '== Heading ==\n\nExample Contents',
+ *          async (bot, defaultEditingSummary) => {
+ *             await bot.delete('Example Page', defaultEditingSummary);
+ *          }
+ *       }
+ *    )
  * }
  * ```
  * @param options 
@@ -110,21 +109,23 @@ export function seedPage(pages: SeedingWikipageContents, { title, n, featureBein
 export async function runBotOperation(seeds: SeedingOp[], { defaultEditSummary, concurrencies, maxRetries }: SeedingBotOptions): Promise<void> {
   const bot = await initBot();
 
-  const pages: SeedingWikipageContents = new Map<string, string>();
-  const callbacks: SeedingWikipageBotCallbacks = new Map<string, SeedingCallback>();
-  
+  const operations: SeedingWikipageOperations = new Map();
+
   seeds.forEach((seed) => {
-    seed(pages, callbacks);
+    seed(operations);
   });
   
   await bot.batchOperation(
-    Array.from(pages.keys()),
+    Array.from(operations.keys()),
     async (pageTitle: string): Promise<any> => {
-      console.log(`Saving page ${pageTitle}`);
-      await bot.save(pageTitle, pages.get(pageTitle)!, defaultEditSummary); 
-      if (callbacks.has(pageTitle)) {
-        await callbacks.get(pageTitle)!(bot, defaultEditSummary);
+      const operation = operations.get(pageTitle)!;
+      if (operation.contents) {
+        await bot.save(pageTitle, operation.contents, defaultEditSummary); 
+        console.log(`Saved page ${pageTitle}`);
       }
+      operation.callbacks.forEach(async (cb) => {
+        await cb(bot, pageTitle, defaultEditSummary);
+      })
       return;
     },
     concurrencies,

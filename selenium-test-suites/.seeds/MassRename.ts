@@ -1,25 +1,29 @@
-import { Mwn } from "mwn";
+import { seedPage } from "./.utils.ts";
+import type { SeedingWikipageOperations } from "./.utils.ts";
 
-import { seedPage } from "./utils.ts";
-
-export function seedMassRename(pages: Map<string, string>, callbacks: Map<string, (bot: Mwn, defaultEditSummary: string) => Promise<void>>) {
+export function seedMassRename(operations: SeedingWikipageOperations) {
   for (let i = 0; i < 2; i++) {
-    for (let j = 0; j < 10; j++) {
-      const title = `MassRename${i === 0 ? '' : ' with-i18n'}`; 
-      seedPage(pages, {
+    for (let j = 0; j < 20; j++) {
+      const title = `MassRename${i === 0 ? '' : ' with-i18n'} ${j+1}`; 
+      seedPage(operations, {
         title,
-        n: j+1,
       });
-      const checkNewTitle = `${title} ${j+1} moved`;
-      callbacks.set(
-        `${title} ${j + 1}`,
-        async (bot, defaultEditSummary) => {
-          try {
-            await bot.delete(checkNewTitle, defaultEditSummary);
-            console.log(`Deleted page ${checkNewTitle}`);
-          } catch (err) {}
-        }
-      )
+      if (j >= 10) {
+        /* Delete any page that was moved */
+        operations.set(
+          `${title} moved`,
+          {
+            callbacks: [
+              async (bot, pageTitle, defaultEditSummary) => {
+                try {
+                  await bot.delete(pageTitle, defaultEditSummary);
+                  console.log(`Deleted page ${pageTitle}`);
+                } catch (err) {}
+              }
+            ]
+          }
+        );
+      }
     }
   }
 }
