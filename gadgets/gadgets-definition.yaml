@@ -18,6 +18,11 @@ gadgets:
     scripts:
       - index.js
 
+  FilterTable:
+    description: "Add filter buttons to a table"
+    scripts:
+      - index.js
+
   ImportButton:
     scripts:
       - index.ts
