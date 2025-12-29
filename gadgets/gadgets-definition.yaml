@@ -22,7 +22,7 @@ gadgets:
     scripts:
       - index.ts
 
-  StatDisplay:
+  StatCalc:
     scripts:
       - index.ts
 
