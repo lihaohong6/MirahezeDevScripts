@@ -1,16 +1,1 @@
-mw.config.get("wgCanonicalNamespace")==="Special"&&mw.config.get("wgCanonicalSpecialPageName")==="Blankpage"&&mw.config.get("wgTitle").endsWith("/HelloWorld")&&mw.loader.using(["vue","@wikimedia/codex"]).then(e=>{const o=e("vue"),n=e("@wikimedia/codex"),c=o.reactive({count:0,increment(){this.count++}}),t=o.createMwApp({template:`
-            <component-a/>
-            <component-b/>
-            `});t.component("component-a",{template:`
-            <div style="margin-bottom: 1rem">
-              <cdx-button action="progressive" type="primary" @click="store.increment()">
-                From A: {{ store.count }}
-              </cdx-button>
-            </div>
-            `,setup:()=>({store:c}),components:{CdxButton:n.CdxButton}}),t.component("component-b",{template:`
-            <div>
-              <cdx-button @click="store.increment()">
-                From B: {{ store.count }}
-              </cdx-button>
-            </div>
-            `,setup:()=>({store:c}),components:{CdxButton:n.CdxButton}}),t.mount("#content")});
+"Special"===mw.config.get("wgCanonicalNamespace")&&"Blankpage"===mw.config.get("wgCanonicalSpecialPageName")&&mw.config.get("wgTitle").endsWith("/HelloWorld")&&mw.loader.using(["vue","@wikimedia/codex"]).then(n=>{const t=n("vue"),e=n("@wikimedia/codex"),o=t.reactive({count:0,increment(){this.count++}}),c=t.createMwApp({template:"\n            <component-a/>\n            <component-b/>\n            "});c.component("component-a",{template:'\n            <div style="margin-bottom: 1rem">\n              <cdx-button action="progressive" type="primary" @click="store.increment()">\n                From A: {{ store.count }}\n              </cdx-button>\n            </div>\n            ',setup:()=>({store:o}),components:{CdxButton:e.CdxButton}}),c.component("component-b",{template:'\n            <div>\n              <cdx-button @click="store.increment()">\n                From B: {{ store.count }}\n              </cdx-button>\n            </div>\n            ',setup:()=>({store:o}),components:{CdxButton:e.CdxButton}}),c.mount("#content")});

@@ -1,7 +1,1 @@
-(function(){const a=document.querySelectorAll(".background-image-hint"),c=window.innerWidth<window.innerHeight;function d(t){t.startsWith("//")&&(t="https:"+t);const r=new URL(t);if(!(r.protocol==="http:"||r.protocol==="https:")){mw.log.error("Invalid image URL:",t);return}const i=document.createElement("style");i.innerHTML=`
-body.has-bg::before {
-	background-image: linear-gradient(
-		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5)), 
-		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(r.toString())});
-}
-			`,document.head.appendChild(i),document.body.classList.add("has-bg")}function n(t){let r=t.image,o=!!t.portrait;return!r||r===""||c^o?!1:(d(r),!0)}for(let t of a)if(n(t.dataset))return;const e=window.gadgetBackgroundHints;if(!(!e||!e.length)){for(let t of e)if(n(t))return}})();
+!function(){const t=document.querySelectorAll(".background-image-hint"),n=window.innerWidth<window.innerHeight;function e(t){let e=t.image,o=!!t.portrait;return!(!e||""===e)&&(!(n^o)&&(function(t){t.startsWith("//")&&(t="https:"+t);const n=new URL(t);if("http:"!==n.protocol&&"https:"!==n.protocol)return void mw.log.error("Invalid image URL:",t);const e=document.createElement("style");e.innerHTML=`\nbody.has-bg::before {\n\tbackground-image: linear-gradient(\n\t\trgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5)), \n\t\trgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(n.toString())});\n}\n\t\t\t`,document.head.appendChild(e),document.body.classList.add("has-bg")}(e),!0))}for(let r of t){if(e(r.dataset))return}const o=window.gadgetBackgroundHints;if(o&&o.length)for(let r of o){if(e(r))return}}();
