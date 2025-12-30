@@ -21,6 +21,9 @@ export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefin
 
     async generateBundle(_, bundle) {
       for (const gadget of gadgetsToBuild) {
+        if (gadget.disableBuildingOfGadgetImplJs) {
+          continue;
+        }
         const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
         this.emitFile({
           code: await createRolledUpGadgetImplementation(gadgetImplementationFilePath, bundle, gadget, minify),

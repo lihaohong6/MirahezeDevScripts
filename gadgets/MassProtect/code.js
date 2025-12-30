@@ -287,8 +287,8 @@ mw.loader.using([
   mw.hook('dev.modal').add(preload);
   mw.hook('dev.powertools.placement').add(preload);
   
-  loadMessages().then(function (messages) {
-    i18n = messages;
+  getI18nLoader().then(function (loader) {
+    i18n = prepareI18n(loader);
     preload();
   });
   

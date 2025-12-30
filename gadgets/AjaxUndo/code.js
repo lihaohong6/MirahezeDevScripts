@@ -108,8 +108,8 @@
     });
   }
   
-  function init(i18nData) {
-    i18n = i18nData;
+  function init(i18nLoader) {
+    i18n = prepareI18n(i18nLoader);
     api = new mw.Api();
     if (conf.wgAction === 'history' && $('.mw-history-undo > a').length) {
       $('.mw-history-undo > a').each(function () {
@@ -145,7 +145,7 @@
   INJECT_FANDOM_UTILS_I18N();
   
   $.when(
-    loadMessages(),
+    getI18nLoader(),
     mw.loader.using([
       'mediawiki.api',
       'mediawiki.user',

@@ -364,10 +364,11 @@
         ]
       });
     },
-    initialize: function(i18n) {
+    initialize: function(i18nLoader) {
       var ui = window.dev.dorui;
       PRA.api = new mw.Api();
-      PRA.i18n = i18n;
+      PRA.i18n = prepareI18n(i18nLoader);
+      var i18n = PRA.i18n;
       
       if (
         PRA.wg.wgCanonicalSpecialPageName === 'Blankpage' &&
@@ -540,7 +541,7 @@
     },
     preload: function() {
       $.when(
-        loadMessages(),
+        getI18nLoader(),
         mw.loader.using([
           'mediawiki.api',
           'mediawiki.user',

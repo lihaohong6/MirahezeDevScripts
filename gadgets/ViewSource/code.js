@@ -254,10 +254,10 @@
     preload();
   } );
   $.when(
-    loadMessages(),
+    getI18nLoader(),
     mw.loader.using('mediawiki.util')
-  ).then(function (messages) {
-    i18n = messages;
+  ).then(function (i18nLoader) {
+    i18n = prepareI18n(i18nLoader);
     preload();
   });
   mw.hook('wikipage.content').add(preload);
