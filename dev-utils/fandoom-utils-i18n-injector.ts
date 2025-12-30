@@ -30,12 +30,15 @@ export function getModuleIdsToWatch(gadgets: GadgetDefinition[]): { [gadgetId: s
  * Configure i18n loading
  */
 interface LoadOptions {
+  useLang?: boolean
+  usePageLang?: boolean
+  usePageViewLang?: boolean
   useContentLang?: boolean
   useUserLang?: boolean
 }
 
 /**
- * The options object instance to pass to `loadMessages` (`FandoomUtilsI18njs`) 
+ * The options object instance to pass to `loadMessages` (`FandoomUtilsI18nLoader`) 
  */
 interface I18nOptions {
   entrypoint?: string
@@ -62,35 +65,13 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
   
   const fallbackMessages: Record<string, string> = i18nMessages.en;
 
-  return [
-    `function loadMessages() {`,
-      `var deferred = new $.Deferred();`,
-      `if (mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs')) {`,
-        `mw.loader.load('${gadgetNamespace}.FandoomUtilsI18njs');`,
-        `mw.hook('dev.i18n').add(function (i18n) {`,
-          `i18n.loadMessages('${name}'${i18nOptions && `, ${JSON.stringify(i18nOptions)}`})`,
-            `.done(function (messages) {`,
-              `if (!messages) {`,
-                `deferred.resolve(loadFallbackMessages());`,
-                `return;`,
-              `}`,
-              loadOptions?.useContentLang ? `messages.useContentLang();` : '',
-              loadOptions?.useUserLang ? `messages.useUserLang();` : '',
-              `deferred.resolve(messages);`,
-            `})`,
-        `});`,
-        `return deferred;`,
-      `}`,
-      `deferred.resolve(loadFallbackMessages());`,
-      `return deferred;`,
-    `}`,
+  const i18nLoaderGadgetName = `${gadgetNamespace}.FandoomUtilsI18nLoader`;
 
-    `function loadFallbackMessages() {`,
-      `var msgMap = new mw.Map();`,
-      `msgMap.set(${JSON.stringify(fallbackMessages)});`,
-      `if (mw.Message.prototype.escape === undefined) {`,
-        `mw.Message.prototype.escape = mw.Message.prototype.escaped;`,
-      `}`,
+  return [
+    /**
+     * Defines the i18n object that parses the messages that will be rendered in DOM
+     */
+    `function prepareI18n(i18nLoader) {`,
       `return {`,
         `msg: function () {`,
           `var args = Array.prototype.slice.call(arguments);`,
@@ -98,10 +79,87 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
             `return;`,
           `}`,
           `var key = args.shift();`,
-          `return new mw.Message(msgMap, key, args);`,
-        `}`,
+          `return new mw.Message(i18nLoader.getMessages(), key, args);`,
+        `},`,
+        `useLang: i18nLoader.useLang.bind(this),`,
+        `usePageLang: i18nLoader.usePageLang.bind(this),`,
+        `useContentLang: i18nLoader.useContentLang.bind(this),`,
+        `usePageViewLang: i18nLoader.usePageViewLang.bind(this),`,
+        `useUserLang: i18nLoader.useUserLang.bind(this),`,
+			  `inLang: i18nLoader.inLang.bind(this),`,
+        `inPageLang: i18nLoader.inPageLang.bind(this),`,
+        `inContentLang: i18nLoader.inContentLang.bind(this),`,
+        `inPageViewLang: i18nLoader.inPageViewLang.bind(this),`,
+        `inUserLang: i18nLoader.inUserLang.bind(this),`,
       `};`,
-    `}`
+    `}`,
+
+    /**
+     * Creates a jQuery.Deferred() object that either resolves 1) the output of 
+     * FandoomUtilsI18nLoader.loadMessages(), or 2) the output of 
+     * getFallbackMessages() on event of failure in the process of trying to
+     * call FandoomUtilsI18nLoader.loadMessages()
+     */
+    `function getI18nLoader() {`,
+      `var deferred = new $.Deferred();`,
+      `mw.loader.using('${i18nLoaderGadgetName}')`,
+        `.done(function (require) {`,
+          `var module = require('${i18nLoaderGadgetName}');`,
+          `if (module === undefined) {`,
+            `console.warn('[FandoomUtilsI18nLoader] Failed to load.');`,
+            `deferred.resolve(getFallbackMessages());`,
+            `return;`,
+          `}`,
+          `module.loadMessages('${name}'${i18nOptions && `, ${JSON.stringify(i18nOptions)}`})`,
+            `.done(function (i18nLoader) {`,
+              `if (!i18nLoader) {`,
+                `deferred.resolve(getFallbackMessages());`,
+                `return;`,
+              `}`,
+              loadOptions?.useLang ? `i18nLoader.useLang();` : '',
+              loadOptions?.usePageLang ? `i18nLoader.usePageLang();` : '',
+              loadOptions?.useContentLang ? `i18nLoader.useContentLang();` : '',
+              loadOptions?.usePageViewLang ? `i18nLoader.usePageViewLang();` : '',
+              loadOptions?.useUserLang ? `i18nLoader.useUserLang();` : '',
+              `deferred.resolve(i18nLoader);`,
+            `});`,
+        `})`,
+        `.fail(function (err) {`,
+          `console.error(err);`,
+          `deferred.resolve(getFallbackMessages());`,
+        `});`,
+      `return deferred;`,
+    `}`,
+
+    /** 
+     * Create a mock object with the same API as the output of 
+     * FandoomUtilsI18nLoader.loadMessages 
+     * */
+    `function getFallbackMessages() {`,
+      /* We inject the English i18n messages into the script/bundle as fallback messages */
+      `var msgMap = new mw.Map();`,
+      `msgMap.set(${JSON.stringify(fallbackMessages)});`,
+      /* We do the below to ensure backwards compatibility with Fandom's i18n-js */
+      `if (mw.Message.prototype.escape === undefined) {`,
+        `mw.Message.prototype.escape = mw.Message.prototype.escaped;`,
+      `}`,
+      /* We return a mock object */
+      `return {`,
+        `getMessages: function () {`,
+          `return msgMap;`,
+        `},`,
+        `useLang: $.noop,`,
+        `usePageLang: $.noop,`,
+        `useContentLang: $.noop,`,
+        `usePageViewLang: $.noop,`,
+        `useUserLang: $.noop,`,
+			  `inLang: function () { return this; },`,
+        `inPageLang: function () { return this; },`,
+        `inContentLang: function () { return this; },`,
+        `inPageViewLang: function () { return this; },`,
+        `inUserLang: function () { return this; },`,
+      `};`,
+    `}`,
   ]
 }
 

@@ -34,7 +34,7 @@ gadgets:
     requires: 
       - FandoomUiUtilsModal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -54,7 +54,7 @@ gadgets:
     requires: 
       - FandoomUiUtilsModal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -72,7 +72,7 @@ gadgets:
     requires: 
       - FandoomUiUtilsModal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -89,6 +89,8 @@ gadgets:
       - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxUndo
+    requires:
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     i18n:
@@ -105,7 +107,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/Countdown
     requires:
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     i18n:
@@ -152,7 +154,7 @@ gadgets:
     scripts:
       - code.js
 
-  FandoomUtilsI18njs:
+  FandoomUtilsI18nLoader:
     description: "Library for loading i18n messages."
     authors:
       - Cqm
@@ -161,7 +163,11 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/I18n-js
     scripts:
-      - code.js
+      - gadget-impl.js
+    resourceLoader:
+      dependencies:
+        - mediawiki.jqueryMsg
+    disableBuildingOfGadgetImplJs: true
   
   HTMLAudioPlayer5:
     description: "Play audio files with a native HTML5 player"
@@ -172,6 +178,8 @@ gadgets:
       - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/HTML5AudioPlayer
+    requires:
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     i18n:
@@ -189,7 +197,7 @@ gadgets:
       - FandoomUiUtilsModal
       - FandoomUiUtilsDorui
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -218,7 +226,7 @@ gadgets:
     requires:
       - FandoomUiUtilsQdmodal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -237,7 +245,7 @@ gadgets:
     requires:
       - FandoomUiUtilsModal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -256,7 +264,7 @@ gadgets:
     requires:
       - FandoomUiUtilsModal
       - PowertoolsPlacement
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -273,6 +281,8 @@ gadgets:
       - CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/PageRenameAuto-update
+    requires:
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -299,7 +309,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/PreloadTemplates
     requires:
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
     styles:
@@ -317,7 +327,7 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/View_Source
     requires:
-      - FandoomUtilsI18njs
+      - FandoomUtilsI18nLoader
     scripts:
       - code.js
       - definitions.js

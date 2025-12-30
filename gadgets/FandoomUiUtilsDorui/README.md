@@ -492,7 +492,7 @@ This is well and good, and fairly standard among dev scripts. However, if you wa
 
     // Import dependencies and bind to their hooks
     preload: function() {
-      // Load FandoomUtilsI18njs & FandoomUiUtilsDorui if not yet loaded
+      // Load FandoomUtilsI18nLoader & FandoomUiUtilsDorui if not yet loaded
 
       // When loaded, execute the callback `this.onload`
       mw.hook('dev.i18n').add(this.onload.bind(this, 'i18n-js'));

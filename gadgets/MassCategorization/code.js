@@ -53,7 +53,7 @@
     onload: function(key, arg) {
       switch (key) {
         case 'i18n':
-          var i18n = arg;
+          var i18n = prepareI18n(arg);
           this.i18n = i18n;
           break;
         case 'api':
@@ -101,7 +101,7 @@
       });
     },
     preload: function() {
-      loadMessages().then(this.onload.bind(this, 'i18n'));
+      getI18nLoader().then(this.onload.bind(this, 'i18n'));
       
       mw.hook('dev.modal').add(this.onload.bind(this, 'modal-js'));
       mw.hook('dev.doru.ui').add(this.onload.bind(this, 'dorui'));

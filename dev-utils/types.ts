@@ -70,6 +70,13 @@ export interface GadgetDefinition {
    * Specify specific loading conditions. Used to emulate MediaWiki's ResourceLoader.
    */
   resourceLoader?: ResourceLoaderConditions
+
+  /**
+   * Set as true to disable building of gadget-impl.js. Useful for building packages that
+   * you don't need to be registered as a ResourceLoader module, or to implement
+   * your own mw.loader.impl() implementation.
+   */
+  disableBuildingOfGadgetImplJs?: boolean
 }
 
 /**

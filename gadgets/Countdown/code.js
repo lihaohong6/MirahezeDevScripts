@@ -194,13 +194,13 @@
 		}
 	}
 	
-	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
-  INJECT_FANDOM_UTILS_I18N();
-	
-	loadMessages().done(function (messages) {
-		i18n = messages;
+	getI18nLoader().done(function (loader) {
+		i18n = prepareI18n(loader);
 		mw.hook('wikipage.content').add(init);
 	});
+	
+	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
+  INJECT_FANDOM_UTILS_I18N();
 
 }(window.countdownTimer = window.countdownTimer || {}, mediaWiki, jQuery));
 

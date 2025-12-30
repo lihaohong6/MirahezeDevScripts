@@ -131,7 +131,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       define: {
         /**
          * This is passed so we can replace the variable MH_DEVSCRIPTS_CDN_ENTRYPOINT 
-         * used in FandoomUtilsI18njs with the actual CDN URL during
+         * used in FandoomUtilsI18nLoader with the actual CDN URL during
          * compilation
          */
         'MH_DEVSCRIPTS_CDN_ENTRYPOINT': `"${cdnEntrypoint}"`,

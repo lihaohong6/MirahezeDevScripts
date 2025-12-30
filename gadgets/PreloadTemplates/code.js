@@ -249,8 +249,8 @@
 	}
 
 	// Add selector to editor
-	function preInit(i18nData) {
-		i18n = i18nData;
+	function preInit(i18nLoader) {
+		i18n = prepareI18n(i18nLoader);
 		$main = $('<div>', { id: 'preload-templates' });
 		$main.append($('<span>', {
 			text: msg('preload')
@@ -421,10 +421,10 @@
   INJECT_FANDOM_UTILS_I18N();
 	
 	$.when(
-		loadMessages(),
+		getI18nLoader(),
 		mw.loader.using('mediawiki.util')
-	).then(function(i18nData) {
-		preInit(i18nData);
+	).then(function(i18nLoader) {
+		preInit(i18nLoader);
 		// Doesn't work for Visual Editor, disabled
 		//mw.hook('ve.activationComplete').add(function () { // Visual Editor
 		//appendModule(true);

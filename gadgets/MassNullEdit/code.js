@@ -489,8 +489,9 @@
     });
   }
   
-  loadMessages().then(function (messages) {
-    i18n = messages.msg.bind(messages);
+  getI18nLoader().then(function (loader) {
+    i18n = prepareI18n(loader);
+    i18n = i18n.msg.bind(i18n);
     main();
   });
   
