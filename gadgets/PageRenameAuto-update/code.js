@@ -258,7 +258,7 @@
     },
     submitChangedPages: function(pageKey, callback) {
       var data = PRA.pageData[pageKey];
-      PRA.api.post({
+      PRA.api.postWithEditToken({
         action: 'edit',
         title: data.title,
         summary: PRA.options.editSummary || PRA.i18n.inContentLang().msg('summary').plain(),
@@ -266,8 +266,7 @@
         minor: true,
         nocreate: true,
         redirect: false,
-        bot: true,
-        token: mw.user.tokens.get('csrfToken')
+        bot: true
       }).then(function() {
         PRA.requestCompleted[pageKey] = true;
         console.log('Posted page', data.title);
@@ -285,15 +284,14 @@
       });
     },
     movePage: function(callback) {
-      PRA.api.post({
+      PRA.api.postWithEditToken({
         action: 'move',
         from: PRA.oldName,
         to: PRA.newName,
         reason: PRA.reason,
         movetalk: false,
         noredirect: true,
-        ignorewarnings: true,
-        token: mw.user.tokens.get('csrfToken')
+        ignorewarnings: true
       }).then(function() {
         console.log('Moved page', PRA.oldName);
         if (typeof callback === 'function') {
@@ -377,145 +375,147 @@
       ) {
         var page = mw.util.getParamValue('pagename');
         $('#firstHeading').text(i18n.msg('header', page).plain());
-        $('#content').html(ui.frag([
-          ui.p({
-            html: i18n.msg('infoText').parse()
-          }),
-          ui.p({
-            html: i18n.msg('notMovedNote').parse()
-          }),
-          ui.p({
-            html: i18n.msg('warning').parse()
-          }),
-          ui.fieldset({
-            children: [
-              ui.legend({
-                text: i18n.msg('fieldTitle').plain()
-              }),
-              ui.table({
-                attrs: {
-                  id: 'mw-renamepage-table'
-                },
-                children: [
-                  PRA.labelAndInput(ui, 'currentName', ui.a({
-                    attrs: {
-                      href: mw.util.getUrl(page)
-                    },
-                    text: page
-                  })),
-                  PRA.labelAndInput(ui, 'newNameField', ui.input({
-                    attrs: {
-                      name: 'wpNewTitleMain',
-                      value: page,
-                      type: 'text',
-                      id: 'wpNewTitleMain',
-                      maxlength: 255
-                    }
-                  })),
-                  PRA.labelAndInput(ui, 'reason', ui.textarea({
-                    attrs: {
-                      name: 'wpReason',
-                      id: 'wpReason',
-                      cols: 60,
-                      rows: 2,
-                      maxlength: 255
-                    }
-                  })),
-                  ui.tr({
-                    children: [
-                      ui.td({
-                        html: '&#160;'
-                      }),
-                      ui.td({
-                        classes: ['mw-submit'],
-                        children: [
-                          ui.a({
-                            attrs: {
-                              id: 'PRAstart'
-                            },
-                            classes: ['wds-button'],
-                            events: {
-                              click: PRA.start
-                            },
-                            text: i18n.msg('populateListButton').plain()
-                          }),
-                          ui.a({
-                            attrs: {
-                              id: 'PRAprocess'
-                            },
-                            classes: ['wds-button'],
-                            events: {
-                              click: PRA.processQueue
-                            },
-                            style: {
-                              display: 'none'
-                            },
-                            text: i18n.msg('processQueueButton').plain()
-                          }),
-                          ui.span({
-                            attrs: {
-                              id: 'liveLoader'
-                            },
-                            child: ui.img({
+        $('#bodyContent').html(
+          ui.frag([
+            ui.p({
+              html: i18n.msg('infoText').parse()
+            }),
+            ui.p({
+              html: i18n.msg('notMovedNote').parse()
+            }),
+            ui.p({
+              html: i18n.msg('warning').parse()
+            }),
+            ui.fieldset({
+              children: [
+                ui.legend({
+                  text: i18n.msg('fieldTitle').plain()
+                }),
+                ui.table({
+                  attrs: {
+                    id: 'mw-renamepage-table'
+                  },
+                  children: [
+                    PRA.labelAndInput(ui, 'currentName', ui.a({
+                      attrs: {
+                        href: mw.util.getUrl(page)
+                      },
+                      text: page
+                    })),
+                    PRA.labelAndInput(ui, 'newNameField', ui.input({
+                      attrs: {
+                        name: 'wpNewTitleMain',
+                        value: page,
+                        type: 'text',
+                        id: 'wpNewTitleMain',
+                        maxlength: 255
+                      }
+                    })),
+                    PRA.labelAndInput(ui, 'reason', ui.textarea({
+                      attrs: {
+                        name: 'wpReason',
+                        id: 'wpReason',
+                        cols: 60,
+                        rows: 2,
+                        maxlength: 255
+                      }
+                    })),
+                    ui.tr({
+                      children: [
+                        ui.td({
+                          html: '&#160;'
+                        }),
+                        ui.td({
+                          classes: ['mw-submit'],
+                          children: [
+                            ui.a({
                               attrs: {
-                                // eslint-disable-next-line max-len
-                                src: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/24px-spinner-black.gif'
+                                id: 'PRAstart'
+                              },
+                              classes: ['wds-button'],
+                              events: {
+                                click: PRA.start
+                              },
+                              text: i18n.msg('populateListButton').plain()
+                            }),
+                            ui.a({
+                              attrs: {
+                                id: 'PRAprocess'
+                              },
+                              classes: ['wds-button'],
+                              events: {
+                                click: PRA.processQueue
+                              },
+                              style: {
+                                display: 'none'
+                              },
+                              text: i18n.msg('processQueueButton').plain()
+                            }),
+                            ui.span({
+                              attrs: {
+                                id: 'liveLoader'
+                              },
+                              child: ui.img({
+                                attrs: {
+                                  // eslint-disable-next-line max-len
+                                  src: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/24px-spinner-black.gif'
+                                }
+                              }),
+                              style: {
+                                display: 'none'
                               }
                             }),
-                            style: {
-                              display: 'none'
-                            }
-                          }),
-                          ui.span({
-                            attrs: {
-                              id: 'PRAStatus'
-                            }
-                          })
-                        ]
-                      })
-                    ]
-                  }),
-                  PRA.labelAndInput(ui, 'queuedItems', ui.div({
-                    attrs: {
-                      id: 'PRAQueue'
-                    }
-                  })),
-                  ui.tr({
-                    children: [
-                      ui.td({
-                        classes: ['mw-label'],
-                        html: '&#160;'
-                      }),
-                      ui.td({
-                        classes: [
-                          'mw-input',
-                          'PRAinfo'
-                        ],
-                        child: ui.div({
-                          attrs: {
-                            id: 'PRAQueueLength'
-                          },
-                          // TODO: Hack?
-                          html: i18n.msg('pagesInQueue').escape().replace('$1', ui.span({
-                            attrs: {
-                              id: 'PRAQueueLengthBox'
-                            }
-                          }).outerHTML)
+                            ui.span({
+                              attrs: {
+                                id: 'PRAStatus'
+                              }
+                            })
+                          ]
                         })
-                      })
-                    ]
-                  }),
-                  PRA.labelAndInput(ui, 'failedItems', ui.div({
-                    attrs: {
-                      id: 'PRAFailedLog'
-                    },
-                    text: i18n.msg('failedItemsInfo').plain()
-                  }))
-                ]
-              })
-            ]
-          })
-        ]));
+                      ]
+                    }),
+                    PRA.labelAndInput(ui, 'queuedItems', ui.div({
+                      attrs: {
+                        id: 'PRAQueue'
+                      }
+                    })),
+                    ui.tr({
+                      children: [
+                        ui.td({
+                          classes: ['mw-label'],
+                          html: '&#160;'
+                        }),
+                        ui.td({
+                          classes: [
+                            'mw-input',
+                            'PRAinfo'
+                          ],
+                          child: ui.div({
+                            attrs: {
+                              id: 'PRAQueueLength'
+                            },
+                            // TODO: Hack?
+                            html: i18n.msg('pagesInQueue').escape().replace('$1', ui.span({
+                              attrs: {
+                                id: 'PRAQueueLengthBox'
+                              }
+                            }).outerHTML)
+                          })
+                        })
+                      ]
+                    }),
+                    PRA.labelAndInput(ui, 'failedItems', ui.div({
+                      attrs: {
+                        id: 'PRAFailedLog'
+                      },
+                      text: i18n.msg('failedItemsInfo').plain()
+                    }))
+                  ]
+                })
+              ]
+            })
+          ])
+        );
         document.title = i18n.msg('title').plain();
         PRA.updateQueueListing();
       } else {
