@@ -126,7 +126,7 @@ mw.loader.using('mediawiki.api', function () {
       }
     });
     renameModal.create();
-    $form = $('form-mass-rename');
+    $form = $('#form-mass-rename');
     $pageListInput = $form.find('#text-rename');
     $customSummary = $form.find('#custom-summary');
     $redirectCheck = $form.find('#redirect-check');
@@ -160,7 +160,7 @@ mw.loader.using('mediawiki.api', function () {
     if (paused) {
       return;
     }
-    var pages = $pageListInput.val().split('\n'),
+    var pages = ($pageListInput.val() || '').split('\n'),
         page = pages[0];
     if (!page) {
       $errorOutput.append(
@@ -174,7 +174,7 @@ mw.loader.using('mediawiki.api', function () {
       rename(page);
     }
     pages = pages.slice(1, pages.length);
-    txt.value = pages.join('\n');
+    $pageListInput.val(pages.join('\n'));
   }
   /**
   * @method rename
@@ -191,20 +191,18 @@ mw.loader.using('mediawiki.api', function () {
       newName = name.split(' ')[1],
       config = {
         action: 'move',
-        from: oldName.replace('_', ' '),
-        to: newName.replace('_', ' '),
+        from: oldName,
+        to: newName,
         noredirect: '',
         reason:
           $customSummary.first().val() ||
           window.massRenameSummary ||
-          i18n.inContentLang().msg('summary').plain(),
-        bot: true,
-        token: mw.user.tokens.get('csrfToken')
+          i18n.inContentLang().msg('summary').plain()
       };
       if ($redirectCheck.prop('checked')) {
         delete config.noredirect;
       }
-      new mw.Api().post(config)
+      new mw.Api().postWithEditToken(config)
       .done(function (d) {
         if (!d.error) {
           console.log(i18n.msg('renameDone', oldName, newName).plain());

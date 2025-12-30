@@ -148,14 +148,13 @@ mw.loader.using('mediawiki.api', function() {
   }
   
   function undelete(page, reason) {
-    new mw.Api().post({
+    new mw.Api().postWithEditToken({
       format: 'json',
       action: 'undelete',
       watchlist: 'preferences',
       timestamps: '',
       title: page,
-      reason: reason,
-      token: mw.user.tokens.get('csrfToken')
+      reason: reason
     }).done(function(d) { 
       if (!d.error) {
         console.log(i18n.msg('success', page).escape());

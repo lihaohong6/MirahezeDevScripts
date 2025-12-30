@@ -76,7 +76,6 @@ mw.loader.using([
         generateElement('move'),
         generateElement('upload'),
         generateElement('create'),
-        generateElement('comment'),
         $('<hr/>'),
         $('<div>', {
           'class': 'protection-bold edit-input-control'
@@ -190,7 +189,6 @@ mw.loader.using([
     $protectEdit = $form.find('#protect-edit');
     $protectMove = $form.find('#protect-move');
     $protectUpload = $form.find('#protect-upload');
-    $protectComment = $form.find('#protect-comment');
     $protectReason = $form.find('#protect-reason');
     protectModal.show();
   }
@@ -201,7 +199,7 @@ mw.loader.using([
   function pause () {
     paused = true;
     protectModal.disableActionButtons('mp-pause');
-    protectModal.enableActionButtons('mp-start');
+    protectModal.enableActionButtons(['mp-start', 'mp-add-pages-in-category']);
   }
   /**
   * @method start
@@ -209,7 +207,7 @@ mw.loader.using([
   */
   function start () {
     paused = false;
-    protectModal.disableActionButtons('mp-start');
+    protectModal.disableActionButtons(['mp-start', 'mp-add-pages-in-category']);
     protectModal.enableActionButtons('mp-pause');
     process();
   }
@@ -221,7 +219,7 @@ mw.loader.using([
     if (paused) {
       return;
     }
-    var pages = $pageListInput.val().split('\n'),
+    var pages = ($pageListInput.val() || '').split('\n'),
         currentPage = pages[0];
     if (!currentPage) {
       pause();
@@ -269,14 +267,13 @@ mw.loader.using([
   * @param {String} page - The page to protect.
   */
   function protectPage (page) {
-    Api.post({
+    Api.postWithEditToken({
       action: 'protect',
       expiry: $protectExpiry.val() || $protectExpiry.attr('placeholder'),
       protections: $protectCreate.val() || [$protectEdit.val(), $protectMove.val(), $protectUpload.val(), $protectComment.val()].filter(Boolean).join('|'),
       watchlist: 'preferences',
       title: page,
-      reason: $protectReason.val(),
-      token: mw.user.tokens.get('csrfToken')
+      reason: $protectReason.val()
     })
     .done(function (d) {
       console.log(i18n.msg('success', page).plain());

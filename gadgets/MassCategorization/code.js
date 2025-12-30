@@ -579,7 +579,7 @@
             summary += ' (' + this.i18n.msg('automatic').plain() + ')';
           }
           
-          this.api.post({
+          this.api.postWithEditToken({
             action: 'edit',
             watchlist: 'nochange',
             title: title,
@@ -587,8 +587,7 @@
             nocreate: '',
             text: newContent,
             bot: true,
-            minor: true,
-            token: mw.user.tokens.get('csrfToken')
+            minor: true
           }).then(function(res) {
             this.removeStatus(currentStep, this.i18n.msg('status-published-waiting', title).plain());
             

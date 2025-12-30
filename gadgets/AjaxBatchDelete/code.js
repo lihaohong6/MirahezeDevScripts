@@ -135,8 +135,6 @@ mw.loader.using('mediawiki.api', function() {
     paused = true;
     deleteModal.disableActionButtons('abd-pause');
     deleteModal.enableActionButtons(['abd-start', 'abd-add-pages-in-category']);
-    $pageListInput.removeAttr('disabled');
-    $deleteReasonInput.removeAttr('disabled');
   }
   
   function start() {
@@ -147,8 +145,6 @@ mw.loader.using('mediawiki.api', function() {
     paused = false;
     deleteModal.disableActionButtons(['abd-start', 'abd-add-pages-in-category']);
     deleteModal.enableActionButtons('abd-pause');
-    $pageListInput.attr('disabled', '');
-    $deleteReasonInput.attr('disabled', '');
     process();
   }
   

@@ -108,7 +108,7 @@
     var query = {
       title: page
     };
-    var editReq = editApi.post(query);
+    var editReq = editApi.postWithEditToken(query);
     
     editReq.always(function (result, resultIfRejected) {
       if (editReq.state() === 'rejected') {
@@ -464,7 +464,6 @@
       'mediawiki.user'
     ]).then(function () {
       if (!(editApi instanceof mw.Api)) {
-        editApi.token = mw.user.tokens.get('csrfToken') || mw.user.tokens.get('editToken');
         editApi = new mw.Api({parameters: editApi});
       }
       
