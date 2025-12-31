@@ -316,105 +316,105 @@
         // probably idk
         switch (optionKey) {
           case 'html':
-          // donut ooze
-          elem.innerHTML = value;
-          break;
+            // donut ooze
+            elem.innerHTML = value;
+            break;
           case 'text':
-          elem.appendChild(document.createTextNode(value));
-          break;
+            elem.appendChild(document.createTextNode(value));
+            break;
           case 'child':
-          // Text unsupported, obviously; use `text`
-          if (value) {
-            elem.appendChild(value);
-          }
-          break;
-          case 'children':
-          for (var i = 0; i < value.length; i++) {
-            var child = value[i];
-            
-            if (typeof child === 'string') {
-              elem.appendChild(document.createTextNode(child));
-            } else if (child) {
-              elem.appendChild(child);
+            // Text unsupported, obviously; use `text`
+            if (value) {
+              elem.appendChild(value);
             }
-          }
-          break;
-          case 'classes':
-          // If it's an array just set the class attribute to them joined by spaces
-          // Not looping and adding the class because using it in conjunction to the attribute
-          // is pretty brittle, so any semblance of support for that should be removed
-          if (value instanceof Array) {
-            elem.setAttribute('class', value.join(' '));
-          } else {
-            // If it's an object, make the keys the class names, and the value whether the class should be added
-            for (var key in value) {
-              if (value[key]) {
-                elem.classList.add(key);
+            break;
+          case 'children':
+            for (var i = 0; i < value.length; i++) {
+              var child = value[i];
+              
+              if (typeof child === 'string') {
+                elem.appendChild(document.createTextNode(child));
+              } else if (child) {
+                elem.appendChild(child);
               }
             }
-          }
-          break;
+            break;
+          case 'classes':
+            // If it's an array just set the class attribute to them joined by spaces
+            // Not looping and adding the class because using it in conjunction to the attribute
+            // is pretty brittle, so any semblance of support for that should be removed
+            if (value instanceof Array) {
+              elem.setAttribute('class', value.join(' '));
+            } else {
+              // If it's an object, make the keys the class names, and the value whether the class should be added
+              for (var key in value) {
+                if (value[key]) {
+                  elem.classList.add(key);
+                }
+              }
+            }
+            break;
           case 'events':
-          // Still sucks that there's no way to list existing event listeners
-          // for removing without keeping a reference
-          for (var key in value) {
-            elem.addEventListener(key, value[key]);
-          }
-          break;
+            // Still sucks that there's no way to list existing event listeners
+            // for removing without keeping a reference
+            for (var key in value) {
+              elem.addEventListener(key, value[key]);
+            }
+            break;
           case 'style':
-          // Fancy schmancy style attributes, by converting camelCase properties to dashed-case
-          // PascalCase is converted to -dash-infix-case
-          for (var key in value) {
-            var rawValue = value[key];
-            
-            var propName = key.replace(/[A-Z]/g, function(c) {
-              return '-' + c.toLowerCase();
-            });
-            
-            // Except Microsoft ones, they start with lowercase ms, like msTranform
-            // so they have to be converted manually to -infix-case
-            // why so many exceptions??
-            if (propName.slice(0, 3) == 'ms-') {
-              propName = '-' + propName;
+            // Fancy schmancy style attributes, by converting camelCase properties to dashed-case
+            // PascalCase is converted to -dash-infix-case
+            for (var key in value) {
+              var rawValue = value[key];
+              
+              var propName = key.replace(/[A-Z]/g, function(c) {
+                return '-' + c.toLowerCase();
+              });
+              
+              // Except Microsoft ones, they start with lowercase ms, like msTranform
+              // so they have to be converted manually to -infix-case
+              // why so many exceptions??
+              if (propName.slice(0, 3) == 'ms-') {
+                propName = '-' + propName;
+              }
+              
+              // .setProperty is great, but for whatever god forsaken reason they decided to separate the !important
+              // from the property value itself. What the fuck?
+              // Oh well, we just check if it ends with !important, and add it if so
+              var isImportant = rawValue.trim().slice(-10) == '!important';
+              var importance = isImportant ? 'important' : '';
+              
+              // Snip off any !important that we can't include in the same string
+              var propValue = isImportant
+              ? rawValue.trim().slice(0, -10)
+              : rawValue;
+              
+              elem.style.setProperty(propName, propValue, importance);
             }
-            
-            // .setProperty is great, but for whatever god forsaken reason they decided to separate the !important
-            // from the property value itself. What the fuck?
-            // Oh well, we just check if it ends with !important, and add it if so
-            var isImportant = rawValue.trim().slice(-10) == '!important';
-            var importance = isImportant ? 'important' : '';
-            
-            // Snip off any !important that we can't include in the same string
-            var propValue = isImportant
-            ? rawValue.trim().slice(0, -10)
-            : rawValue;
-            
-            elem.style.setProperty(propName, propValue, importance);
-          }
-          break;
+            break;
           case 'attrs':
-          // For the very rare case where one of the special properties takes priority over your attribute
-          // or for the dorui default property attribute deniers
-          for (var key in value) {
-            var val = value[key];
-            if (val === false) continue;
-            if (val === true) {
-              val = key;
+            // For the very rare case where one of the special properties takes priority over your attribute
+            // or for the dorui default property attribute deniers
+            for (var key in value) {
+              var val = value[key];
+              if (val === false) continue;
+              if (val === true) {
+                val = key;
+              }
+              
+              setAttr(isSVG, elem, key, val);
             }
-            
-            setAttr(isSVG, elem, key, val);
-          }
-          break;
+            break;
           case 'props':
-          // For custom properties to set after the element's creation, like checked, selected, or value
-          for (var key in value) {
-            elem[key] = value[key];
-          }
-          break;
+            // For custom properties to set after the element's creation, like checked, selected, or value
+            for (var key in value) {
+              elem[key] = value[key];
+            }
+            break;
           
           default:
-          // Something unrecognized was passed, just slap it as an attribute
-          setAttr(isSVG, elem, optionKey, value);
+            // Something unrecognized was passed, just slap it as an attribute
+            setAttr(isSVG, elem, optionKey, value);
         }
       }
       

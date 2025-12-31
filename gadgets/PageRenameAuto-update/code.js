@@ -7,7 +7,6 @@
 * Authors:     Foodbandlt
 *              Jr Mime
 *              KockaAdmiralac
-* Used files:  [[w:c:File:24px-spinner-black.gif]]
 */
 (function() {
   'use strict';
@@ -364,6 +363,23 @@
         ]
       });
     },
+    createActionButton: function (id, event, options) {
+      options = options || {};
+      var actionButton = new OO.ui.ButtonWidget( {
+        label: options.label,
+        title: options.label,
+        flags: options.flags,
+        icon: options.icon,
+        iconTitle: options.label,
+      } );
+      actionButton = actionButton.$element;
+      actionButton.attr('id', id);
+      if (options.style) {
+        actionButton.css(options.style);
+      }
+      actionButton.on('click', event);
+      return actionButton[0];
+    },
     initialize: function(i18nLoader) {
       var ui = window.dev.dorui;
       PRA.api = new mw.Api();
@@ -429,39 +445,35 @@
                         ui.td({
                           classes: ['mw-submit'],
                           children: [
-                            ui.a({
-                              attrs: {
-                                id: 'PRAstart'
-                              },
-                              classes: ['wds-button'],
-                              events: {
-                                click: PRA.start
-                              },
-                              text: i18n.msg('populateListButton').plain()
-                            }),
-                            ui.a({
-                              attrs: {
-                                id: 'PRAprocess'
-                              },
-                              classes: ['wds-button'],
-                              events: {
-                                click: PRA.processQueue
-                              },
-                              style: {
-                                display: 'none'
-                              },
-                              text: i18n.msg('processQueueButton').plain()
-                            }),
+                            this.createActionButton(
+                              'PRAstart',
+                              PRA.start,
+                              {
+                                label: i18n.msg('populateListButton').plain(),
+                                flags: [
+                                  'progressive',
+                                  'primary'
+                                ]
+                              }
+                            ),
+                            this.createActionButton(
+                              'PRAprocess',
+                              PRA.processQueue,
+                              {
+                                label: i18n.msg('processQueueButton').plain(),
+                                flags: [
+                                  'progressive',
+                                  'primary'
+                                ],
+                                style: {
+                                  display: 'none'
+                                }
+                              }
+                            ),
                             ui.span({
                               attrs: {
                                 id: 'liveLoader'
                               },
-                              child: ui.img({
-                                attrs: {
-                                  // eslint-disable-next-line max-len
-                                  src: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/24px-spinner-black.gif'
-                                }
-                              }),
                               style: {
                                 display: 'none'
                               }
@@ -517,6 +529,7 @@
             })
           ])
         );
+        $('#liveLoader').append($.createSpinner({ size: 'small', type: 'inline' }));
         document.title = i18n.msg('title').plain();
         PRA.updateQueueListing();
       } else {
@@ -546,6 +559,9 @@
           'mediawiki.api',
           'mediawiki.user',
           'mediawiki.util',
+          'jquery.spinner',
+          'oojs',
+          'oojs-ui'
         ])
       ).then(this.initialize.bind(this));
     }
