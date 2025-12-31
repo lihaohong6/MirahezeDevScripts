@@ -55,14 +55,10 @@
       if (summary === null) {
         return;
       }
-      $this.html(
-        $('<img>')
-        .attr({
-          src: 'https://upload.wikimedia.org/wikipedia/commons/2/2e/24px-spinner-black.gif',
-          alt: msg('undoing'),
-          border: '0'
-        })
-        .css('vertical-align', 'baseline')
+      $this.empty().append(
+        $.createSpinner({ size: 'small', type: 'inline' })
+          .attr('title', msg('undoing'))
+          .css('vertical-align', 'baseline')
       );
       return api.postWithEditToken({
         action: 'edit',
@@ -72,7 +68,7 @@
         minor: window.AjaxUndoMinor ? undefined : '1',
         summary: summary === '' ? undefined : summary
       });
-    }).then(function (data) {
+    }).done(function (data) {
       if (!data) {
         return;
       }
@@ -86,6 +82,9 @@
           msg('unknownerror')
         );
       }
+    }).fail(function (err) {
+      $this.text('(' + msg('error') + ')');
+      alert(msg('unknownerror'));
     });
   }
   
@@ -150,7 +149,8 @@
       'mediawiki.api',
       'mediawiki.user',
       'mediawiki.util',
-      'oojs-ui-windows'
+      'oojs-ui-windows',
+      'jquery.spinner'
     ])
   ).then(init);
   

@@ -22,10 +22,10 @@
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
 }
 #form-mass-protect .edit-input-control > div {
-  min-width: 120px;
+  width: 120px;
 }
 #form-mass-protect .edit-input-control > select, #form-mass-protect .edit-input-control > input[type="text"] {
   flex-grow: 2;
@@ -38,7 +38,7 @@
     align-items: flex-start;
   }
   #form-mass-protect .edit-input-control > div {
-    min-width: auto;
+    width: auto;
   }
   #form-mass-protect .edit-input-control > select, #form-mass-protect .edit-input-control > input[type="text"] {
     width: 100%;

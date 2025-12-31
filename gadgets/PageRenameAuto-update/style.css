@@ -84,7 +84,12 @@
   width: 798px;
 }
 
-.theme-fandomdesktop-dark #PRAFailedLog {
+.theme-dark #PRAFailedLog {
   background-color: darkred;
   border-color: white;
+}
+
+#wpNewTitleMain {
+  width: 100%;
+  box-sizing: border-box;
 }
