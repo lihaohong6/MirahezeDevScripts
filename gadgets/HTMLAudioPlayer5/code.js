@@ -32,19 +32,19 @@
       // Remove missing elements
       files = files.filter(function(f){ return f; });
 
-      for (var n = 0; n < files.length; n++) {
+      for (var i = 0; i < files.length; i++) {
 
-        var file = files[n];
+        var file = files[i];
         var format;
         
         // Get type from attribute, if specified
-        format = data["fileType" + (n > 0 ? "-" + n : "")];
+        format = data["fileType" + (i > 0 ? "-" + i : "")];
 
         // Otherwise get type from extension of URL. This is prone to issues.
         // (Might be better to do a HEAD request for each file in the future)
         if (!format) {
 
-          var f = files[n];
+          var f = files[i];
           
           // Trim query string portion if it exists
           var queryIndex = f.lastIndexOf('?');
@@ -154,7 +154,7 @@
 
         var enableRepeat = true;
 
-        var onTimeUpdate = function (e) {
+        var onTimeUpdate = function () {
           // When paused/seeking and not ended, don't repeat
           // (the ended check ensures that a repeatEnd position at the end of the audio will still repeat)
           if (!enableRepeat) return;

@@ -15,6 +15,7 @@
  *    In Fandom's version of I18n-js, this GET request is made to a wiki page on the Fandom
  *    Developers wiki instead.
  */
+/* globals MH_DEVSCRIPTS_GADGET_NAMESPACE, MH_DEVSCRIPTS_CDN_ENTRYPOINT */
 mw.loader.impl(function () {
   return [
     MH_DEVSCRIPTS_GADGET_NAMESPACE+".FandoomUtilsI18nLoader@a21cd",
@@ -678,7 +679,7 @@ mw.loader.impl(function () {
             var messagesToLoad = messages[this._tempLang || this._defaultLang];
             if (messagesToLoad === undefined) {
               if (messages.en) {
-                console.warn('[FandoomUtilsI18nLoader] Unable to find messages for the script \'' + name + '\' and the language \'' + lang + '\'. Switching to English as fallback.');
+                console.warn('[FandoomUtilsI18nLoader] Unable to find messages for the script \'' + name + '\' and the language \'' + (this._tempLang || this._defaultLang) + '\'. Switching to English as fallback.');
                 messagesToLoad = messages.en;
               } else {
                 console.error('[FandoomUtilsI18nLoader] No messages to load for ' + name );
@@ -929,7 +930,7 @@ mw.loader.impl(function () {
         
         try {
           storageKeys = Object.keys(localStorage);
-        } catch (e) {}
+        } catch (e) {} // eslint-disable-line
         
         storageKeys.filter(function (key) {
           return isCacheKey.test(key);
@@ -939,7 +940,7 @@ mw.loader.impl(function () {
           
           try {
             cacheTimestamp = Number(localStorage.getItem(keyPrefix + '-timestamp'));
-          } catch (e) {}
+          } catch (e) {} // eslint-disable-line
           
           if (now - cacheTimestamp < oneDay * 2) {
             // Cached within last two days, keep it
@@ -950,7 +951,7 @@ mw.loader.impl(function () {
             localStorage.removeItem(keyPrefix + '-content');
             localStorage.removeItem(keyPrefix + '-timestamp');
             localStorage.removeItem(keyPrefix + '-version');
-          } catch (e) {}
+          } catch (e) {} // eslint-disable-line
         });
       }
       
@@ -976,7 +977,7 @@ mw.loader.impl(function () {
           localStorage.setItem(keyPrefix + '-content', JSON.stringify(json));
           localStorage.setItem(keyPrefix + '-timestamp', now);
           localStorage.setItem(keyPrefix + '-version', cacheVersion || 0);
-        } catch (e) {}
+        } catch (e) {} // eslint-disable-line
       }
       
       /**
@@ -988,7 +989,7 @@ mw.loader.impl(function () {
        * @return {object} The resulting i18n object.
        */
       function parseMessagesToObject(name, json, options) {
-        var obj, msg;
+        var obj;
         
         if (
           options.useCache &&
@@ -1024,13 +1025,13 @@ mw.loader.impl(function () {
         try {
           cacheContent = localStorage.getItem(keyPrefix + '-content');
           cacheVersion = Number(localStorage.getItem(keyPrefix + '-version'));
-        } catch (e) {}
+        } catch (e) {} // eslint-disable-line
         
         // Cache exists, and its version is greater than or equal to requested version
         if (cacheContent && cacheVersion >= options.cacheVersion) {
           try {
             cacheContent = JSON.parse(cacheContent);
-          } catch (err) {
+          } catch {
             console.warn('[FandoomUtilsI18nLoader] Malformed JSON found in cache for ' + keyPrefix);
             return;
           }
@@ -1069,9 +1070,7 @@ mw.loader.impl(function () {
          */
         var deferred = $.Deferred(),
             // MH_DEVSCRIPTS_CDN_ENTRYPOINT is replaced during compilation
-            entrypoint = MH_DEVSCRIPTS_CDN_ENTRYPOINT,
-            params, 
-            api;
+            entrypoint = MH_DEVSCRIPTS_CDN_ENTRYPOINT;
         
         options = options || {};
         options.entrypoint = options.entrypoint || entrypoint;

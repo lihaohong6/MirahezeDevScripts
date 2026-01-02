@@ -39,18 +39,20 @@
   * input - Renders as <input type="button">
   * button - Renders as <button>
   * @constant
+  * @deprecated
   */
+  /*
   var BUTTON_TYPES = [
     'link',
     'input',
     'button'
   ];
+  */
   
   /**
   * Callback after the modal component has been initialized.
-  * @param {UIComponent} modal Modal component creator
   */
-  function init(modal) {
+  function init() {
     module._windowManager = new OO.ui.WindowManager({
       classes: ['modal-js-window']
     });
@@ -180,12 +182,14 @@
   * @returns {ModalButton} Current instance
   * @deprecated
   */
+  /* eslint-disable */
   ModalButton.prototype.setType = function(type) {
     // if (typeof type === 'string' && BUTTON_TYPES.indexOf(type) > -1) {
     //   this.type = type;
     // }
     return this;
   };
+  /* eslint-enable */
   
   /**
   * Sets the button's sprite image. Doesn't work if it's an input button.

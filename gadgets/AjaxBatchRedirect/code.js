@@ -10,7 +10,6 @@ latedef: true, newcap: true, noarg: true, undef: true, unused: true,
 browser: true, jquery: true, onevar: true, eqeqeq: true, multistr: true,
 maxerr: 999999, forin: false, -W082, -W084
 */
-/* global mediaWiki, importArticle */
 (function ($, mw) {
   var config = mw.config.get([
     "wgCanonicalNamespace",

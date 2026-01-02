@@ -12,7 +12,7 @@
 * Used files: [[w:c:File:24px-spinner-black.gif]]
 */
 
-;(function ($, mw) {
+(function ($, mw) {
   'use strict';
   if (window.AjaxUndoLoaded) {
     return;
@@ -83,6 +83,7 @@
         );
       }
     }).fail(function (err) {
+      console.error('[AjaxUndo] Error when undoing edit', err);
       $this.text('(' + msg('error') + ')');
       alert(msg('unknownerror'));
     });

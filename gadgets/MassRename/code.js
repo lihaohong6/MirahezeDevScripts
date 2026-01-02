@@ -19,8 +19,6 @@ mw.loader.using('mediawiki.api', function () {
       $pageListInput,
       $customSummary,
       $redirectCheck,
-      $startButton,
-      $pauseButton,
       $errorOutput;
 
   /**

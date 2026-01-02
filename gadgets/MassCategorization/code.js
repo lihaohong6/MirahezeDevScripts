@@ -7,6 +7,7 @@
 * @author Ozuzanna
 */
 
+/* globals ui:true, dev */
 (function() {
   if (window.MassCategorization && window.MassCategorization.loaded) return;
 
@@ -726,13 +727,13 @@
       
       var doFetch = function() {
         this.api.get(params).then(function(data) {
-          if (data.hasOwnProperty('continue')) {
+          if (data['continue'] !== undefined) {
             Object.assign(params, data['continue']);
             
             doFetch();
           }
           
-          if (data.hasOwnProperty('query-continue')) {
+          if (data['query-continue'] !== undefined) {
             // Deep merge, query-continue is just whack
             var args = [
               params
@@ -816,9 +817,6 @@
     // Updates the size for the modal
     // Essentially "reflows" it, useful after you update it, or its content size changes
     reflowModal: function() {
-      var $frame = this.modal._modal.$frame;
-      var $body = this.modal._modal.$body;
-      
       // Save the scrollTop position as this function call resets it to 0
       // If you haven't gotten a feel as to why I hate OOUI yet, here's one reason
       var stop = $body.prop('scrollTop');

@@ -9,13 +9,14 @@
     "jquery": true
   },
   "globals": {
-    "mw": "readonly"
+    "mw": "readonly",
+    "mediaWiki": "readonly",
+    "OO": "readonly"
   },
   "overrides": [
     {
       "files": [
         "ImportButton/**",
-        "VueHelloWorld/**",
         "Tab/**"
       ],
       "extends": [
@@ -35,6 +36,30 @@
             "functions": "only-multiline"
           }
         ]
+      }
+    },
+    {
+      // files that have i18n logic injected by the FandoomUtilsI18nInjector Vite plugin
+      "files": [
+        "AjaxBatchDelete/**",
+        "AjaxBatchRedirect/**",
+        "AjaxBatchUndelete/**",
+        "AjaxUndo/**",
+        "Countdown/**",
+        "HTMLAudioPlayer5/**",
+        "MassCategorization/**",
+        "MassNullEdit/**",
+        "MassProtect/**",
+        "MassRename/**",
+        "PageRenameAuto-update/**",
+        "PreloadTemplates/**",
+        "ViewSource/**"
+      ],
+      "globals": {
+        "getI18nLoader": "readonly",
+        "getFallbackMessages": "readonly",
+        "prepareI18n": "readonly",
+        "INJECT_FANDOM_UTILS_I18N": "readonly"
       }
     }
   ]

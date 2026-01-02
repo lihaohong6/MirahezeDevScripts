@@ -20,9 +20,8 @@
  */
 
 /*jshint jquery:true, browser:true, devel:true, camelcase:true, curly:false, undef:true, bitwise:true, eqeqeq:true, forin:true, immed:true, latedef:true, newcap:true, noarg:true, unused:true, regexp:true, strict:true, trailing:false */
-/*global mediaWiki:true, importArticle:true*/
 
-;(function (module, mw, $) {
+(function (module, mw, $) {
 	'use strict';
 
 	var countdowns = [];
@@ -47,7 +46,7 @@
 		var msg = isShort ? (unit + '-short') :  mw.language.convertPlural(delta, [unit, unit+'s',unit+'s2']);
 		var msgText = i18n.msg(msg).plain();
 		if (isShort) {
-		    return msgText;
+			return msgText;
 		}
 		return ' ' + msgText;
 	}
@@ -169,25 +168,25 @@
 	}
 
 	function init() {
-		var countdown = $('.countdown:not(.handled)');
+		var countdown = $('body').find('.countdown:not(.handled)');
 		if (!countdown.length) return;
-		$content.find('.nocountdown').css('display', 'none');
+		$('body').find('.nocountdown').css('display', 'none');
 		countdown
-		.css('display', 'inline')
-		.find('.countdowndate')
-		.each(function () {
-			var $this = $(this),
-				date = (new Date($this.text())).valueOf();
-			if (isNaN(date)) {
-				$this.text(i18n.msg('bad-date').plain());
-				return;
-			}
-			countdowns.push({
-				node: $this,
-				opts: getOptions($this),
-				date: date,
+			.css('display', 'inline')
+			.find('.countdowndate')
+			.each(function () {
+				var $this = $(this),
+						date = (new Date($this.text())).valueOf();
+				if (isNaN(date)) {
+					$this.text(i18n.msg('bad-date').plain());
+					return;
+				}
+				countdowns.push({
+					node: $this,
+					opts: getOptions($this),
+					date: date,
+				});
 			});
-		});
 		countdown.addClass('handled');
 		if (countdowns.length) {
 			update();

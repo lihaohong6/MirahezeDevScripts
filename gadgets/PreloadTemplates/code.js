@@ -13,6 +13,7 @@
     each syntax is loaded by default from the "/preload" subpage of the
     template.
 */
+/* globals ve */
 
 (function() {
     'use strict';
@@ -335,7 +336,7 @@
 			maxage: config.serverCacheAge,
 			smaxage: config.serverCacheAge
 		}).done(function(listData) {
-			if (!!secondaryPlPagename) {
+			if (secondaryPlPagename) {
 				$.get(mw.util.wikiScript(), {
 					title: secondaryPlPagename,
 					action: 'raw',
