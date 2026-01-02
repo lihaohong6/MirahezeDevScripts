@@ -155,7 +155,7 @@ export const clickLinkOnPowertoolsMenu = async (driver: WebDriver, navLinkId: st
 }
 
 /**
- * For tools that depend on the gadget FandoomUtilsI18njs to load i18n messages, use this 
+ * For tools that depend on the gadget FandoomUtilsI18nLoader to load i18n messages, use this 
  * to pre-emptively disable the gadget dependency so that the Selenium test suites can test
  * if fallback messages are loaded correctly
  * 
@@ -163,30 +163,32 @@ export const clickLinkOnPowertoolsMenu = async (driver: WebDriver, navLinkId: st
  * @returns 
  */
 export const preemptivelyDisableI18n = async (driver: WebDriver, gadgetNamespace: string): Promise<void> => {
-  let isI18nJsLoaded = await driver.executeScript(`return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;`);
+  let isI18nJsLoaded = await driver.executeScript(`return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18nLoader') !== null;`);
   if (isI18nJsLoaded === true) {
-    throw new Error('DISABLE FandoomUtilsI18njs ON THE WIKI BEFORE RUNNING THIS TEST!!');
+    throw new Error('DISABLE FandoomUtilsI18nLoader ON THE WIKI BEFORE RUNNING THIS TEST!!');
   }
   isI18nJsLoaded = await driver.executeScript(`
     mw.loader.impl(function() {
       return [
-        "${gadgetNamespace}.FandoomUtilsI18njs",
-        function () {
-          mw.hook('dev.i18n').fire({ 
-            loadMessages: function () {
-              var deferred = $.Deferred();
-              deferred.resolve();
-              return deferred;
-            } 
-          });
+        "${gadgetNamespace}.FandoomUtilsI18nLoader",
+        function ($, jQuery, require, module) {
+          if (typeof module !== "undefined" && module.exports) {
+            module.exports = {
+              loadMessages: function () {
+                var deferred = $.Deferred();
+                deferred.resolve();
+                return deferred;
+              }
+            };
+          }
         }, 
         { "css": [] }, 
         {}, {}, null
       ]
     });
-    return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18njs') !== null;
+    return mw.loader.getState('${gadgetNamespace}.FandoomUtilsI18nLoader') !== null;
     `);
   if (isI18nJsLoaded === false) {
-    throw new Error('Failed to disable FandoomUtilsI18njs');
+    throw new Error('Failed to disable FandoomUtilsI18nLoader');
   }
 }

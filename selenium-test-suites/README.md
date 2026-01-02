@@ -6,7 +6,7 @@ This is a set of [Selenium](https://www.selenium.dev) test suites that may be us
 ### Building & serving the gadgets
 You must first build & serve the gadgets (either from a local endpoint or a live CDN) before you could test them on a MediaWiki instance. You can do this with the commands `npm run build` (build the gadgets) `npm run serve` (serve the gadgets from localhost).
 
-> Make sure that the environment variable `CDN_ENTRYPOINT` is set before deploying the gadgets to a live CDN. Failure to set this environment variable correctly before deploying may cause the scripts that depend on other scripts (e.g. FandoomUtilsI18njs) to fail to load correctly.
+> Make sure that the environment variable `CDN_ENTRYPOINT` is set before deploying the gadgets to a live CDN. Failure to set this environment variable correctly before deploying may cause the scripts that depend on other scripts (e.g. FandoomUtilsI18nLoader) to fail to load correctly.
 
 ### Installing required drivers
 In addition to the npm package `selenium-webdriver`, you will also need to install the required webdriver for each web browser to test. Refer to [this page](https://www.npmjs.com/package/selenium-webdriver) for the links to the required executables.
