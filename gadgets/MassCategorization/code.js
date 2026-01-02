@@ -413,36 +413,7 @@
       });
     },
     
-    // Hydrates the modal stored in [this.modal] and shows it
-    // OOUI patterns seem to indicate that in order to actually have fresh modal contents each time,
-    // you have to .set them explicitly before showing it
-    // Sure would be handy if .show's usage supported or even mentioned how this would be handled
     showModal: function() {
-      this.modal.setContent(
-        this.buildModalContent()
-      );
-      this.modal.setEvents({
-        addCategoryContents: this.addCategoryContents.bind(this),
-        start: this.start.bind(this)
-      });
-      this.modal.setButtons([
-        {
-          text: this.i18n.msg('start-button').plain(),
-          event: 'start',
-          primary: true
-        },
-        {
-          text: this.i18n.msg('cancel-button').plain(),
-          event: 'close',
-          primary: false
-        },
-        {
-          text: this.i18n.msg('add-category-contents-button').plain(),
-          event: 'addCategoryContents',
-          primary: false
-        }
-      ]);
-      this.modal.create();
       this.modal.show();
     },
     
@@ -817,14 +788,15 @@
     // Updates the size for the modal
     // Essentially "reflows" it, useful after you update it, or its content size changes
     reflowModal: function() {
+      var $frame = this.modal._modal.$frame;
+      var $body = this.modal._modal.$body;
+      
       // Save the scrollTop position as this function call resets it to 0
       // If you haven't gotten a feel as to why I hate OOUI yet, here's one reason
       var stop = $body.prop('scrollTop');
       
       dev.modal._windowManager.updateWindowSize(this.modal._modal);
       
-      var $frame = this.modal._modal.$frame;
-      var $body = this.modal._modal.$body;
       if (!$frame || !$body) return console.error('OOUI is dumb');
       
       var frame = $frame.get(0);
@@ -862,13 +834,35 @@
     // Creates the script modal and keeps a reference to it in [this.modal]
     // Called on init
     createModal: function() {
+      this._loadedModalContent = false;
       this.modal = new dev.modal.Modal({
         id: 'MassCatModal',
         size: 'medium',
         title: this.i18n.msg('modal-title').plain(),
-        content: 'You should never see this because .setContent is used to override the content on .showModal. SOPHIE SUCKS! HAHA!',
+        content: this.buildModalContent(),
         // We don't want people accidentally closing it
         closeEscape: false,
+        events: {
+          addCategoryContents: this.addCategoryContents.bind(this),
+          start: this.start.bind(this)
+        },
+        buttons: [
+          {
+            text: this.i18n.msg('start-button').plain(),
+            event: 'start',
+            primary: true
+          },
+          {
+            text: this.i18n.msg('cancel-button').plain(),
+            event: 'close',
+            primary: false
+          },
+          {
+            text: this.i18n.msg('add-category-contents-button').plain(),
+            event: 'addCategoryContents',
+            primary: false
+          }
+        ],
         close: function() {
           if (!this.running) return true;
           
@@ -886,6 +880,7 @@
           return false;
         }
       });
+      this.modal.create();
     },
     // Adds the toolbar button to the document
     // Called on init
