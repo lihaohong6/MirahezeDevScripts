@@ -275,7 +275,7 @@ mw.loader.using([
       title: page,
       reason: $protectReason.val()
     })
-    .done(function (d) {
+    .done(function () {
       console.log(i18n.msg('success', page).plain());
     })
     .fail(function (code) {

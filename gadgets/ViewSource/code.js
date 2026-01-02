@@ -12,7 +12,7 @@
 */
 
 /*jshint jquery:true, browser:true, es5:true, devel:true, camelcase:true, curly:false, undef:true, unused:true, bitwise:true, eqeqeq:true, forin:true, immed:true, latedef:true, newcap:true, noarg:true, regexp:false, strict:true, trailing:true, maxcomplexity:10 */
-/*global mediaWiki, importArticle */
+/* eslint-disable no-useless-escape */
 (function (module, mw, $) {
   
   'use strict';
@@ -177,7 +177,7 @@
       if(m[2].indexOf(':') !== -1) {
           
         var pagenamePrefix = m[2].split(':')[0];
-        if (config.wgNamespaceIds.hasOwnProperty(pagenamePrefix.toLowerCase())) {
+        if (config.wgNamespaceIds[pagenamePrefix.toLowerCase()] !== undefined) {
           href = m[2];
         } else {
           href = templ + m[2];

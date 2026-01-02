@@ -195,7 +195,7 @@
         });
       },
       hasFailedTasks() {
-      	return this.imagesMetadata.some(function (el) {
+        return this.imagesMetadata.some(function (el) {
           return el.uploadStatusCss !== 'success';
         });
       }
@@ -328,7 +328,7 @@
       },
       setup: () => ({ userInputsStore, errorMessagesStore }),
       methods: {
-        onChangeSourceWiki(event) {
+        onChangeSourceWiki() {
           if (userInputsStore.inputsChanged) { checkSourceWikiApi(); }
           userInputsStore.inputsChanged = false;
         },
@@ -468,9 +468,9 @@
       },
       setup: () => ({ imagesMetadataStore, userInputsStore }),
       computed: {
-      	uploadInProgress() {
-      	  return !!uploadTrackingStore.uploadProcessId;
-      	}
+        uploadInProgress() {
+          return !!uploadTrackingStore.uploadProcessId;
+        }
       },
       methods: {
         onClickedFetchMetadata,
@@ -550,7 +550,7 @@
       </div>
       `,
       setup: () => ({ 
-      	userInputsStore, errorMessagesStore, imagesMetadataStore, formatBytes
+        userInputsStore, errorMessagesStore, imagesMetadataStore, formatBytes
       }),
       components: {
         CdxButton: Codex.CdxButton,
@@ -558,9 +558,9 @@
         CdxProgressBar: Codex.CdxProgressBar
       },
       computed: {
-      	uploadInProgress() {
-      	  return !!uploadTrackingStore.uploadProcessId;
-      	},
+        uploadInProgress() {
+          return !!uploadTrackingStore.uploadProcessId;
+        },
         columns () {
           return [
             { 
@@ -592,9 +592,9 @@
         },
         data () {
           return (
-          	imagesMetadataStore.imagesMetadata
-          	  .filter(function (item) {
-          	  	return imagesMetadataStore.filterUnsuccessful ? item.uploadStatusCss !== 'success' : true;
+            imagesMetadataStore.imagesMetadata
+              .filter(function (item) {
+                return imagesMetadataStore.filterUnsuccessful ? item.uploadStatusCss !== 'success' : true;
               }).map(function (item, idx) {
                 return {
                   no: idx+1,
@@ -611,9 +611,9 @@
         }
       },
       methods: {
-      	toggleFilterUnsuccessful () {
-      	  imagesMetadataStore.filterUnsuccessful = !imagesMetadataStore.filterUnsuccessful;
-      	}
+        toggleFilterUnsuccessful () {
+          imagesMetadataStore.filterUnsuccessful = !imagesMetadataStore.filterUnsuccessful;
+        }
       }
     });
     
@@ -637,17 +637,17 @@
   }
   
   function onClickedFetchMetadata() {
-  	if (userInputsStore.filesToImport.length === 0) {
+    if (userInputsStore.filesToImport.length === 0) {
       mw.notify(mw.message( 'badreq--invalid-file-list-format' ).text());
       return; 
     }
-  	if (!window.confirm( mw.message( 
-  	  imagesMetadataStore.imagesMetadata.length === 0 ? 
-  	  'ui--load-image-metadata-list-confirmation' : 
-  	  'ui--clear-image-metadata-list-confirmation'
-  	).text() )) {
-  	  return;
-  	}
+    if (!window.confirm( mw.message( 
+      imagesMetadataStore.imagesMetadata.length === 0 ? 
+      'ui--load-image-metadata-list-confirmation' : 
+      'ui--clear-image-metadata-list-confirmation'
+    ).text() )) {
+      return;
+    }
     checkSourceWikiApi(true)
     .then(function (isValidWikiPath) {
       if (!isValidWikiPath) { 
@@ -692,9 +692,9 @@
     const sourceWikiApi = userInputsStore.sourceWikiApi();
     const promises = batches.map(function (batch, batchIndex) {
       return new Promise(function (resolve, reject) {
-      	// Because the user does not necessarily need to make up their mind 
-      	// on immporting page contents before clicking "Fetch metadata", the 
-      	// query should always get the latest page revision
+        // Because the user does not necessarily need to make up their mind 
+        // on immporting page contents before clicking "Fetch metadata", the 
+        // query should always get the latest page revision
         sourceWikiApi.get({
           action: 'query', 
           format: 'json',
@@ -773,7 +773,7 @@
       const fileToImport = userInputsStore.filesToImport[i];
       const rx = /^([Ff]ile\s*:\s*.+?)\s*\|\s*(https?:\/\/.+)$/.exec(fileToImport);
       if (rx === null) { continue; }
-      const [_, filename, staticUrl] = rx;
+      const [_, filename, staticUrl] = rx;  // eslint-disable-line
       res.push({
         index: i,
         pageid: null,
@@ -792,7 +792,7 @@
   }
   
   function uploadFiles() {
-    if (!!uploadTrackingStore.uploadProcessId) {
+    if (uploadTrackingStore.uploadProcessId) {
       console.error(GADGET_NAME, 'An upload is already in progress.');
       return;
     }
@@ -807,11 +807,11 @@
       // Can't upload if the file has no static URL
       // No need to re-upload successful uplaods
       while (item !== undefined && (!item.staticUrl || item.uploadStatusCss === 'success')) {
-      	item = imagesMetadataStore.imagesMetadata[uploadTrackingStore.uploadCounter++];
+        item = imagesMetadataStore.imagesMetadata[uploadTrackingStore.uploadCounter++];
       }
       // Reached end of list, cleanup scheduled processes
       if (item === undefined) {
-        if (!!uploadTrackingStore.uploadProcessId) {
+        if (uploadTrackingStore.uploadProcessId) {
           imagesMetadataStore.firstUploadFinished = true;
           imagesMetadataStore.filterUnsuccessful = false;
           clearInterval(uploadTrackingStore.uploadProcessId);
@@ -859,6 +859,7 @@
         case 'Warning':
           uploadStatusText = mw.message( 'ui--file-upload-status-message-warning' ).text();
           uploadStatusCss = 'warning';
+          // eslint-disable-next-line no-case-declarations
           const warningMessages = translateMwUploadWarnings(res.upload.warnings);
           imagesMetadataStore.imagesMetadata[index].uploadApiResponseDetails = warningMessages.join(', ');
           break;
@@ -866,6 +867,7 @@
         default:
           uploadStatusText = mw.message( 'ui--file-upload-status-message-error' ).text();
           uploadStatusCss = 'error';
+          // eslint-disable-next-line no-case-declarations
           const errorMessage = (res.error || {}).info || mw.message( 'unexpected--upload-error' ).text();
           imagesMetadataStore.imagesMetadata[index].uploadApiResponseDetails = errorMessage;
       }
@@ -875,7 +877,7 @@
   }
   
   function handleErrorUploadResponseFromApi(imagesMetadataStore, index) {
-    return function (errorCode, errorObject, xhr) {
+    return function (errorCode, errorObject) {
       const errorMessage = (errorObject.error || {}).info || mw.message( 'unexpected--upload-error' ).text();
       imagesMetadataStore.imagesMetadata[index].uploadStatusCss = 'error';
       imagesMetadataStore.imagesMetadata[index].uploadStatusText = mw.message( 'ui--file-upload-status-message-error' ).text();
@@ -894,14 +896,14 @@
             resolve(true);
           }
         })
-        .fail(function (err) {
+        .fail(function () {
           reject(-1);
         });
     });
   }
   
   function checkSourceWikiApi(showNotifs) {
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
       if (userInputsStore.sourceWikiBasicDomain === '') {
         errorMessagesStore.sourceWikiErrorMessage = mw.message('invalid--no-source-wiki-error-details').text();
         resolve(false);

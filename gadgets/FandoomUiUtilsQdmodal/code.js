@@ -1,7 +1,6 @@
 /* [[QDmodal]] - flexbox-based modal library */
 
 /*jslint browser, long, this */
-/*global jQuery, mediaWiki */
 
 (function ($, mw) {
   "use strict";

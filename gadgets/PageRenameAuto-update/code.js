@@ -8,6 +8,7 @@
 *              Jr Mime
 *              KockaAdmiralac
 */
+/* globals MH_DEVSCRIPTS_GADGET_NAMESPACE */
 (function() {
   'use strict';
   if (window.PRA || !/sysop|bureaucrat|global-admin/g.test(mw.config.get('wgUserGroups').join('|'))) {
@@ -192,7 +193,7 @@
         if (escapedFileNamespaceNames.some(function (escapedFileNamespaceName) { return escapedName.startsWith(escapedFileNamespaceName); })) {
           // Optionally match file namespace (as portable infoboxes and galleries
           // typically reference files without the namespace prefix)
-          var escapedName = '(' + escapedFileNamespaceNames.join('|') + ')?' +
+          escapedName = '(' + escapedFileNamespaceNames.join('|') + ')?' +
           escapedName.slice(escapedName.indexOf(':') + 1);
           isFile = true;
           PRA.newNameWithoutNamespace = PRA.newName.slice(PRA.newName.indexOf(':') + 1);

@@ -1,6 +1,4 @@
 (function ($, mw) {
-  var skin = mw.config.values.skin;
-  
   var POWER_EDITOR_TOOLBOX_PORTLET_ID = 'p-power-editor-tools';
   var POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT;
   var versionString = '20250821';
@@ -425,15 +423,15 @@
     
     // Actually create the portlet link
     var portletLink = $(mw.util.addPortletLink( POWER_EDITOR_TOOLBOX_PORTLET_ID, href, label, id, tooltip ));
-    if (!!onClick) {
+    if (onClick) {
       if (typeof onClick === 'function') {
         portletLink.on('click', onClick);
       } else {
         console.error('[Powertools Placement] onClick is not a function');
       }
     }
-    if (!!cssClasses) { portletLink.addClass(cssClasses); }
-    if (!!styles) { portletLink.css(styles); }
+    if (cssClasses) { portletLink.addClass(cssClasses); }
+    if (styles) { portletLink.css(styles); }
     return portletLink;
   }
       

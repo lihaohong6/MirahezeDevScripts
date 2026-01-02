@@ -201,7 +201,7 @@ mw.loader.using('mediawiki.api', function() {
       title: page,
       reason: reason,
       bot: true
-    }).done(function(d) {
+    }).done(function() {
       if ($protectCheckInput.prop('checked')) {
         api.postWithEditToken({
           action: 'protect',

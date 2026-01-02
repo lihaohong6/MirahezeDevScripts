@@ -43,7 +43,7 @@
 
 (function() {
   // Double runs
-  if (window.dev && dev.dorui) return;
+  if (window.dev && window.dev.dorui) return;
   
   // I did make some pretty cool code that generated these from window class objects
   // but having a predefined set is probably smaller (in bundle size), simpler, faster, and a better idea anyway
@@ -310,6 +310,7 @@
       // It also lets you use a cool switch statement. Doesn't it look cool?
       for (var optionKey in options) {
         var value = options[optionKey];
+        var key;
         
         // Consider reodering cases to see if that improves performance by a bit
         // children > child > text > events > styles > html > attrs > props
@@ -347,7 +348,7 @@
               elem.setAttribute('class', value.join(' '));
             } else {
               // If it's an object, make the keys the class names, and the value whether the class should be added
-              for (var key in value) {
+              for (key in value) {
                 if (value[key]) {
                   elem.classList.add(key);
                 }
@@ -357,14 +358,14 @@
           case 'events':
             // Still sucks that there's no way to list existing event listeners
             // for removing without keeping a reference
-            for (var key in value) {
+            for (key in value) {
               elem.addEventListener(key, value[key]);
             }
             break;
           case 'style':
             // Fancy schmancy style attributes, by converting camelCase properties to dashed-case
             // PascalCase is converted to -dash-infix-case
-            for (var key in value) {
+            for (key in value) {
               var rawValue = value[key];
               
               var propName = key.replace(/[A-Z]/g, function(c) {
@@ -395,7 +396,7 @@
           case 'attrs':
             // For the very rare case where one of the special properties takes priority over your attribute
             // or for the dorui default property attribute deniers
-            for (var key in value) {
+            for (key in value) {
               var val = value[key];
               if (val === false) continue;
               if (val === true) {
@@ -407,7 +408,7 @@
             break;
           case 'props':
             // For custom properties to set after the element's creation, like checked, selected, or value
-            for (var key in value) {
+            for (key in value) {
               elem[key] = value[key];
             }
             break;
@@ -443,16 +444,17 @@
     return frag;
   };
   
+  var i, tag;
   // Register svg tag shorthands
-  for (var i in svgTags) {
-    var tag = svgTags[i];
+  for (i in svgTags) {
+    tag = svgTags[i];
     ui[tag] = svgUI.bind(this, tag);
   }
   
   // HTML overrides SVG tags, if there's any overlap
   // There shouldn't be
-  for (var i in htmlTags) {
-    var tag = htmlTags[i];
+  for (i in htmlTags) {
+    tag = htmlTags[i];
     ui[tag] = ui.bind(this, tag);
   }
   
