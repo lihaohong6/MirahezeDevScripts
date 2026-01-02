@@ -16,7 +16,7 @@ const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
  * PREREQUISITES:
  * 
  * 1) Build gadget implementation for MassNullEdit and its dependencies 
- *    FandoomUiUtilsQdmodal, PowertoolsPlacement, and FandoomUtilsI18njs
+ *    FandoomUiUtilsQdmodal, PowertoolsPlacement, and FandoomUtilsI18nLoader
  * 2) Serve using `npm run serve`
  * 3) Seed pages using .seeds/MassNullEdit.ts
  * 
@@ -118,7 +118,7 @@ export default async (args: TestSuiteDriverArgs) => {
         throw new Error('Failed to refresh context');
       }
       await driver.executeScript(`
-        mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18njs/gadget-impl.js");
+        mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
       `);
       await driver.sleep(200);
       if (!(await loadScripts(driver))) {
@@ -420,7 +420,7 @@ export default async (args: TestSuiteDriverArgs) => {
       const loadedPage = await testSuite.moveToAnotherPage(driver, 'Category:MassNullEdit');
       if (withI18nJs) {
         await driver.executeScript(`
-          mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18njs/gadget-impl.js");
+          mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
         `);
         await driver.sleep(200);
       }
@@ -501,7 +501,7 @@ export default async (args: TestSuiteDriverArgs) => {
       });
       if (withI18nJs) {
         await driver.executeScript(`
-          mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18njs/gadget-impl.js");
+          mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
         `);
         await driver.sleep(200);
       }

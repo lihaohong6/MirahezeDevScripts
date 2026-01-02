@@ -17,7 +17,7 @@ const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
  * PREREQUISITES:
  * 
  * 1) Build gadget implementation for AjaxBatchDelete and its dependencies 
- *    FandoomUiUtilsModal, PowertoolsPlacement, and FandoomUtilsI18njs
+ *    FandoomUiUtilsModal, PowertoolsPlacement, and FandoomUtilsI18nLoader
  * 2) Serve using `npm run serve`
  * 3) Create a wiki account (preferably on a testing wiki) with delete rights
  *    credentials to said account should be provided in .env
@@ -91,7 +91,7 @@ export default async (args: TestSuiteDriverArgs) => {
         throw new Error('Failed to refresh context');
       }
       await driver.executeScript(`
-        mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18njs/gadget-impl.js");
+        mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
       `);
       await driver.sleep(200);
       if (!(await loadScripts(driver))) {
@@ -264,6 +264,7 @@ export default async (args: TestSuiteDriverArgs) => {
         await pageListInput.sendKeys(
           ...pagesToDelete.map((page) => `${page}\n`)
         );
+        await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('abd-start'));
         const pauseButton = await modal.findElement(By.id('abd-pause'));
@@ -480,6 +481,8 @@ export default async (args: TestSuiteDriverArgs) => {
         await pageListInput.sendKeys(
           ...pagesToDelete.map((page) => `${page}\n`)
         );
+        await driver.sleep(200);
+        
         const protectCheck = await modal.findElement(By.id('protect-check'));
         await protectCheck.click();
 
@@ -579,6 +582,8 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-mass-delete'));
         await pageListInput.sendKeys('This page does not exist');
+        await driver.sleep(200);
+        
         const initiateButton = await modal.findElement(By.id('abd-start'));
         await initiateButton.click();
         const errorOutput = await modal.findElement(By.id('text-error-output'));
