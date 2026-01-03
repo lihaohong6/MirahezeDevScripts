@@ -201,7 +201,7 @@ modal.show();
 ```
 
 ### Buttons modal
-This example creates a modal with various kinds of buttons. One is disabled, one is primary, one is an input element and one is a link.
+This example creates a modal with various kinds of buttons. One is disabled, one is primary, one is a button with an edit icon.
 ```js
 var modal = new window.dev.modal.Modal({
   buttons: [
