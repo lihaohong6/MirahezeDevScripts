@@ -10,6 +10,7 @@ import { seedMassNullEdit } from "./MassNullEdit.ts";
 import { seedMassRename } from "./MassRename.ts";
 import { seedMassCategorization } from "./MassCategorization.ts";
 import { seedMassProtect } from "./MassProtect.ts";
+import { seedPageRenameAutoUpdate } from "./PageRenameAutoUpdate.ts";
 
 resolveEnv();
 
@@ -31,7 +32,8 @@ runBotOperation(
     seedMassNullEdit,
     seedMassRename,
     seedMassCategorization,
-    seedMassProtect
+    seedMassProtect,
+    seedPageRenameAutoUpdate,
   ], 
 
   {
