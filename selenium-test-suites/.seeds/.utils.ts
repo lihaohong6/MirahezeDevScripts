@@ -72,7 +72,7 @@ export function seedPage(operations: SeedingWikipageOperations, { title, feature
   operations.set(
     title,
     {
-      contents: `==Test Description==\n\nThis is a test page for the gadget/feature ${featureBeingTested || title} ${additionalDescription || ''}`,
+      contents: `==Test Description==\n\nThis is a test page for the gadget/feature ${featureBeingTested || title}. ${additionalDescription || ''}`,
       callbacks: callback === undefined ? [] : [callback]
     }
   );
