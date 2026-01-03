@@ -29,7 +29,7 @@ mw.loader.using([
       $protectEdit,
       $protectMove,
       $protectUpload,
-      $protectComment,
+      // $protectComment,
       $protectReason;
   /**
   * @method generateElement
@@ -270,7 +270,15 @@ mw.loader.using([
     Api.postWithEditToken({
       action: 'protect',
       expiry: $protectExpiry.val() || $protectExpiry.attr('placeholder'),
-      protections: $protectCreate.val() || [$protectEdit.val(), $protectMove.val(), $protectUpload.val(), $protectComment.val()].filter(Boolean).join('|'),
+      protections: (
+        $protectCreate.val() || 
+        [
+          $protectEdit.val(), 
+          $protectMove.val(), 
+          $protectUpload.val(), 
+          /* $protectComment.val() */
+        ].filter(Boolean).join('|')
+      ),
       watchlist: 'preferences',
       title: page,
       reason: $protectReason.val()
