@@ -7,7 +7,7 @@
     "serve": "vite preview",
     "watch": "vite build --watch",
     "test": "grunt test",
-    "selenium-seed": "node ./selenium-test-suites/prereq.ts",
+    "selenium-seed": "node ./selenium-test-suites/.seeds/.index.ts",
     "selenium-test": "node ./selenium-test-suites/driver.ts"
   },
   "devDependencies": {
@@ -16,6 +16,7 @@
     "eslint-config-wikimedia": "^0.31.0",
     "grunt": "^1.6.1",
     "grunt-eslint": "^24.0.0",
+    "grunt-json-minify": "^1.1.0",
     "grunt-stylelint": "^0.20.1",
     "jiti": "^2.6.1",
     "less": "^4.4.1",
