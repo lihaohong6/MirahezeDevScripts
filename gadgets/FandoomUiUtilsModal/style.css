@@ -8,32 +8,32 @@
 
 /* Add new invisible backdrop that will handle the close event when clicked. */
 .oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-backdrop {
-  bottom: 0;
-  height: 100%;
-  left: 0;
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 100%;
-  z-index: -1;
+	bottom: 0;
+	height: 100%;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+	width: 100%;
+	z-index: -1;
 }
 
 /* Preventing modal footer from overlapping the header. */
 .oo-ui-windowManager-modal.oo-ui-windowManager-floating > .oo-ui-dialog > .oo-ui-window-frame {
-  min-height: 148px;
+	min-height: 148px;
 }
 
 /* Add some horizontal padding to the modal body. */
 .oo-ui-window-content.oo-ui-processDialog-content .oo-ui-window-body {
-  padding: 8px 19px;
+	padding: 8px 19px;
 }
 
 /* Other styles. */
-.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame {
-  color-scheme: auto;
+.oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame { /* stylelint-disable-line no-descending-specificity */
+	color-scheme: auto;
 }
 
 .oo-ui-windowManager-modal > .oo-ui-dialog > .oo-ui-window-frame hr {
-  border: none;
-  border-bottom: 1px solid var(--theme-border-color);
+	border: none; /* stylelint-disable-line declaration-property-value-disallowed-list */
+	border-bottom: 1px solid var( --theme-border-color );
 }

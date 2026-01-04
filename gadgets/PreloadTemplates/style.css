@@ -5,27 +5,29 @@
 	align-items: center;
 	gap: 10px;
 }
+
 .ve-ui-summaryPanel #preload-templates {
 	margin: 0.5em 0;
 	font-size: 13px;
 }
 
-#preload-templates #pt-list, #preload-templates #pt-list-secondary {
+#preload-templates #pt-list,
+#preload-templates #pt-list-secondary {
 	margin-left: 10px;
 	min-width: 160px;
-	border-color: var(--theme-border-color);
+	border-color: var( --theme-border-color );
 	border-radius: 3px;
-	background-color: var(--theme-page-background-color);
-	color: var(--theme-page-text-color);
+	background-color: var( --theme-page-background-color );
+	color: var( --theme-page-text-color );
 	cursor: pointer;
 	min-height: 34px;
-	padding: .3em .5em;
+	padding: 0.3em 0.5em;
 }
 
 #preload-templates #pt-help {
-	background-color: var(--theme-accent-color);
+	background-color: var( --theme-accent-color );
 	border-radius: 50%;
-	color: var(--theme-accent-label-color);
+	color: var( --theme-accent-label-color );
 	display: flex;
 	font-size: 16px;
 	height: 25px;
@@ -33,13 +35,12 @@
 	width: 27px;
 	align-items: center;
 	justify-content: center;
-	transition: .25s;
+	transition: 0.25s;
 }
 
 #preload-templates #pt-help:hover,
-#preload-templates #pt-help:focus-within
-#preload-templates #pt-help:active {
-	background-color: var(--theme-accent-color--hover);
+#preload-templates #pt-help:focus-within #preload-templates #pt-help:active {
+	background-color: var( --theme-accent-color--hover );
 }
 
 #preload-templates #pt-help a {

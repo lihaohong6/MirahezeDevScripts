@@ -1,117 +1,128 @@
 #MassCat-content-container {
-  padding: 8px;
-  font-size: 14px;
+	padding: 8px;
+	font-size: 14px;
 }
 
 #MassCatModal .oo-ui-window-body {
-  overflow-y: hidden;
+	overflow-y: hidden;
 }
 
 #MassCatModal .oo-ui-window-body.overflow-allowed {
-  overflow-y: auto;
+	overflow-y: auto;
 }
 
 #MassCatModal .oo-ui-processDialog-actions-safe {
-  display: none;
+	display: none;
 }
 
 #MassCatModal .oo-ui-processDialog-location {
-  /* Yes. We have to. UCP modals suck. */
-  padding-left: 15px !important;
-  text-align: left;
+	/* Yes. We have to. UCP modals suck. */
+	padding-left: 15px !important; /* stylelint-disable-line declaration-no-important */
+	text-align: left;
 }
 
 #MassCat-updates-container {
-  display: flex;
+	display: flex;
 }
 
 #MassCat-updates-list {
-  flex-grow: 1;
+	flex-grow: 1;
 }
 
 #MassCat-category-adder {
-  text-align: center;
-  flex-shrink: 0;
-  user-select: none;
+	text-align: center;
+	flex-shrink: 0;
+	user-select: none;
 }
 
 #MassCat-add-category,
 #MassCat-remove-category {
-  cursor: pointer;
-  font-size: 16px;
+	cursor: pointer;
+	font-size: 16px;
 }
 
 #MassCat-remove-category.disabled {
-  display: none;
+	display: none;
 }
 
 .MassCat-category-update {
-  padding-bottom: 4px;
+	padding-bottom: 4px;
 }
 
 .MassCat-category-input-wrapper {
-  padding-bottom: 4px;
+	padding-bottom: 4px;
 }
+
 .MassCat-category-input {
-  width: 90%;
+	width: 90%;
 }
 
 .MassCat-mode-select-wrapper {
-  padding-bottom: 4px;
+	padding-bottom: 4px;
 }
 
 #MassCat-options-container {
-  padding-bottom: 8px;
+	padding-bottom: 8px;
 }
 
 .MassCat-options-label {
-  display: block;
+	display: block;
 }
 
 #MassCat-pages-container {
-  padding-bottom: 4px;
+	padding-bottom: 4px;
 }
 
 .MassCat-pages-textarea {
-  width: 90%;
-  height: 120px;
+	width: 90%;
+	height: 120px;
 }
 
 .MassCat-logger {
-  font-weight: bold;
-  margin: 8px;
-  padding: 10px;
-  margin-right: 30px;
-  color: #222;
-  border: 1px solid black;
+	font-weight: bold;
+	margin: 8px;
+	padding: 10px;
+	margin-right: 30px;
+	color: #222;
+	border: 1px solid #000;
 }
 
 #MassCat-status-container {
-  background-color: #fffbe6;
+	background-color: #fffbe6;
 }
 
 #MassCat-errors-container {
-  background-color: #FFBFBF;
+	background-color: #ffbfbf;
 }
 
 .MassCat-hidden {
-  display: none;
+	display: none;
 }
 
 .MassCat-fading-in {
-  animation: MassCat-fading-in 300ms linear;
+	animation: MassCat-fading-in 300ms linear;
 }
 
 .MassCat-fading-out {
-  animation: MassCat-fading-out 300ms linear;
+	animation: MassCat-fading-out 300ms linear;
 }
 
 @keyframes MassCat-fading-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
 }
 
 @keyframes MassCat-fading-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
+	from {
+		opacity: 1;
+	}
+
+	to {
+		opacity: 0;
+	}
 }
