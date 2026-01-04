@@ -1,11 +1,7 @@
 import { URLSearchParams } from 'node:url';
 import { Builder, Browser, WebDriver, until, By } from 'selenium-webdriver';
 import { LogUtils } from './utils.ts';
-
-export interface TestSuiteDriverArgs {
-  skin?: string
-  browser?: string
-}
+import type { TestSuiteDriverArgs } from './utils.ts';
 
 export interface TestSuiteClassConfig {
   connectionTimeout?: number
@@ -14,6 +10,8 @@ export interface TestSuiteClassConfig {
     username?: string
     password?: string
   }
+  defaultSkin?: string
+  browser?: string
 }
 
 export interface TestCase {
@@ -56,7 +54,7 @@ class TestSuiteClass {
   navigateToPageUrlParams: { [paramKey: string]: any };
   testCases: TestCase[];
   onlyTest: number[];
-  config?: TestSuiteClassConfig;
+  config: TestSuiteClassConfig;
 
   /**
    * The given function must return true when run before any of the test cases is executed.
@@ -89,19 +87,31 @@ class TestSuiteClass {
    * @param urlParams       Additional URL params to pass to the web driver when navigating to the first page
    *                        Default loaded with `useskin=vector-2022` and `safemode=1`
    * @param config          Additional Selenium Test Suite configuration
+   * @param args            CLI Arguments 
    */
-  constructor (id: string, wikiEntrypoint: string, navigateToPage?: string, urlParams?: { [paramKey: string]: any }, config?: TestSuiteClassConfig) {
+  constructor ({ id, wikiEntrypoint, navigateToPage, urlParams, config, args } : { id: string, wikiEntrypoint?: string, navigateToPage?: string, urlParams?: { [paramKey: string]: any }, config?: TestSuiteClassConfig, args: TestSuiteDriverArgs }) {
     this.id = id;
-    this.wikiEntrypoint = wikiEntrypoint;
-    this.navigateToPage = navigateToPage || '';
+    this.wikiEntrypoint = wikiEntrypoint || process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!;
+
+    /* Set config */
+    this.config = config || {};
+    if (args.skin) {
+      this.config.defaultSkin = args.skin;
+    } else if (!this.config.defaultSkin) {
+      this.config.defaultSkin = 'vector-2022';
+    }
+    this.config.browser = args.browser || Browser.EDGE;
+
+    /* Set initial page to navigate to */
+    this.navigateToPage = navigateToPage || 'Special:BlankPage';
     this.navigateToPageUrlParams = {
       'safemode': 1,
-      'useskin': 'vector-2022',
+      'useskin': this.config.defaultSkin!,
       ...(urlParams || {})
     };
+
     this.testCases = [];
     this.onlyTest = [];
-    this.config = config;
   }
 
   /**
@@ -247,7 +257,7 @@ class TestSuiteClass {
    * Run test cases sequentially
    */
   async run(): Promise<TestSuiteRunResults> {
-    let driver = await new Builder().forBrowser(Browser.EDGE).build();
+    let driver = await new Builder().forBrowser(this.config.browser!).build();
     let successes = 0;
     let total = this.testCases.length;
     const failedTestCases: TestSuiteFailedLog[] = [];

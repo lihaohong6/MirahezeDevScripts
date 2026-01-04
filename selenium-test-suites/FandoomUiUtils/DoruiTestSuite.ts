@@ -1,5 +1,5 @@
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import assert from 'node:assert';
 
 /***********************************************************************
@@ -13,14 +13,10 @@ import assert from 'node:assert';
 
 export default async (args: TestSuiteDriverArgs) => {
   
-  const testSuite = new TestSuiteClass(
-    /* Test Suite ID */ 'FandoomUiUtilsDorui',
-    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
-    /* Navigate to page */ 'Special:BlankPage',
-    /* Additional URL Params */ {
-      'useskin': args.skin || 'vector-2022'
-    },
-  );
+  const testSuite = new TestSuiteClass({
+    id: 'FandoomUiUtilsDorui',
+    args
+  });
 
   testSuite.beforeAll = async (driver) => {
     /* Wait until window.dev.dorui is loaded */

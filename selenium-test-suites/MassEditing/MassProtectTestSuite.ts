@@ -1,7 +1,7 @@
 import { By, WebDriver, WebElement, until } from 'selenium-webdriver';
 import { randomBytes } from 'node:crypto';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import { 
   clickLinkOnPowertoolsMenu, 
   isOOUIActionButtonDisabled, 
@@ -28,23 +28,21 @@ const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
 export default async (args: TestSuiteDriverArgs) => {
 
   const gadgetNamespace = process.env.GADGET_NAMESPACE || 'ext.gadget.store';
-  const skin = args.skin || 'vector-2022';
 
-  const testSuite = new TestSuiteClass(
-    /* Test Suite ID */ 'MassProtect',
-    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
-    /* Navigate to page */ 'Special:BlankPage',
-    /* Additional URL Params */ {
-      'useskin': skin,
+  const testSuite = new TestSuiteClass({
+    id: 'MassProtect',
+    urlParams: {
       'uselang': 'zh-Hans'
     },
-    /* Additional config */ {
+    config: {
       credentials: {
         username: process.env.SELENIUM_TESTING_WIKI_USERNAME,
         password: process.env.SELENIUM_TESTING_WIKI_PASSWORD,
       }
-    }
-  );
+    },
+    args
+  });
+  const skin = testSuite.config.defaultSkin!;
 
   /***********************************************************************
    * 

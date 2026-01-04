@@ -1,6 +1,6 @@
 import { WebDriver } from 'selenium-webdriver';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import { preemptivelyDisableI18n } from '../.utils/utils.ts';
 import assert from 'node:assert';
 
@@ -19,15 +19,13 @@ export default async (args: TestSuiteDriverArgs) => {
 
   const gadgetNamespace = process.env.GADGET_NAMESPACE || 'ext.gadget.store';
 
-  const testSuite = new TestSuiteClass(
-    /* Test Suite ID */ 'FandoomUtilsI18nLoader',
-    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
-    /* Navigate to page */ 'Special:BlankPage',
-    /* Additional URL Params */ {
-      'useskin': args.skin || 'vector-2022',
+  const testSuite = new TestSuiteClass({
+    id: 'FandoomUtilsI18nLoader',
+    urlParams: {
       'uselang': 'zh-hans'
     },
-  );
+    args
+  });
   
   /***********************************************************************
    * 

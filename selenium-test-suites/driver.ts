@@ -4,10 +4,19 @@ import { styleText } from "node:util";
 import { normalizePath } from "vite";
 
 import TestSuiteClass from "./.utils/TestSuiteClass.ts";
-import type { TestSuiteDriverArgs } from "./.utils/TestSuiteClass.ts";
 import { LogUtils, loadTestEnvironment } from "./.utils/utils.ts";
+import type { TestSuiteDriverArgs } from "./.utils/utils.ts";
+import { Browser } from "selenium-webdriver";
 
 const __dirname = import.meta.dirname;
+
+const ACCEPTED_BROWSERS = new Map<string, string>([
+  ['edge', Browser.EDGE],
+  ['chrome', Browser.CHROME],
+  ['firefox', Browser.FIREFOX],
+  ['safari', Browser.SAFARI],
+  ['ie', Browser.INTERNET_EXPLORER],
+]);
 
 function parseCliArguments(): [TestSuiteDriverArgs, string[]] {
   const res: TestSuiteDriverArgs = {};
@@ -18,7 +27,20 @@ function parseCliArguments(): [TestSuiteDriverArgs, string[]] {
   args.forEach((arg) => {
     const m = arg.match(rxCliArg);
     if (m !== null) {
-      res[m[1] as 'skin' | 'browser'] = m[2];
+      switch (m[1]) {
+        case 'browser':
+          if (!ACCEPTED_BROWSERS.has(m[2])) {
+            console.warn(`CLI argument ${arg} is not accepted. Acceptable format: "--browser=(${
+              Array.from(ACCEPTED_BROWSERS.keys()).join('|')
+            })"`);
+            return;
+          }
+          res[m[1]] = ACCEPTED_BROWSERS.get(m[2]);
+          break;
+        default:
+          //@ts-ignore
+          res[m[1]] = m[2];
+      }
     } else if (arg.match(rxCliArgFormat) === null) {
       inpSuites.push(arg);
     }
