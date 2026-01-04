@@ -199,7 +199,7 @@
 	});
 	
 	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
-  INJECT_FANDOM_UTILS_I18N();
+  INJECT_FANDOM_UTILS_I18N({ "useContentLang": true });
 
 }(window.countdownTimer = window.countdownTimer || {}, mediaWiki, jQuery));
 
