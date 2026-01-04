@@ -5,21 +5,24 @@
 	justify-content: space-between;
 	align-items: stretch;
 }
+
 #form-main-wrapper div {
 	display: flex;
 	flex-direction: column;
 	justify-content: end;
 	width: 50%;
 }
+
 #batchredirect-form textarea {
 	width: 100%;
 	height: 20em;
 	resize: none;
 	padding: 8px 12px;
 }
+
 #batchredirect-form #text-error-output {
 	background-color: #ffbfbf;
-	color: black;
+	color: #000;
 	width: 100%;
 	box-sizing: border-box;
 	min-height: 120px;

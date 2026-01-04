@@ -2,5 +2,55 @@
 	"extends": [
 		"stylelint-config-wikimedia/support-basic",
 		"stylelint-config-wikimedia/mediawiki"
+	],
+	"overrides": [
+		{
+			"files": ["**/*.less"],
+			"plugin/no-unsupported-browser-features": [
+					true, 
+					{
+						"ignore": ["css-nesting"]
+					}
+				]
+		},
+		{
+			"files": [
+				"AjaxBatchDelete/**",
+        "AjaxBatchRedirect/**",
+        "AjaxBatchUndelete/**",
+        "AjaxUndo/**",
+        "Countdown/**",
+				"FandoomUiUtilsModal/**",
+				"FandoomUiUtilsQdmodal/**",
+        "HTMLAudioPlayer5/**",
+        "MassCategorization/**",
+        "MassNullEdit/**",
+        "MassProtect/**",
+        "MassRename/**",
+        "PageRenameAuto-update/**",
+				"PowertoolsPlacement/**",
+        "PreloadTemplates/**",
+        "ViewSource/**"
+			],
+			"rules": {
+				"selector-max-id": null,
+				"selector-class-pattern": null,
+				"declaration-property-unit-disallowed-list": {
+					"font-size": [],
+					"line-height": []
+				},
+				"plugin/no-unsupported-browser-features": [
+					true, 
+					{
+						"browsers": [
+							"defaults",
+							"not op_mini all"
+						],
+						"ignore": ["css-nesting"],
+						"severity": "warning"
+					}
+				]
+			}
+		}
 	]
 }

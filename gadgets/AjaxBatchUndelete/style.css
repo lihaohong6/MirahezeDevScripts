@@ -3,10 +3,10 @@
 	resize: none;
 	width: 100%;
 }
- 
+
 #form-batch-undelete #text-error-output {
 	background-color: #ffbfbf;
-	color: black;
+	color: #000;
 	font-weight: bold;
 	width: 100%;
 }

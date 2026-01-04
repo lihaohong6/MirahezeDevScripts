@@ -1,19 +1,19 @@
 #form-mass-rename #text-rename {
-  height: 20em;
-  resize: none;
-  width: 100%;
+	height: 20em;
+	resize: none;
+	width: 100%;
 }
 
 #form-mass-rename #text-error-output {
-  background-color: #ffbfbf;
-  color: black;
-  font-weight: bold;
-  width: 100%;
-  overflow: scroll;
+	background-color: #ffbfbf;
+	color: #000;
+	font-weight: bold;
+	width: 100%;
+	overflow: scroll;
 }
 
 #form-mass-rename #my-tools-menu .custom {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 #form-mass-rename .edit-input-control {
@@ -24,5 +24,5 @@
 #form-mass-rename .edit-input-control > label > * {
 	display: block;
 	width: 100%;
-  box-sizing: border-box;
+	box-sizing: border-box;
 }

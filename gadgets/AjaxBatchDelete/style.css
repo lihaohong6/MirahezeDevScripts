@@ -1,46 +1,50 @@
 #form-batch-delete #text-mass-delete {
-  height: 20em;
-  resize: none;
-  width: 100%;
+	height: 20em;
+	resize: none;
+	width: 100%;
 }
 
 #form-batch-delete #text-error-output {
-  background-color: #ffbfbf;
-  color: black;
-  font-weight: bold;
-  width: 100%;
+	background-color: #ffbfbf;
+	color: #000;
+	font-weight: bold;
+	width: 100%;
 }
 
 #form-batch-delete .edit-input-control {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-#form-batch-delete .edit-input-control > label {
-  width: 200px;
-  display: inline-block;
-  flex-shrink: 1;
-}
-#form-batch-delete .edit-input-control > input[type="text"] {
-  display: inline-block;
-  flex-grow: 2;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	align-items: flex-start;
 }
 
-@media (max-width: 500px) {
-  #form-batch-delete .edit-input-control {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-  }
-  #form-batch-delete .edit-input-control > label {
-    width: 100%;
-    display: block;
-    flex-grow: 2;
-  }
-  #form-batch-delete .edit-input-control > input[type="text"] {
-    width: 100%;
-    display: block;
-    flex-grow: 2;
-  }
+#form-batch-delete .edit-input-control > label {
+	width: 200px;
+	display: inline-block;
+	flex-shrink: 1;
+}
+
+#form-batch-delete .edit-input-control > input[ type='text' ] {
+	display: inline-block;
+	flex-grow: 2;
+}
+
+@media ( max-width: 500px ) {
+	#form-batch-delete .edit-input-control {
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+	}
+
+	#form-batch-delete .edit-input-control > label {
+		width: 100%;
+		display: block;
+		flex-grow: 2;
+	}
+
+	#form-batch-delete .edit-input-control > input[ type='text' ] {
+		width: 100%;
+		display: block;
+		flex-grow: 2;
+	}
 }
