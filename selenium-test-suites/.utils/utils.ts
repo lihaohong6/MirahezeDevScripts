@@ -1,7 +1,12 @@
 import { resolve } from "node:path";
 import { loadEnvFile } from "node:process";
 import { styleText } from "node:util";
-import { WebDriver, WebElement, By, until } from "selenium-webdriver";
+import { WebDriver, WebElement, By, until, Browser } from "selenium-webdriver";
+
+export interface TestSuiteDriverArgs {
+  skin?: string
+  browser?: string
+}
 
 export class LogUtils {
   static info(msg: any) {

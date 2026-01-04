@@ -1,6 +1,6 @@
 import { By } from 'selenium-webdriver';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import assert from 'node:assert';
 
 /***********************************************************************
@@ -14,14 +14,10 @@ import assert from 'node:assert';
 
 export default async (args: TestSuiteDriverArgs) => {
 
-  const testSuite = new TestSuiteClass(
-    /* Test Suite ID */ 'FandoomUiUtilsUijs',
-    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
-    /* Navigate to page */ 'Special:BlankPage',
-    /* Additional URL Params */ {
-      'useskin': args.skin || 'vector-2022'
-    },
-  );
+  const testSuite = new TestSuiteClass({
+    id: 'FandoomUiUtilsUijs',
+    args
+  });
 
   testSuite.beforeAll = async (driver) => {
     /* Wait until window.dev.ui is loaded */

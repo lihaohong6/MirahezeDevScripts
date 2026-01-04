@@ -1,6 +1,6 @@
 import { By, until } from 'selenium-webdriver';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/TestSuiteClass.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import assert from 'node:assert';
 import { webElementHasCssClass } from '../.utils/utils.ts';
 
@@ -17,14 +17,10 @@ const pauseUiCheckingForHumanReview = 2000 /* 2 seconds */;
 
 export default async (args: TestSuiteDriverArgs) => {
 
-  const testSuite = new TestSuiteClass(
-    /* Test Suite ID */ 'FandoomUiUtilsModal',
-    process.env.SELENIUM_TESTING_WIKI_ENTRYPOINT!,
-    /* Navigate to page */ 'Special:BlankPage',
-    /* Additional URL Params */ {
-      'useskin': args.skin || 'vector-2022'
-    },
-  );
+  const testSuite = new TestSuiteClass({
+    id: 'FandoomUiUtilsModal',
+    args
+  });
 
   testSuite.beforeAll = async (driver) => {
     /* Wait until window.dev.modal is loaded */
