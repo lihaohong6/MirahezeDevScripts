@@ -1,7 +1,8 @@
 import { WebDriver } from 'selenium-webdriver';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
-import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
+import type { TestSuiteDriverArgs } from '../.utils/utils';
 import { preemptivelyDisableI18n } from '../.utils/utils.ts';
+import { createI18nLoadingLogic } from '../../dev-utils/fandoom-utils-i18n-injector.ts';
 import assert from 'node:assert';
 
 /***********************************************************************
@@ -54,70 +55,23 @@ export default async (args: TestSuiteDriverArgs) => {
     ));
   }
 
-  const injectedI18nLogic = `
-    function prepareI18n(i18nLoader) {
-      var p = {
-        _i18nLoader: i18nLoader,
-        msg: function() {
-          var args = Array.prototype.slice.call(arguments);
-          if (args.length === 0) {
-            return;
-          }
-          var key = args.shift();
-          return new mw.Message(this._i18nLoader.getMessages(), key, args);
-        }
-      };
-      ["setTempLang", "setDefaultLang"].forEach(function(prop) {
-        p[prop] = p._i18nLoader[prop].bind(p._i18nLoader);
-      });
-      ["useLang", "usePageLang", "useContentLang", "usePageViewLang", "useUserLang", "inLang", "inPageLang", "inContentLang", "inPageViewLang", "inUserLang"].forEach(function(prop) {
-        p[prop] = p._i18nLoader[prop].bind(p);
-      });
-      return p;
+  const injectedI18nLogic = await (async () => {
+    const codeBlock = await createI18nLoadingLogic(
+      gadgetNamespace, 
+      { name: 'AjaxBatchDelete', i18n: ['i18n.json'] }, 
+      {}, 
+      { cacheAll: true }
+    );
+    if (codeBlock === null) {
+      throw new Error('Failed to create i18n boilerplate logic');
     }
-    function getI18nLoader() {
-      var deferred = new $.Deferred();
-      mw.loader.using("${gadgetNamespace}.FandoomUtilsI18nLoader").done(function(require2) {
-        var module2 = require2("${gadgetNamespace}.FandoomUtilsI18nLoader");
-        module2.loadMessages("AjaxBatchDelete", { "cacheAll": true }).done(function(i18nLoader) {
-          if (!i18nLoader) {
-            deferred.resolve(getFallbackMessages());
-            return;
-          }
-          deferred.resolve(i18nLoader);
-        });
-      }).fail(function(err) {
-        console.error(err);
-        deferred.resolve(getFallbackMessages());
-      });
-      return deferred;
-    }
-    function getFallbackMessages() {
-      console.warn("[FandoomUtilsI18nLoader] Failed to load messages. Using fallback messages instead.");
-      var msgMap = new mw.Map();
-      msgMap.set(${JSON.stringify(enI18nMessages)});
-      if (mw.Message.prototype.escape === void 0) {
-        mw.Message.prototype.escape = mw.Message.prototype.escaped;
-      }
-      var m = {
-        getMessages: function() {
-          return msgMap;
-        }
-      };
-      ["setDefaultLang", "setTempLang", "useLang", "usePageLang", "useContentLang", "usePageViewLang", "useUserLang"].forEach(function(prop) {
-        m[prop] = $.noop;
-      });
-      ["inLang", "inPageLang", "inContentLang", "inPageViewLang", "inUserLang"].forEach(function(prop) {
-        m[prop] = function() {
-          return this;
-        };
-      });
-      return m;
-    }
+    codeBlock.push(`
     getI18nLoader().then(function(loader) {
       window.i18n = prepareI18n(loader);
-    });`;
-
+    });`);
+    return codeBlock.join('\n');
+  })();
+  
   /***********************************************************************
    * 
    * BASIC UI TESTS

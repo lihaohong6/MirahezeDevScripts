@@ -1,7 +1,8 @@
 import { readFile } from "fs/promises";
-import { PluginContext, TransformResult } from "rollup";
-import { GadgetDefinition } from "./types";
-import { resolveSrcGadgetsPath } from "./utils";
+import type { PluginContext, TransformResult } from "rollup";
+import type { GadgetDefinition } from "./types.ts";
+//@ts-ignore
+import { resolveSrcGadgetsPath } from "./utils.ts";
 
 /**
  * Get the injector plugin to replace this expression
@@ -57,7 +58,7 @@ interface I18nOptions {
  * @param  i18nOptions
  * @returns 
  */
-async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDefinition, loadOptions?: LoadOptions, i18nOptions?: I18nOptions): Promise<string[] | null> {
+export async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDefinition, loadOptions?: LoadOptions, i18nOptions?: I18nOptions): Promise<string[] | null> {
   const { name, i18n } = gadget;
 
   const i18nMessages = JSON.parse(await readFile(resolveSrcGadgetsPath(name, i18n![0]), { encoding: 'utf-8', flag: 'r' }));
@@ -72,6 +73,8 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
      * Defines the i18n object that parses the messages that will be rendered in DOM
      */
     `function prepareI18n(i18nLoader) {`,
+      `var _mwMsg = mw.Message;`,
+      `_mwMsg.prototype.constructor = mw.Message.prototype.constructor;`,
       `var p = {`,
         `_i18nLoader: i18nLoader,`,
         `msg: function () {`,
@@ -80,7 +83,7 @@ async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDef
             `return;`,
           `}`,
           `var key = args.shift();`,
-          `return new mw.Message(this._i18nLoader.getMessages(), key, args);`,
+          `return new _mwMsg(this._i18nLoader.getMessages(), key, args);`,
         `}`,
       `};`,
       `['setTempLang', 'setDefaultLang']`,

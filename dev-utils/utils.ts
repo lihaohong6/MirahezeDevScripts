@@ -4,6 +4,11 @@ import { normalizePath } from "vite";
 
 const rxFileExtension = /\.[a-zA-Z0-9]+$/;
 
+if (global.__dirname === undefined) {
+  //@ts-ignore
+  global.__dirname = import.meta.dirname;
+}
+
 /**
  * Determine if a userscript code file is a script, a stylesheet, or other asset.
  * 
