@@ -7,4 +7,5 @@
 
 load.js
 .env
+.env.*
 /selenium-test-suites/.env.*
