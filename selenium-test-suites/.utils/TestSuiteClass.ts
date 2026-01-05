@@ -208,26 +208,17 @@ class TestSuiteClass {
     if (!this.config?.credentials?.username || !this.config?.credentials?.password) {
       throw new Error('No credentials given!');
     }
-    await driver.get(this.getUrlToWikiPage('Special:UserLogin'));
-    await driver.wait(
-      until.elementLocated(By.id('userloginForm')),
-      /* 3 minutes */ 3*60*1000,
-      'Failed to load Login Page',
-      /* 250 ms */ 200
-    );
-    const loginForm = await driver.findElement(By.id('userloginForm'));
-    const usernameInput = await driver.findElement(By.id('wpName1'));
-    await usernameInput.sendKeys(this.config.credentials.username!);
-    const passwordInput = await driver.findElement(By.id('wpPassword1'))
-    await passwordInput.sendKeys(this.config.credentials.password!);
-    const submitButton = await driver.findElement(By.id('wpLoginAttempt'));
-    await submitButton.click();
-    await driver.wait(
-      until.stalenessOf(loginForm),
-      /* 3 minutes */ 3*60*1000,
-      'Failed to get a response after login attempt',
-      /* 250 ms */ 200
-    );
+    const loginResponse = await driver.executeAsyncScript(`
+      const done = arguments[0];
+      const api = new mw.Api();
+      api.login('${this.config.credentials.username!}', '${this.config.credentials.password!}')
+        .done((res) => done(res));
+    `) as { login?: { result: string, lguserid: number, lgusername: string } };
+    if (loginResponse?.login?.result !== 'Success') {
+      console.error(loginResponse);
+      throw new Error('Failed to login');
+    }
+    await driver.navigate().refresh();
     if (!(await this.waitForContextToLoad(driver))) {
       throw new Error('Failed to get context to load after login');
     }

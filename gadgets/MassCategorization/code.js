@@ -78,7 +78,8 @@
       return this.hasRights([
         'autoconfirmed',
         'bot',
-        'sysop'
+        'sysop',
+        'bureaucrat',
       ]);
     },
     hasRights: function(rights) {
@@ -412,14 +413,19 @@
         ]
       });
     },
+
+    resetOutput: function () {
+      this.refs.statusContainer.classList.add('MassCat-hidden');
+      this.refs.errorsContainer.classList.add('MassCat-hidden');
+      this.refs.statusContainer.innerText = '';
+      this.refs.errorsText.innerText = '';
+    },
     
     showModal: function() {
       this.modal.show();
     },
     
-    escapeRegex: function(s) {
-      return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    },
+    escapeRegex: mw.util.escapeRegExp,
     
     upcaseFirst: function(s) {
       return s[0].toUpperCase() + s.slice(1);
@@ -619,6 +625,10 @@
     start: function() {
       if (this.running) return;
       
+      /* Because OOUI Modals don't unload from the DOM, we run this to forcefully refresh the log output every time a new bot operation is started */
+      this.resetOutput();
+      this.reflowModal();
+
       var updates = this.getUpdates();
       
       for (var i = 0; i < updates.length; i++) {
@@ -666,6 +676,10 @@
     addCategoryContents: function() {
       var category = prompt(this.i18n.msg('add-category-prompt').plain());
       if (category === null || category.trim() === '') return;
+
+      /* Because OOUI Modals don't unload from the DOM, we run this to forcefully refresh the log output every time a new bot operation is started */
+      this.resetOutput();
+      this.reflowModal();
       
       this.streamCategoryMembers(category, function(members) {
         if (members.length === 0) {
@@ -824,7 +838,7 @@
     // Called on init
     setDefaultDelay: function() {
       if (!this.delay) {
-        if (this.wg.wgUserGroups.includes('bot')) {
+        if (this.hasRights(['bureaucrat', 'sysop', 'bot'])) {
           this.delay = 2000;
         } else {
           this.delay = 4000;
