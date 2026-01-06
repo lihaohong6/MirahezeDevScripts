@@ -560,7 +560,7 @@ mw.loader.impl(function () {
         warnedAboutFallbackLoop = true;
         
         fallbackChain.push(lang);
-        console.error('[FandoomUtilsI18nLoader] Duplicated fallback language found. Please leave a message at <https://dev.fandom.com/wiki/Talk:I18n-js> and include the following line: \nLanguage fallback chain:', fallbackChain.join(', '));
+        console.error('[FandoomUtilsI18nLoader] Duplicated fallback language found. Debug: \nLanguage fallback chain:', fallbackChain.join(', '));
       }
       
       /**
@@ -1057,8 +1057,8 @@ mw.loader.impl(function () {
        * - {string} language: Set a default language for the script to use, instead of wgUserLanguage.
        * - noCache: Never load i18n from cache (not recommended for general use).
        *
-       * @return {object} A jQuery.Deferred instance. This jQuery.Deferred object instance will always resolve, 
-       * regardless of the method's success/failure in actually fetching & parsing the messages.  
+       * @return {object} A jQuery.Deferred instance. Unlike Fandoom's version of i18n-js, this 
+       * jQuery.Deferred object instance will reject on event of failure during fetching of the messages.  
        * 
        */
       function loadMessages(name, options) {
@@ -1099,7 +1099,7 @@ mw.loader.impl(function () {
               'Failed to fetch contents from ' + options.entrypoint + ' for gadget ' + name, 
               xhr, err
             );
-            deferred.resolve();
+            deferred.reject();
           });
         
         return deferred;

@@ -52,13 +52,12 @@ interface I18nOptions {
 /**
  * Create the boilerplate code for loading i18n messages 
  * 
- * @param  gadgetNamespace
  * @param  gadget
  * @param  loadOptions
  * @param  i18nOptions
  * @returns 
  */
-export async function createI18nLoadingLogic(gadgetNamespace: string, gadget: GadgetDefinition, loadOptions?: LoadOptions, i18nOptions?: I18nOptions): Promise<string[] | null> {
+export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptions?: LoadOptions, i18nOptions?: I18nOptions): Promise<string[] | null> {
   const { name, i18n } = gadget;
 
   const i18nMessages = JSON.parse(await readFile(resolveSrcGadgetsPath(name, i18n![0]), { encoding: 'utf-8', flag: 'r' }));
@@ -66,11 +65,14 @@ export async function createI18nLoadingLogic(gadgetNamespace: string, gadget: Ga
   
   const fallbackMessages: Record<string, string> = i18nMessages.en;
 
-  const i18nLoaderGadgetName = `${gadgetNamespace}.FandoomUtilsI18nLoader`;
+  const i18nLoaderGadgetName = 'FandoomUtilsI18nLoader';
 
   return [
     /**
      * Defines the i18n object that parses the messages that will be rendered in DOM
+     * @param   i18nLoader  Either the FandoomUtilsI18nLoader object loaded from the gadget or a mock 
+     *                      object containing the fallback messages
+     * @returns An i18n utility object sharing the same API as Fandoom Dev's i18n-js 
      */
     `function prepareI18n(i18nLoader) {`,
       `var _mwMsg = mw.Message;`,
@@ -105,27 +107,70 @@ export async function createI18nLoadingLogic(gadgetNamespace: string, gadget: Ga
      */
     `function getI18nLoader() {`,
       `var deferred = new $.Deferred();`,
-      `mw.loader.using('${i18nLoaderGadgetName}')`,
-        `.done(function (require) {`,
-          `var module = require('${i18nLoaderGadgetName}');`,
-          `module.loadMessages('${name}'${i18nOptions && `, ${JSON.stringify(i18nOptions)}`})`,
-            `.done(function (i18nLoader) {`,
-              `if (!i18nLoader) {`,
-                `deferred.resolve(getFallbackMessages());`,
-                `return;`,
-              `}`,
-              loadOptions?.useLang ? `i18nLoader.useLang();` : '',
-              loadOptions?.usePageLang ? `i18nLoader.usePageLang();` : '',
-              loadOptions?.useContentLang ? `i18nLoader.useContentLang();` : '',
-              loadOptions?.usePageViewLang ? `i18nLoader.usePageViewLang();` : '',
-              loadOptions?.useUserLang ? `i18nLoader.useUserLang();` : '',
-              `deferred.resolve(i18nLoader);`,
-            `});`,
-        `})`,
-        `.fail(function (err) {`,
+      `var waitTask = new $.Deferred();`,
+
+      /**
+       * After loading the gadget from CDN, wait for the module to be loaded using mw.loader
+       * @returns {jQuery.Deferred}
+       */
+      `function onLoadedGadget() {`,
+        `var module = $.Deferred();`,
+        `mw.loader.using( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' )`,
+          `.done(function (require) {`,
+            `module.resolve( require( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' ) );`,
+          `})`,
+          `.fail(module.reject);`,
+        `return module;`,
+      `}`,
+
+      /**
+       * After loading the module using mw.loader, call loadMessages
+       * @param   module  Resolved output from onLoadedGadget()
+       * @returns {jQuery.Deferred}
+       */
+      `function onLoadedModule(module) {`,
+        `return module.loadMessages('${name}'${i18nOptions && `, ${JSON.stringify(i18nOptions)}`});`,
+      `}`,
+
+      /**
+       * Handles results of loadMessages on success
+       * @param   i18nLoader  Resolved output from onLoadedModule()
+       * @returns {jQuery.Deferred}
+       */
+      `function onLoadedMessages(i18nLoader) {`,
+        loadOptions?.useLang ? `i18nLoader.useLang();` : '',
+        loadOptions?.usePageLang ? `i18nLoader.usePageLang();` : '',
+        loadOptions?.useContentLang ? `i18nLoader.useContentLang();` : '',
+        loadOptions?.usePageViewLang ? `i18nLoader.usePageViewLang();` : '',
+        loadOptions?.useUserLang ? `i18nLoader.useUserLang();` : '',
+        `deferred.resolve(i18nLoader);`,
+      `}`,
+
+      /**
+       * Promise chaining
+       */
+      `waitTask`,
+        `.then(onLoadedGadget)`,
+        `.then(onLoadedModule)`,
+        `.then(onLoadedMessages)`,
+        `.catch(function (err) {`,
           `console.error(err);`,
           `deferred.resolve(getFallbackMessages());`,
         `});`,
+
+      /* Load and execute the FandoomUtilsI18nLoader gadget from CDN if not yet loaded */
+      `if (!mw.loader.getState( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' )) {`,
+        `$.ajax({`,
+          `dataType: 'script',`,
+          `cache: true,`,
+          `url: MH_DEVSCRIPTS_CDN_ENTRYPOINT + "/${i18nLoaderGadgetName}/gadget-impl.js"`,
+        `}).done(function () {`,
+          `waitTask.resolve();`,
+        `}).fail(waitTask.reject);`,
+      `} else {`,
+        `waitTask.resolve();`,
+      `}`,
+
       `return deferred;`,
     `}`,
 
@@ -164,13 +209,12 @@ export async function createI18nLoadingLogic(gadgetNamespace: string, gadget: Ga
 /**
  * Transformer logic
  * 
- * @param gadgetNamespace
  * @param moduleIdsToWatch Only transform files that are listed in this bundle
  * @param code 
  * @param id 
  * @returns 
  */
-export async function fandoomUtilsI18nTransformer(this: PluginContext, gadgetNamespace: string, moduleIdsToWatch: { [gadgetId: string]: GadgetDefinition }, code: string, id: string): Promise<TransformResult> {
+export async function fandoomUtilsI18nTransformer(this: PluginContext, moduleIdsToWatch: { [gadgetId: string]: GadgetDefinition }, code: string, id: string): Promise<TransformResult> {
   const gadget: GadgetDefinition = moduleIdsToWatch[id];
   // Skip stylesheets, any gadgets that don't have i18n
   if (gadget === undefined) return;
@@ -187,7 +231,7 @@ export async function fandoomUtilsI18nTransformer(this: PluginContext, gadgetNam
     return { i18nOptions, loadOptions: args }
   })();
   
-  const boilerplate = await createI18nLoadingLogic(gadgetNamespace, gadget!, loadOptions, i18nOptions);
+  const boilerplate = await createI18nLoadingLogic(gadget!, loadOptions, i18nOptions);
   if (boilerplate === null) {
     this.error(`Failed to inject i18n loading logic: 'en' not found`);
     return;

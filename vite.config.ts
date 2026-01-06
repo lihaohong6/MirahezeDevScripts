@@ -62,7 +62,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         createMwGadgetImplementation(gadgetsToBuild, minify),
       
       // In Vite Build, help create boilerplate logic to load i18n
-      fandoomUtilsI18nInjector(gadgetNamespace, gadgetsToBuild),
+      fandoomUtilsI18nInjector(gadgetsToBuild),
     ],
     build: {
       minify: minify ? 'terser' : false,

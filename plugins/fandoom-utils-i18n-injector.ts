@@ -10,20 +10,19 @@ import {
  * A Vite plugin that injects i18n loading logic into scripts (particularly 
  * scripts ported from Fandoom, hence the name) 
  * 
- * @param gadgetNamespace
  * @param gadgetsToBuildAtIntialState 
  * @returns 
  */
-export default function fandoomUtilsI18nInjector(gadgetNamespace: string, gadgetsToBuildAtIntialState: GadgetDefinition[]): PluginOption {
+export default function fandoomUtilsI18nInjector(gadgetsToBuildAtIntialState: GadgetDefinition[]): PluginOption {
   
   const moduleIdsToWatch = getModuleIdsToWatch(gadgetsToBuildAtIntialState);
 
   return {
     name: 'fandom-utils-i18n-injector',
-    enforce: 'pre',
+    enforce: 'pre', // must be run before ESBuild
 
     async transform (this: TransformPluginContext, code: string, id: string) {
-      return await fandoomUtilsI18nTransformer.bind(this)(gadgetNamespace, moduleIdsToWatch, code, id);
+      return await fandoomUtilsI18nTransformer.bind(this)(moduleIdsToWatch, code, id);
     },
     
   }

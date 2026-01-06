@@ -181,7 +181,7 @@ export const preemptivelyDisableI18n = async (driver: WebDriver, gadgetNamespace
             module.exports = {
               loadMessages: function () {
                 var deferred = $.Deferred();
-                deferred.resolve();
+                deferred.reject('BLOCKED');
                 return deferred;
               }
             };

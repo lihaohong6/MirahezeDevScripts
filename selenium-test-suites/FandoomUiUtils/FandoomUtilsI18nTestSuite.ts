@@ -57,7 +57,6 @@ export default async (args: TestSuiteDriverArgs) => {
 
   const injectedI18nLogic = await (async () => {
     const codeBlock = await createI18nLoadingLogic(
-      gadgetNamespace, 
       { name: 'AjaxBatchDelete', i18n: ['i18n.json'] }, 
       {}, 
       { cacheAll: true }
@@ -65,6 +64,8 @@ export default async (args: TestSuiteDriverArgs) => {
     if (codeBlock === null) {
       throw new Error('Failed to create i18n boilerplate logic');
     }
+    codeBlock.unshift(`const MH_DEVSCRIPTS_GADGET_NAMESPACE = "${gadgetNamespace}";`);
+    codeBlock.unshift(`const MH_DEVSCRIPTS_CDN_ENTRYPOINT = "${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM!}";`);
     codeBlock.push(`
     getI18nLoader().then(function(loader) {
       window.i18n = prepareI18n(loader);
