@@ -1,0 +1,121 @@
+/* stylelint-disable */
+@import "@wikimedia/codex-design-tokens/theme-wikimedia-ui";
+
+/* Page selector */
+.jswikibot-page-selector {
+
+    .jswikibot-selected-items-box {
+        margin-top: 8px;
+        border: 1px solid @border-color-base;
+        background-color: @background-color-neutral-subtle;
+        padding: 8px;
+
+        .oo-ui-fieldLayout {
+            margin-top: 0;
+        }
+    }
+
+    .oo-ui-indexLayout-stackLayout > .oo-ui-panelLayout {
+        padding: 8px;
+    }
+
+    .oo-ui-fieldLayout {
+        margin-top: 4px;
+    }
+}
+
+/* Diff interface */
+.jswikibot-diff {
+    width: 100%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: @background-color-base;
+    font-family: monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: @color-base;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    /* Force fixed layout to respect column widths */
+    table-layout: fixed;
+
+    col.diff-marker {
+        width: 1%;
+        /* Minimal width for markers */
+    }
+
+    col.diff-content {
+        width: 49%;
+        /* Each content column takes half of remaining space */
+    }
+
+    .diff-title {
+        background-color: @background-color-base;
+    }
+
+    .diff-addedline {
+        background-color: @background-color-success-subtle;
+    }
+
+    .diff-deletedline {
+        background-color: @background-color-error-subtle;
+    }
+
+    .diff-context {
+        background-color: transparent;
+    }
+
+    .diffchange {
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .diff-addedline .diffchange {
+        //background-color: var(--background-color-success-subtle, #acf2bd);
+        color: @color-success;
+    }
+
+    .diff-deletedline .diffchange {
+        //background-color: var(--background-color-error-subtle--active, #fdb8c0);
+        color: @color-destructive;
+        text-decoration: line-through;
+    }
+
+    .diff-notice {
+        text-align: center;
+        font-style: italic;
+        color: @color-subtle;
+    }
+
+    .mw-diff-empty {
+        font-style: italic;
+        color: @color-subtle;
+    }
+
+    td.diff-context,
+    td.diff-side-added,
+    td.diff-side-deleted {
+        border: 1px solid @border-color-base;
+        padding: 4px;
+    }
+
+}
+
+/* logger */
+.jswikibot-log-panel {
+    height: 300px;
+    overflow: auto;
+    border: 1px solid @border-color-base;
+    padding: 8px;
+    background-color: @background-color-neutral;
+
+    .log-warning {
+        color: @color-warning;
+    }
+
+    .log-error {
+        color: @color-error;
+    }
+}
+
+
