@@ -27,6 +27,18 @@ gadgets:
     scripts:
       - index.ts
 
+  jswikibot:
+    scripts:
+      - index.ts
+    styles:
+      - styles.less
+    resourceLoader:
+      dependencies:
+        - 'oojs-ui-core'
+        - 'oojs-ui-windows'
+        - 'mediawiki.widgets'
+        - 'mediawiki.util'
+
   StatCalc:
     scripts:
       - index.ts
