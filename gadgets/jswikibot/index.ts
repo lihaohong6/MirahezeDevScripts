@@ -25,6 +25,6 @@ import {loadConfig} from "./config";
     mw.util.addPortletLink( 'p-tb', `/wiki/Special:${specialPageName}`, 'jswikibot', id);
     document.getElementById(id)?.addEventListener("click", async (e: PointerEvent) => {
         e.preventDefault();
-        start();
+        await start();
     });
 })();

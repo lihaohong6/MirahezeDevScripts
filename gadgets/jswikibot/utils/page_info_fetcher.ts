@@ -1,5 +1,5 @@
 import {PageInfo, PageProps} from "../models/page";
-import {QueryArguments} from "../page_selector/lister";
+import {QueryArguments} from "../page_selector/page_lister";
 import {API} from "./mw_api";
 import {cachePageInfo, getCachedPageInfo} from "../models/state";
 
@@ -168,12 +168,6 @@ export async function* fetchPageText(pages: PageInfo[], api = API): AsyncGenerat
             throw error;
         }
     }
-}
-
-export async function fetchPageTextBatch(pages: PageInfo[], api = API): Promise<void> {
-    // @ts-expect-error Only need to get through the generator
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for await (const page of fetchPageText(pages, api)) { /* empty */ }
 }
 
 export async function fetchPageCategories(pages: PageInfo[], api = API): Promise<void> {

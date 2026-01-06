@@ -1,5 +1,6 @@
 import {API} from "../utils/mw_api";
-import {Result} from "../page_selector/lister";
+
+import {Result} from "../utils/result";
 
 export class Namespace {
     constructor(public readonly name: string,
