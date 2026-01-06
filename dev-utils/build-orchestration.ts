@@ -196,6 +196,15 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
 }
 
 /**
+ * 
+ * @param gadget 
+ * @returns 
+ */
+export function createScriptLoadingStatement(gadgetName: string) {
+  return `mw.loader.load("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
+}
+
+/**
  * Builds the entrypoint file (`load.js`) to be served by the Vite server and to be 
  * loaded on the MediaWiki client.
  * 
@@ -258,7 +267,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   const conditions: string[] = [];
   const normalizeVariable = (variable: string | string[]) => {
     if (typeof variable === 'string') {
-      return variable.split(/\s*,\s*/);
+      return variable.trim().split(/\s*,\s*/).filter((val) => val !== '');
     }
     return variable;
   }
