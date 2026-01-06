@@ -1,7 +1,9 @@
-import {InputType, ListerUserInput, unwrap} from "./lister";
 import {PageInfo, PageProps} from "../models/page";
 import {Namespace, parseNamespaceString} from "../models/namespace";
 import {isDebugMode} from "../models/state";
+import {InputType, UserInputOption} from "../utils/input_dialog";
+import {PageSelector} from "./page_selector";
+import {unwrap} from "../utils/result";
 
 export interface FilterArguments {
     namespace?: string;
@@ -16,12 +18,13 @@ export enum RequiredPageInfo {
     CATEGORY,
 }
 
-export abstract class PageFilter {
-    static readonly inputs: ListerUserInput[] = [];
+export abstract class PageFilter extends PageSelector {
     readonly requiredInfo: RequiredPageInfo[] = [];
 
-    constructor(protected args: FilterArguments) {
+    constructor(protected readonly args: FilterArguments) {
+        super();
     }
+
 
     async* filter(input: AsyncIterable<PageInfo>): AsyncGenerator<PageInfo> {
         for await (const page of input) {
@@ -33,12 +36,12 @@ export abstract class PageFilter {
 
     public abstract test(page: PageInfo): boolean;
 
-    public abstract description(): string;
+    public abstract getDescription(): string;
 
     protected matchText(text: string): boolean {
         let match: boolean;
         if (this.args.useRegex) {
-            const regex = new RegExp(String(this.args.searchText), this.args.regexFlags || "");
+            const regex = new RegExp(this.args.searchText!, this.args.regexFlags || "");
             match = regex.test(text);
         } else {
             match = text.includes(this.args.searchText!);
@@ -50,20 +53,23 @@ export abstract class PageFilter {
 // --- Specific Filter Implementations ---
 
 export class NamespaceFilter extends PageFilter {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {
             key: 'namespace',
             label: 'Namespace:',
             type: InputType.NAMESPACES,
-            validator: (nsString) => {
-                const result = parseNamespaceString(String(nsString));
+            validator: (value: string | number | boolean) => {
+                const result = parseNamespaceString(String(value));
                 if (result.ok) {
                     return {
                         ok: true,
-                        value: nsString
+                        value: String(value)
                     };
                 }
-                return result;
+                return {
+                    ok: false,
+                    error: (result as {error: string}).error
+                };
             }
         },
         {key: 'excludeMatches', label: 'Exclude this namespace instead', type: InputType.BOOLEAN}
@@ -82,13 +88,13 @@ export class NamespaceFilter extends PageFilter {
         return namespaceMatch !== this.args.excludeMatches;
     }
 
-    public description(): string {
+    public getDescription(): string {
         return `${this.args.excludeMatches ? "Exclude" : "Only include"} pages in namespace ${this.namespaces!.toString()}`
     }
 }
 
 export class TitleFilter extends PageFilter {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Title matching:', type: InputType.TEXT},
         {key: 'useRegex', label: 'Use regex', type: InputType.BOOLEAN},
         {key: 'regexFlags', label: 'Regex flags', type: InputType.TEXT, depends: 'useRegex', defaultValue: 'm'},
@@ -99,13 +105,13 @@ export class TitleFilter extends PageFilter {
         return this.matchText(page.title);
     }
 
-    public description(): string {
+    public getDescription(): string {
         return `${this.args.excludeMatches ? "Exclude" : "Only include"} pages with title matching${this.args.useRegex ? ' regex' : ''} ${this.args.searchText}`;
     }
 }
 
 export class ContentFilter extends PageFilter {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Content matching:', type: InputType.TEXT},
         {key: 'useRegex', label: 'Use regex', type: InputType.BOOLEAN},
         {key: 'regexFlags', label: 'Regex flags', type: InputType.TEXT, depends: 'useRegex', defaultValue: 'm'},
@@ -122,13 +128,13 @@ export class ContentFilter extends PageFilter {
         return this.matchText(page.text!);
     }
 
-    public description(): string {
+    public getDescription(): string {
         return `${this.args.excludeMatches ? "Exclude" : "Only include"} pages with wikitext matching${this.args.useRegex ? ' regex' : ''} ${this.args.searchText}`;
     }
 }
 
 export class InCategoryFilter extends PageFilter {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Is in category:', type: InputType.PAGE, defaultValue: 'Category:'},
         {key: 'excludeMatches', label: 'Exclude pages in this category instead', type: InputType.BOOLEAN},
     ];
@@ -140,7 +146,7 @@ export class InCategoryFilter extends PageFilter {
         return page.categories.includes(this.args.searchText!) !== this.args.excludeMatches;
     }
 
-    public description(): string {
+    public getDescription(): string {
         return `${this.args.excludeMatches ? "Exclude" : "Only include"} pages in category ${this.args.searchText}`;
     }
 }
@@ -148,31 +154,24 @@ export class InCategoryFilter extends PageFilter {
 export interface FilterConstructor {
     new(args: FilterArguments): PageFilter;
 
-    inputs: ListerUserInput[];
+    inputs: UserInputOption[];
     requiredInfo?: RequiredPageInfo[];
 }
 
 export class FilterWrapper {
     constructor(public readonly filterConstructor: FilterConstructor,
-                public readonly description: string,
-                private args?: FilterArguments,
-                public filter?: PageFilter) {
+                public readonly description: string) {
     }
 
-    getInputs(): ListerUserInput[] {
+    getInputs(): UserInputOption[] {
         return this.filterConstructor.inputs;
     }
 
-    longDescription() {
-        return this.filter!.description();
-    }
-
-    construct(args: FilterArguments): void {
-        this.args = args;
+    construct(args: FilterArguments): PageFilter {
         if (isDebugMode()) {
-            console.log(this.args);
+            console.log(args);
         }
-        this.filter = new this.filterConstructor(args);
+        return new this.filterConstructor(args);
     }
 }
 

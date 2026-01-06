@@ -1,5 +1,7 @@
+import {openWindow} from "./alert_window";
+
 export enum LogSeverity {
-    DEBUG = 0,
+    SUCCESS = 0,
     INFO,
     WARNING,
     ERROR,
@@ -12,17 +14,15 @@ export class LogEntry {
 }
 
 export class ProgressWindow {
-    private readonly windowManager = new OO.ui.WindowManager();
     private readonly progressBar: OO.ui.ProgressBarWidget;
     private readonly progressLabel: OO.ui.LabelWidget;
     private readonly progressDialog: OO.ui.MessageDialog;
     private readonly logLabel: OO.ui.LabelWidget;
     private readonly cancelButton: OO.ui.ButtonWidget;
     private isDone = false;
+    private progress = 0;
 
     constructor(private readonly total: number, private readonly cancelCallback: () => void = () => {} ) {
-        $(document.body).append(this.windowManager.$element);
-        
         this.progressBar = new OO.ui.ProgressBarWidget({
             progress: 0
         });
@@ -43,6 +43,7 @@ export class ProgressWindow {
         
         this.cancelButton.on('click', () => {
             this.cancelCallback();
+            this.hideCancelButton();
             this.addLog(
                 LogSeverity.WARNING,
                 "Attempting to cancel. Note that not all bots support cancellation. " +
@@ -81,8 +82,7 @@ export class ProgressWindow {
         ]);
         
         this.progressDialog = new OO.ui.MessageDialog();
-        this.windowManager.addWindows([this.progressDialog]);
-        const opened = this.windowManager.openWindow(this.progressDialog, {
+        openWindow(this.progressDialog, {
             title: 'Progress',
             message: fieldsetLayout.$element,
             actions: [
@@ -94,26 +94,20 @@ export class ProgressWindow {
             ],
             size: "large"
         });
-
-        opened.then(() => {
-            this.progressDialog.getActionProcess = (action) => {
-                if (action === 'close') {
-                    return new OO.ui.Process(() => {
-                        this.windowManager.closeWindow(this.progressDialog);
-                    });
-                }
-                return OO.ui.MessageDialog.prototype.getActionProcess.call(this.progressDialog, action);
-            };
-        });
     }
 
-    makeProgress(progress: number) {
+    setProgress(progress: number) {
+        this.progress = progress;
         const progressPercent = Math.min((progress / this.total) * 100, 100);
         this.progressBar.setProgress(progressPercent);
         this.progressLabel.setLabel(`Progress: ${progress} / ${this.total}`);
         if (progress >= this.total) {
             this.done();
         }
+    }
+
+    makeProgress(progress: number) {
+        this.setProgress(this.progress + progress);
     }
 
     private readonly logEntries: LogEntry[] = [];
@@ -132,10 +126,14 @@ export class ProgressWindow {
         this.logLabel.setLabel(this.logText);
     }
 
+    hideCancelButton() {
+        this.cancelButton.$element.hide();
+    }
+
     done() {
         if (!this.isDone) {
             this.isDone = true;
-            this.cancelButton.$element.hide();
+            this.hideCancelButton();
         }
     }
 }

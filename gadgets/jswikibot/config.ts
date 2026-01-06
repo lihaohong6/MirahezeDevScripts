@@ -64,7 +64,6 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
 
         const mainPanel = new OO.ui.PanelLayout({ padded: true, expanded: false });
         mainPanel.$element.append(fieldset.$element);
-        // @ts-expect-error $body does exist [cite: 82]
         this.$body.append(mainPanel.$element);
         return this;
     }

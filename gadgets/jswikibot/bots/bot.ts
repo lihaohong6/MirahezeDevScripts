@@ -1,94 +1,133 @@
-import {runPageSelector} from "../page_selector/page_selector";
 import {PageInfo} from "../models/page";
 import {LogSeverity, ProgressWindow} from "../utils/progress_window";
-import {simpleAlert, WindowResult} from "../utils/alert_window";
-import {fetchPageText} from "../utils/page_info_fetcher";
-import {isDebugMode} from "../models/state";
+import {openWindow, simpleAlert, WindowResult} from "../utils/alert_window";
+import {InputDialog, UserInputOption} from "../utils/input_dialog";
 
-export abstract class Bot {
+import {Result} from "../utils/result";
+import {runPageSelector} from "../page_selector/run_page_selector";
 
-    protected progressWindow?: ProgressWindow;
+interface BotResult {
+    severity: LogSeverity,
+    message: string,
+}
 
-    protected cancelled: boolean = false;
+export interface BotSetupOptions<TConfig extends {pages: string[]}, BotState = never> {
+    name: string;
+    description: string;
+    // Default to 1
+    batchSize?: number | ((config: TConfig) => number);
 
-    protected cancelCallback() {
+    createConfigDialog: () => BotConfigurationDialog<TConfig>;
+
+    processBatch: (pages: PageInfo[], config: TConfig, state: BotState, bot: Bot<TConfig, BotState>) => Promise<BotResult | BotResult[]>;
+
+    preprocessPages?: (pages: PageInfo[], config: TConfig) => AsyncGenerator<PageInfo> | PageInfo[];
+}
+
+export class Bot<T extends {pages: string[]}, State = never> {
+
+    private progressWindow?: ProgressWindow;
+
+    private cancelled: boolean = false;
+    private botState = {} as State;
+
+    public readonly name: string;
+    public readonly description: string;
+    private readonly batchSize: (config: T) => number;
+
+    constructor(private readonly options: BotSetupOptions<T, State>) {
+        this.name = options.name;
+        this.description = options.description;
+        if (typeof options.batchSize === "number") {
+            this.batchSize = () => options.batchSize as number;
+        } else if (options.batchSize === undefined) {
+            this.batchSize = () => 1;
+        } else {
+            this.batchSize = options.batchSize;
+        }
+        if (!options.preprocessPages) {
+            options.preprocessPages = this.preprocessPages;
+        }
+    }
+
+    private static readonly cancelledMessage: string = "Bot cancelled.";
+
+    private checkCancelled() {
+        if (this.cancelled) {
+            this.progressWindow!.addLog(LogSeverity.WARNING, Bot.cancelledMessage);
+            this.progressWindow!.hideCancelButton();
+            return true;
+        }
+        return false;
+    }
+
+    private async* preprocessPages(pages: PageInfo[]): AsyncGenerator<PageInfo> {
+        for (const page of pages) {
+            yield page;
+        }
+    }
+
+    public cancel(): void {
         this.cancelled = true;
     }
 
-    protected static readonly cancelledMessage: string = "Bot cancelled.";
-
-    protected checkCancelled() {
-        if (this.cancelled) {
-            this.progressWindow!.addLog(LogSeverity.WARNING, Bot.cancelledMessage)
-            return true;
-        }
-        return false;
+    public fetchConfig() {
+        const dialog = this.options.createConfigDialog();
+        return openBotConfigDialog(dialog, this.processPages.bind(this));
     }
 
-    protected pageListEmpty(pages: PageInfo[]): boolean {
+    public async processPages(config: T) {
+        this.cancelled = false;
+        // Reset state
+        this.botState = {} as State;
+        const pages = config.pages.map((title) => new PageInfo({title: title}));
+
         if (pages.length === 0) {
             simpleAlert("Error", 'No valid pages found. Please check page titles and try again.');
-            return true;
-        }
-        return false;
-    }
-
-    protected async forEachPage(
-        pages: string[],
-        callback: (page: PageInfo) => Promise<void>,
-        fetchText: boolean = false
-    ) {
-        const pageInfoList = pages.map(title => new PageInfo({title: title}));
-
-        if (this.pageListEmpty(pageInfoList)) {
-            return;
         }
 
-        if (isDebugMode()) {
-            console.log('Valid pages found:', pageInfoList.map(p => p.title));
-        }
-
-        this.progressWindow = new ProgressWindow(pageInfoList.length, this.cancelCallback.bind(this));
-        let counter = 0;
-        const source = fetchText ?
-            fetchPageText(pageInfoList) :
-            pageInfoList;
-        for await (const page of source) {
-            if (this.checkCancelled()) break;
-            await callback(page);
-            this.progressWindow.makeProgress(++counter);
+        let batch = [];
+        this.progressWindow = new ProgressWindow(pages.length, this.cancel.bind(this));
+        for await (const page of this.options.preprocessPages!(pages, config)) {
+            if (this.checkCancelled()) {
+                return;
+            }
+            batch.push(page);
+            if (batch.length >= this.batchSize(config)) {
+                const results = await this.options.processBatch(batch, config, this.botState, this);
+                let entries: BotResult[];
+                if (Array.isArray(results)) {
+                    entries = results as BotResult[];
+                } else {
+                    entries = [results as BotResult]
+                }
+                for (const entry of entries) {
+                    this.progressWindow.addLog(entry.severity, entry.message);
+                    this.progressWindow.makeProgress(batch.length);
+                }
+                batch = [];
+            }
         }
         this.progressWindow.done();
     }
-
-    abstract execute(): Promise<void>;
-
-    abstract getDescription(): string;
 }
 
-export async function openBotConfigDialog<T>(dialog: OO.ui.ProcessDialog, callback: (t: T) => Promise<void>): Promise<void> {
+export async function openBotConfigDialog<T>(dialog: BotConfigurationDialog<T>, callback: (t: T) => Promise<void>): Promise<void> {
     return new Promise((resolve) => {
-        const windowManager = new OO.ui.WindowManager();
-        $(document.body).append(windowManager.$element);
-
-        windowManager.addWindows([dialog]);
-
-        windowManager.openWindow(dialog).closed.then(async (r: never) => {
-            windowManager.clearWindows();
-            windowManager.$element.remove();
-
-            const result = r as WindowResult<T>
-            // Perform replacement if user clicked "Done"
-            if (result && result.action === 'done' && result.data) {
-                await callback(result.data);
-            }
-
+        dialog.callback = callback;
+        openWindow<WindowResult<T>>(dialog, {}, async () => {
             resolve();
         });
     });
 }
 
-export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
+export interface BotConfigurationOptions<T> {
+    dialogConfig?: OO.ui.Dialog.ConfigOptions,
+    inputOptions: UserInputOption[],
+    validator?: (data: T) => boolean
+}
+
+export class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
     static static = {
         ...OO.ui.ProcessDialog.static,
         name: 'configurebot',
@@ -101,17 +140,19 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
         ]
     };
 
-    protected stack!: OO.ui.StackLayout;
-    protected step1!: OO.ui.PanelLayout;
-    protected step2!: OO.ui.PanelLayout;
-    protected pages: string[] = [];
+    private stack!: OO.ui.StackLayout;
+    private step1!: OO.ui.PanelLayout;
+    private step2!: OO.ui.PanelLayout;
+    private step2Widgets!: Record<string, OO.ui.Widget>;
+    private pages: string[] = [];
+    public callback?: (t: T) => Promise<void>;
+
+    constructor(private readonly config: BotConfigurationOptions<T>) {
+        super(config.dialogConfig);
+    }
 
     // Step 1 input
     protected manualPagesInput!: OO.ui.MultilineTextInputWidget;
-
-    public constructor(config?: OO.ui.Dialog.ConfigOptions) {
-        super(config);
-    }
 
     public initialize(): this {
         super.initialize();
@@ -123,7 +164,6 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
             items: [this.step1, this.step2]
         });
 
-        // @ts-expect-error $body does exist
         this.$body.append(this.stack.$element);
         return this;
     }
@@ -172,9 +212,28 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
         this.step1.$element.append(step1Fieldset.$element);
     }
 
-    protected abstract setupStep2(): void;
+    protected setupStep2() {
+        const res = InputDialog.setUpWidgets(this.config.inputOptions, {label: 'Add Text Settings'});
+        this.step2Widgets = res.widgets;
 
-    protected abstract getSecondStepData(): Omit<T, "pages">;
+        this.step2 = new OO.ui.PanelLayout({
+            padded: true,
+            expanded: false
+        });
+
+        this.step2.$element.append(res.fieldset.$element);
+    }
+
+    protected getSecondStepData(): Result<Omit<T, "pages">> {
+        return InputDialog.getInputData(this.config.inputOptions, this.step2Widgets);
+    }
+
+    protected validate(data: T): boolean {
+        if (this.config.validator) {
+            return this.config.validator(data);
+        }
+        return true;
+    }
 
     public getActionProcess(action: string): OO.ui.Process {
         if (action === 'next') {
@@ -187,7 +246,6 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
                 }
                 this.pages = Array.from(new Set(pages));
                 this.stack.setItem(this.step2);
-                // @ts-expect-error actions does exist
                 this.actions.setMode('step2');
             });
         }
@@ -195,15 +253,24 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
         if (action === 'back') {
             return new OO.ui.Process(() => {
                 this.stack.setItem(this.step1);
-                // @ts-expect-error actions does exist
                 this.actions.setMode('step1');
             });
         }
 
         if (action === 'done') {
             return new OO.ui.Process(() => {
-                const data = this.getSecondStepData();
-                this.close({action: 'done', data: {...data, pages: this.pages}});
+                const result = this.getSecondStepData();
+                if (!result.ok) {
+                    simpleAlert("Invalid input", result.error);
+                    return;
+                }
+                const data = {...result.value, pages: this.pages} as T;
+                if (!this.validate(data)) {
+                    return;
+                }
+                if (this.callback) {
+                    this.callback!(data as T);
+                }
             });
         }
 
@@ -213,7 +280,6 @@ export abstract class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
     public getSetupProcess(data?: never): OO.ui.Process {
         return super.getSetupProcess(data).next(() => {
             this.stack.setItem(this.step1);
-            // @ts-expect-error actions does exist
             this.actions.setMode('step1');
         });
     }

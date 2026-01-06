@@ -1,61 +1,10 @@
 import {PageProps} from "../models/page";
 import {isDebugMode} from "../models/state";
 import {API} from "../utils/mw_api";
-import {getNamespaces} from "../models/namespace";
-
-export enum InputType {
-    PAGE,
-    NAMESPACE,
-    NAMESPACES,
-    TEXT,
-    BOOLEAN,
-}
-
-export type Result<T, E = string> =
-    | { ok: true; value: T }
-    | { ok: false; error: E };
-
-export function newErrorResult<E>(e: E): Result<never, E> {
-    return {
-        ok: false,
-        error: e
-    }
-}
-
-export function unwrap<T>(r: Result<T>) {
-    if (r.ok) {
-        return r.value;
-    } else {
-        throw new Error("Unable to unwrap result");
-    }
-}
-
-export function flatMap<T, R, E>(result: Result<T, E>, func: (t: T) => R): Result<R, E> {
-    if (result.ok) {
-        return {
-            ok: true as const,
-            value: func(result.value)
-        };
-    }
-    return {
-        ok: false as const,
-        error: result.error
-    }
-}
-
-export type ValidationResult<T = string | number | boolean> = Result<T>;
-
-export type ValidationFunction<T = string | number | boolean> = (value: T) => ValidationResult<T>;
-
-export interface ListerUserInput {
-    key: string;
-    label: string;
-    type: InputType;
-    defaultValue?: string | number;
-    depends?: string;
-    validator?: ValidationFunction;
-    help?: string;
-}
+import {getNamespaces, Namespace} from "../models/namespace";
+import {InputType, UserInputOption} from "../utils/input_dialog";
+import {PageSelector} from "./page_selector";
+import {flatMap} from "../utils/result";
 
 export type QueryArguments = Record<string, string | number | boolean>;
 
@@ -80,17 +29,23 @@ export interface ApiQueryPropResponse<Prop extends string, T> {
     };
 }
 
-export abstract class Lister<T = PageProps> {
-    static readonly inputs: ListerUserInput[] = [];
+export abstract class PageLister<T = PageProps> extends PageSelector {
+    static readonly inputs: UserInputOption[] = [];
 
-    abstract getNext(api: typeof API): AsyncGenerator<T>;
+    protected constructor(protected readonly args: QueryArguments) {
+        super()
+    }
+
+    api = API;
+
+    abstract getNext(): AsyncGenerator<T>;
 
     /**
      * Convenience method to fetch all results into a single flat array.
      */
-    async fetchAll(api = API): Promise<T[]> {
+    async fetchAll(): Promise<T[]> {
         const allResults: T[] = [];
-        for await (const page of this.getNext(api)) {
+        for await (const page of this.getNext()) {
             allResults.push(page);
         }
         return allResults;
@@ -99,27 +54,27 @@ export abstract class Lister<T = PageProps> {
     abstract getDescription(): string;
 }
 
-export abstract class ApiListQuery<T = PageProps> extends Lister<T> {
+export abstract class ApiListQuery<T = PageProps> extends PageLister<T> {
 
     protected constructor(
         public readonly listName: string,
         public readonly prefix: string,
-        protected readonly params: QueryArguments = {}
+        params: QueryArguments = {}
     ) {
-        super();
+        super(params);
     }
 
-    async* getNext(api = API): AsyncGenerator<T> {
+    async* getNext(): AsyncGenerator<T> {
         let continueParams: QueryArguments = {};
         const requestParams = {
             action: 'query',
             list: this.listName,
             [`${this.prefix}limit`]: 'max',
-            ...this.params
+            ...this.args
         };
 
         do {
-            const response = (await api.get({
+            const response = (await this.api.get({
                 ...requestParams,
                 ...continueParams,
             })) as ApiQueryListResponse<T>;
@@ -135,26 +90,26 @@ export abstract class ApiListQuery<T = PageProps> extends Lister<T> {
     }
 }
 
-export abstract class ApiPropQuery<Prop extends string, T = PageProps> extends Lister<T> {
+export abstract class ApiPropQuery<Prop extends string, T = PageProps> extends PageLister<T> {
     protected constructor(
         public readonly prop: Prop,
         public readonly prefix: string,
         protected readonly params: QueryArguments = {}
     ) {
-        super();
+        super(params);
     }
 
-    async* getNext(api = API): AsyncGenerator<T> {
+    async* getNext(): AsyncGenerator<T> {
         const requestParams = {
             action: 'query',
             prop: this.prop,
             [`${this.prefix}limit`]: 'max',
-            ...this.params
+            ...this.args
         };
 
         let continueParams: QueryArguments = {};
         do {
-            const response = (await api.get({
+            const response = (await this.api.get({
                 ...requestParams,
                 ...continueParams,
             })) as ApiQueryPropResponse<Prop, T>;
@@ -176,7 +131,7 @@ export abstract class ApiPropQuery<Prop extends string, T = PageProps> extends L
 }
 
 export class CategoryMembersQuery extends ApiListQuery {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'cmtitle', label: 'Category:', type: InputType.PAGE, defaultValue: 'Category:'}
     ];
 
@@ -185,12 +140,12 @@ export class CategoryMembersQuery extends ApiListQuery {
     }
 
     getDescription(): string {
-        return `All members of category ${this.params['cmtitle']}`;
+        return `All members of category ${this.args['cmtitle']}`;
     }
 }
 
 export class AllPagesQuery extends ApiListQuery {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {
             key: 'apnamespace',
             label: 'Namespace name or number (only one allowed)',
@@ -208,12 +163,13 @@ export class AllPagesQuery extends ApiListQuery {
     }
 
     getDescription(): string {
-        return `All pages in namespace ${this.params['apnamespace']}`;
+        const ns = getNamespaces().toNamespace(this.args['apnamespace'] as string) as {ok: true, value: Namespace};
+        return `All pages in namespace ${ns.value.toString()}`;
     }
 }
 
 export class EmbeddedInQuery extends ApiListQuery {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {
             key: 'eititle',
             label: 'Transcluded page name: ',
@@ -228,12 +184,12 @@ export class EmbeddedInQuery extends ApiListQuery {
     }
 
     getDescription(): string {
-        return `All pages that transclude ${this.params['eititle']}`;
+        return `All pages that transclude ${this.args['eititle']}`;
     }
 }
 
 export class BacklinksQuery extends ApiListQuery {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'bltitle', label: 'Linked page name: ', type: InputType.PAGE},
     ]
 
@@ -242,12 +198,12 @@ export class BacklinksQuery extends ApiListQuery {
     }
 
     getDescription(): string {
-        return `All pages that link to ${this.params['bltitle']}`;
+        return `All pages that link to ${this.args['bltitle']}`;
     }
 }
 
 export class PageLinksQuery extends ApiPropQuery<"links"> {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'Title: ', type: InputType.PAGE},
     ]
 
@@ -256,12 +212,26 @@ export class PageLinksQuery extends ApiPropQuery<"links"> {
     }
 
     getDescription(): string {
-        return `All links on ${this.params['titles']}`;
+        return `All links on ${this.args['titles']}`;
+    }
+}
+
+export class PageImagesQuery extends ApiPropQuery<"images"> {
+    static override readonly inputs: UserInputOption[] = [
+        {key: 'titles', label: 'Page: ', type: InputType.PAGE},
+    ];
+
+    constructor(args: QueryArguments) {
+        super("images", "im", args);
+    }
+
+    getDescription(): string {
+        return `All files used on ${this.args.titles}`;
     }
 }
 
 export class FileUsageQuery extends ApiPropQuery<"fileusage"> {
-    static override readonly inputs: ListerUserInput[] = [
+    static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'File: ', type: InputType.PAGE, defaultValue: "File:"},
     ]
 
@@ -270,37 +240,30 @@ export class FileUsageQuery extends ApiPropQuery<"fileusage"> {
     }
 
     getDescription(): string {
-        return `All pages that use ${this.params['titles']}`;
+        return `All pages that use ${this.args['titles']}`;
     }
 }
 
 export interface QueryConstructor {
-    new(args: QueryArguments): Lister;
+    new(args: QueryArguments): PageLister;
 
-    inputs: ListerUserInput[];
+    inputs: UserInputOption[];
 }
 
 export class ListerWrapper {
     constructor(public readonly listerConstructor: QueryConstructor,
-                public readonly description: string,
-                private args?: QueryArguments,
-                public lister?: Lister) {
+                public readonly description: string) {
     }
 
-    getInputs(): ListerUserInput[] {
+    getInputs(): UserInputOption[] {
         return this.listerConstructor.inputs;
     }
 
-    longDescription(): string {
-        return this.lister!.getDescription();
-    }
-
-    construct(args: QueryArguments): void {
-        this.args = args;
+    construct(args: QueryArguments): PageLister {
         if (isDebugMode()) {
-            console.log(this.args);
+            console.log(args);
         }
-        this.lister = new this.listerConstructor(args);
+        return new this.listerConstructor(args);
     }
 }
 
@@ -311,4 +274,5 @@ export const allQueryLister = [
     new ListerWrapper(BacklinksQuery, "All pages linking to page X"),
     new ListerWrapper(PageLinksQuery, "All links on a page"),
     new ListerWrapper(FileUsageQuery, "All pages using a file"),
+    new ListerWrapper(PageImagesQuery, "All files on a page"),
 ];

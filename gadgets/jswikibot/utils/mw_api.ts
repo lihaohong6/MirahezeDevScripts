@@ -1,5 +1,5 @@
 import {state} from "../models/state";
-import {newErrorResult, Result} from "../page_selector/lister";
+import {newErrorResult, Result} from "./result";
 
 type UnknownApiParams = Record<
     string,

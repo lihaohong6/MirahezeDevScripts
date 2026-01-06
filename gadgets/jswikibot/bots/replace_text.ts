@@ -1,9 +1,10 @@
-import {Bot, BotConfigurationDialog, openBotConfigDialog} from "./bot";
+import {Bot, BotConfigurationDialog} from "./bot";
 import {formatSummary, savePage} from "../utils/mw_api";
 import {LogSeverity} from "../utils/progress_window";
-import {simpleAlert} from "../utils/alert_window";
-import {PageInfo} from "../models/page";
 import {showDiffDialog} from "../utils/diff";
+import {fetchPageText} from "../utils/page_info_fetcher";
+import {simpleAlert} from "../utils/alert_window";
+import {InputType} from "../utils/input_dialog";
 
 interface ReplacementConfig {
     pages: string[];
@@ -14,149 +15,118 @@ interface ReplacementConfig {
     summary: string;
 }
 
-class TextReplacementDialog extends BotConfigurationDialog<ReplacementConfig> {
-    private originalText!: OO.ui.MultilineTextInputWidget;
-    private replacementText!: OO.ui.MultilineTextInputWidget;
-    private useRegex!: OO.ui.CheckboxInputWidget;
-    private regexFlags!: OO.ui.TextInputWidget;
-    private editSummary: OO.ui.TextInputWidget;
-
-    constructor(config?: never) {
-        super(config);
-    }
-
-    protected setupStep2(): void {
-        // --- Step 2 Layout ---
-        this.originalText = new OO.ui.MultilineTextInputWidget({
-            placeholder: 'Text to find'
-        });
-
-        this.replacementText = new OO.ui.MultilineTextInputWidget({
-            placeholder: 'Replace with'
-        });
-
-        this.useRegex = new OO.ui.CheckboxInputWidget();
-        
-        this.regexFlags = new OO.ui.TextInputWidget({
-            placeholder: 'gm',
-            value: 'gm'
-        });
-
-        this.editSummary = new OO.ui.TextInputWidget({
-            value: '$bot: replace $original with $new'
-        });
-
-        this.step2 = new OO.ui.PanelLayout({
-            padded: true,
-            expanded: false
-        });
-
-        const regexField = new OO.ui.FieldLayout(this.regexFlags, {
-            label: 'Regex flags',
-            align: 'inline'
-        });
-        const step2Fieldset = new OO.ui.FieldsetLayout({
-            label: 'Replacement Settings',
-            items: [
-                new OO.ui.FieldLayout(this.originalText, {
-                    label: 'Find',
-                    align: 'top',
-                    help: 'When using regular expressions, input the regex itself instead of /regex/. Use \\n for newlines.'
-                }),
-                new OO.ui.FieldLayout(this.replacementText, {
-                    label: 'Replace with',
-                    align: 'top',
-                    help: "Use the keyboard's enter key for newlines instead of \\n."
-                }),
-                new OO.ui.FieldLayout(this.useRegex, {
-                    label: 'Use regular expressions',
-                    align: 'inline'
-                }),
-                regexField,
-                new OO.ui.FieldLayout(this.editSummary, {
-                    label: 'Edit summary',
-                    align: 'top'
-                })
-            ]
-        });
-
-        regexField.toggle(false);
-        this.useRegex.on('change', (selected: string | boolean) => {
-            if (selected) {
-                regexField.toggle(true);
-            } else {
-                regexField.toggle(false);
-            }
-        });
-
-        this.step2.$element.append(step2Fieldset.$element);
-    }
-
-    protected getSecondStepData(): Omit<ReplacementConfig, "pages"> {
-        return {
-            originalText: this.originalText.getValue(),
-            replacementText: this.replacementText.getValue(),
-            useRegex: this.useRegex.isSelected(),
-            regexFlags: this.regexFlags.getValue(),
-            summary: this.editSummary.getValue()
-        };
-    }
+interface ReplaceTextState {
+    acceptAll?: boolean
 }
 
-export class ReplaceTextBot extends Bot {
-    getDescription(): string {
-        return "Find and replace text";
-    }
-
-    private async performReplacement(data: ReplacementConfig) {
-        try {
-            let acceptAll = false;
-
-            await this.forEachPage(data.pages, async (page: PageInfo) => {
-                let text;
-                if (data.useRegex) {
-                    text = page.text!.replace(new RegExp(data.originalText, data.regexFlags), data.replacementText);
-                } else {
-                    text = page.text!.split(data.originalText).join(data.replacementText);
+export const replaceTextBot = new Bot<ReplacementConfig, ReplaceTextState>({
+    name: "ReplaceTextBot",
+    description: "Find and replace text",
+    preprocessPages: (pages) => fetchPageText(pages),
+    createConfigDialog: () => new BotConfigurationDialog({
+        inputOptions: [
+            {
+                key: "originalText",
+                label: "Find",
+                type: InputType.MULTILINE_TEXT,
+                placeholder: 'Text to find',
+                rows: 5,
+                help: 'When using regular expressions, input the regex itself instead of /regex/. Use \\n for newlines.'
+            },
+            {
+                key: "replacementText",
+                label: "Replace with",
+                type: InputType.MULTILINE_TEXT,
+                placeholder: 'Replace with',
+                rows: 5,
+                help: "Use the keyboard's enter key for newlines instead of \\n."
+            },
+            {
+                key: "useRegex",
+                label: "Use regular expressions",
+                type: InputType.BOOLEAN
+            },
+            {
+                key: "regexFlags",
+                label: "Regex flags",
+                type: InputType.TEXT,
+                defaultValue: "gm",
+                depends: "useRegex",
+                help: new OO.ui.HtmlSnippet("See <a href='https://developer.mozilla.org/docs/Web/JavaScript/Reference/Regular_expressions#regex_flags'>Mozilla's documentation</a> for details")
+            },
+            {
+                key: "summary",
+                label: "Edit summary",
+                type: InputType.TEXT,
+                defaultValue: '$bot: replace $original with $new'
+            }
+        ],
+        validator: (config: ReplacementConfig) => {
+            if (config.originalText === "") {
+                simpleAlert("Invalid input", "Text to be replaced must be non-empty");
+                return false;
+            }
+            if (config.useRegex) {
+                try {
+                    new RegExp(config.originalText, config.regexFlags);
+                } catch (e) {
+                    simpleAlert("Invalid regex", e.message);
+                    return false;
                 }
-                
-                if (page.text !== text) {
-                    if (!acceptAll) {
-                        const result = await showDiffDialog(page.title, page.text!, text);
-                        
-                        switch (result.action) {
-                            case 'accept':
-                                break;
-                            case 'acceptAll':
-                                acceptAll = true;
-                                break;
-                            case 'skip':
-                                this.progressWindow!.addLog(LogSeverity.INFO, `Skipped ${page.title}`);
-                                return;
-                            case 'cancel':
-                                this.cancelled = true;
-                                this.progressWindow!.addLog(LogSeverity.WARNING, 'Text replacement cancelled by user');
-                                return;
+            }
+            return true;
+        }
+    }),
+    processBatch: async (pages, config, state, bot) => {
+        const page = pages[0];
+        let text;
+        if (config.useRegex) {
+            text = page.text!.replace(new RegExp(config.originalText, config.regexFlags), config.replacementText);
+        } else {
+            text = page.text!.split(config.originalText).join(config.replacementText);
+        }
+
+        if (page.text !== text) {
+            if (!state.acceptAll) {
+                const result = await showDiffDialog(page.title, page.text!, text);
+
+                switch (result.action) {
+                    case 'accept':
+                        break;
+                    case 'acceptAll':
+                        state.acceptAll = true;
+                        break;
+                    case 'skip':
+                        return {
+                            severity: LogSeverity.INFO,
+                            message: `Skipped ${page.title}`
                         }
-                    }
-                    const summary = formatSummary(data.summary, {original: data.originalText, new: data.replacementText});
-                    const pageSaveResult = await savePage(page.title, text, summary, true);
-                    if (pageSaveResult) {
-                        this.progressWindow!.addLog(LogSeverity.INFO, `${page.title} saved`);
-                    } else {
-                        this.progressWindow!.addLog(LogSeverity.ERROR, `Failed to save ${page.title}`);
-                    }
-                } else {
-                    this.progressWindow!.addLog(LogSeverity.INFO, `Page ${page.title} not changed`);
+                    case 'cancel':
+                        bot.cancel();
+                        return {
+                            severity: LogSeverity.WARNING,
+                            message: 'Text replacement cancelled by user'
+                        };
                 }
-            }, true);
-        } catch (error) {
-            console.error('Error during replacement:', error);
-            simpleAlert("Error", 'An error occurred while processing the pages. Please check the console for details.');
+            }
+            const summary = formatSummary(config.summary, {original: config.originalText, new: config.replacementText});
+            const pageSaveResult = await savePage(page.title, text, summary, true);
+            if (pageSaveResult) {
+                return {
+                    severity: LogSeverity.SUCCESS,
+                    message: `${page.title} saved`
+                };
+            } else {
+                return {
+                    severity: LogSeverity.ERROR,
+                    message: `Failed to save ${page.title}`
+                };
+            }
+        } else {
+            return {
+                severity: LogSeverity.INFO,
+                message: `Page ${page.title} not changed`
+            };
         }
     }
-
-    execute(): Promise<void> {
-        return openBotConfigDialog(new TextReplacementDialog(), this.performReplacement.bind(this));
-    }
-}
+})

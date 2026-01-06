@@ -1,4 +1,5 @@
 import {API} from "./mw_api";
+import {openWindow} from "./alert_window";
 
 interface DiffResult {
     action: 'accept' | 'acceptAll' | 'skip' | 'cancel';
@@ -68,7 +69,6 @@ class DiffDialog extends OO.ui.ProcessDialog {
             $('<div>').append(this.skipButton.$element, this.acceptButton.$element, this.acceptAllButton.$element)
         );
 
-        // @ts-expect-error $foot exists
         this.$foot.append($footerContainer);
 
         this.cancelButton.on('click', () => this.executeAction('cancel'));
@@ -92,7 +92,6 @@ class DiffDialog extends OO.ui.ProcessDialog {
             .append(loadingElement);
 
         this.diffContent.$element.append(titleElement, diffContainer);
-        // @ts-expect-error $body exists
         this.$body.append(this.diffContent.$element);
 
         this.initializeButtons();
@@ -121,18 +120,7 @@ class DiffDialog extends OO.ui.ProcessDialog {
 
 export function showDiffDialog(pageTitle: string, originalText: string, newText: string): Promise<DiffResult> {
     return new Promise((resolve) => {
-        const windowManager = new OO.ui.WindowManager();
-        $(document.body).append(windowManager.$element);
-
         const dialog = new DiffDialog(pageTitle, originalText, newText);
-        windowManager.addWindows([dialog]);
-
-        // eslint-disable-next-line
-        windowManager.openWindow(dialog).closed.then((data: any) => {
-            windowManager.clearWindows();
-            windowManager.$element.remove();
-            windowManager.destroy();
-            resolve(data as DiffResult);
-        });
+        openWindow(dialog, {}, (data: DiffResult) => resolve(data));
     });
 }

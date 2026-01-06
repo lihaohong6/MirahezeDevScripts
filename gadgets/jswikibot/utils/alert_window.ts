@@ -14,16 +14,19 @@ export function simpleAlert(title: string, message: string) {
     });
 }
 
-export function openWindow(dialog: OO.ui.Dialog, data?: OO.ui.WindowManager.WindowOpeningData) {
+export function openWindow<T>(dialog: OO.ui.Dialog,
+                           data?: OO.ui.WindowManager.WindowOpeningData,
+                           closureCallback: (data: T) => void = () => {}) {
     const windowManager = new OO.ui.WindowManager();
     $(document.body).append(windowManager.$element);
     windowManager.addWindows([dialog]);
 
     const opened = windowManager.openWindow(dialog, data);
 
-    opened.closed.then(() => {
-        windowManager.clearWindows();
+    // eslint-disable-next-line
+    opened.closed.then((result: any) => {
         windowManager.$element.remove();
         windowManager.destroy();
+        closureCallback(result as T);
     });
 }

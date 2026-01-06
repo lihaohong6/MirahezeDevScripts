@@ -1,10 +1,11 @@
 import {Bot} from "./bots/bot";
-import {PurgeBot} from "./bots/purge";
-import {ReplaceTextBot} from "./bots/replace_text";
-import {DeleteBot} from "./bots/delete";
-import {AddTextBot} from "./bots/add_text";
 import {clearCachedPageInfo} from "./models/state";
 import {SettingsDialog} from "./config";
+import {openWindow} from "./utils/alert_window";
+import {replaceTextBot} from "./bots/replace_text";
+import {purgeBot} from "./bots/purge";
+import {deleteBot} from "./bots/delete";
+import {addTextBot} from "./bots/add_text";
 
 class BotSelectorDialog extends OO.ui.ProcessDialog {
     static static = {
@@ -17,10 +18,10 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
         ]
     };
 
-    private botList: Bot[] = [];
+    private botList: Bot<never>[] = [];
     private mainPanel!: OO.ui.PanelLayout;
 
-    constructor(botList: Bot[]) {
+    constructor(botList: Bot<never>[]) {
         super({});
         this.botList = botList;
     }
@@ -28,7 +29,6 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
     public initialize(): this {
         super.initialize();
         this.setupMainPanel();
-        // @ts-expect-error $body does exist
         this.$body.append(this.mainPanel.$element);
         return this;
     }
@@ -54,7 +54,7 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
             });
 
             const botLayout = new OO.ui.FieldLayout(runButton, {
-                label: bot.getDescription(),
+                label: bot.description,
                 align: 'inline'
             });
 
@@ -68,10 +68,7 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
         if (action === 'settings') {
             return new OO.ui.Process(() => {
                 const settingsDialog = new SettingsDialog();
-                const windowManager = new OO.ui.WindowManager();
-                $(document.body).append(windowManager.$element);
-                windowManager.addWindows([settingsDialog]);
-                windowManager.openWindow(settingsDialog);
+                openWindow(settingsDialog);
             });
         }
 
@@ -86,28 +83,19 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
 }
 
 export function runBotSelector(): void {
-    const availableBots: Bot[] = [
-        new PurgeBot(),
-        new ReplaceTextBot(),
-        new DeleteBot(),
-        new AddTextBot()
-    ];
-
-    const windowManager = new OO.ui.WindowManager();
-    $(document.body).append(windowManager.$element);
+    const availableBots: Bot<never>[] = [
+        replaceTextBot,
+        purgeBot,
+        deleteBot,
+        addTextBot
+    ] as Bot<never>[];
 
     const botSelector = new BotSelectorDialog(availableBots);
-    windowManager.addWindows([botSelector]);
-
-    // eslint-disable-next-line
-    windowManager.openWindow(botSelector).closed.then(async (result: any) => {
-        windowManager.clearWindows();
-        windowManager.$element.remove();
-
+    openWindow(botSelector, {}, async (result: {action: string, bot: Bot<never>}) => {
         if (result && result.action === 'run' && result.bot) {
             // Clear leftover cache from previous bot run in case stuff changed.
             clearCachedPageInfo();
-            await result.bot.execute();
+            return result.bot.fetchConfig();
         }
     });
 }
