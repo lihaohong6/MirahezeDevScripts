@@ -30,6 +30,14 @@ jobs:
         node-version: '22'
         cache: 'npm'
     
+    - name: Cache Node.js modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
+    
     - name: Install dependencies
       run: npm ci
     
@@ -38,10 +46,14 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
     
+    - name: Set environment variables
+      run: |
+        echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@dist/dist" >> $GITHUB_ENV
+
     - name: Publish build result to dist branch
       run: |
         bash ./publish.sh
-
+  
   sync-with-dev:
     runs-on: ubuntu-latest
 
