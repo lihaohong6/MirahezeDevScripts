@@ -536,7 +536,6 @@
         /* Add a link to the special page running PageRenameAuto-update using the gadget PowertoolsPlacement */
         var placementModuleName = MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement';
         if (mw.loader.getState(placementModuleName) !== null) {
-          mw.loader.load(placementModuleName);
           mw.hook('dev.powertools.placement').add(function (placement) {
             placement.addPortletLink(mw.config.values.skin, {
               id: 't-page-rename-auto-update',

@@ -492,7 +492,7 @@
   getI18nLoader().then(function (loader) {
     i18n = prepareI18n(loader);
     i18n = i18n.msg.bind(i18n);
-    main();
+    mw.hook('dev.qdmodal').add(main);
   });
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
