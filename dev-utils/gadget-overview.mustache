@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MirahezeDevScripts</title>
+    <link rel="icon" href="https://static.miraheze.org/devwiki/0/02/Devwiki_favicon.ico" />
+    <meta name="description" contents="This is a list of scripts for use in MediaWiki wikis." />
+    <meta name="keywords" contents="MediaWiki,gadgets,scripts,widgets" />
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+    <style type="text/css">
+      body {
+        grid-template-columns: none;
+        margin: 0 10em;
+      }
+      table {
+        width: 100%;
+        overflow-x: scroll;
+        display: block;
+      }
+      td {
+        word-break: break-word;
+      }
+      th:nth-child(2) {
+        min-width: 180px;
+      }
+      th:nth-child(3) {
+        min-width: 220px;
+      }
+      th:nth-child(4) {
+        min-width: 320px;
+      } 
+      th:nth-child(5) {
+        min-width: 200px;
+      }
+      tr {
+        background-color: initial !important;
+      }
+      tr:nth-child(4n-1), tr:nth-child(4n) {
+        background-color: var(--accent-bg) !important;
+      }
+      .wikipage {
+        white-space: nowrap;
+      }
+      @media (min-width:768px) and (max-width:1200px) {
+        body {
+          margin: 0 5em;
+        }
+      }
+      @media (min-width:501px) and (max-width:767px) {
+        body {
+          margin: 0 2em;
+        }
+      }
+      @media (max-width:500px) {
+        body {
+          margin: 0 20px;
+        }
+        table, thead, tbody, tr, th, td {
+          display: block;
+          width: 100%;
+        }
+        th, td {
+          border-top: none;
+          border-bottom: none;
+        }
+        th {
+          display: none;
+          min-width: none;
+        }
+        td:first-child {
+          border-top: solid 1px;
+        }
+        td:last-child {
+          border-bottom: solid 1px;
+        }
+        td a {
+          word-break: break-all;
+        }
+        td::before {
+          font-style: italic;
+          text-decoration: underline;
+        }
+        td:nth-child(3)::before {
+          content: 'Authors';
+        }
+        td:nth-child(4)::before {
+          content: 'Description';
+        }
+        td:nth-child(5)::before {
+          content: 'Restrictions';
+        }
+      }
+
+      .code-block {
+        position: relative;
+        margin: 1.5rem 0;
+      }
+      .code-block:hover {
+        background-color: #897d8540;
+        cursor:pointer;
+      }
+      .code-block pre {
+        padding: 1rem;
+        padding-top: 2.5rem;
+        background: #897d851c;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: monospace;
+        font-size: 0.9rem;
+      }
+      .copy-btn {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        background: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        opacity: 0.8;
+      }
+      .copy-btn:hover {
+        opacity: 1;
+      }
+      .copy-btn.copied {
+        background: #2ea043;
+      }
+
+      button:enabled:hover, .button:not([aria-disabled=true]):hover, input[type=submit]:enabled:hover, input[type=reset]:enabled:hover, input[type=button]:enabled:hover {
+        background-color: initial;
+        border-color: initial;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Miraheze Dev Scripts</h2>
+    <p>To use one of these scripts, copy the line of code listed below (<code>mw.loader.load(...)</code>) to either your <span class="wikipage">User:&lt;username&gt;/common.js</span> page (single-user installation) or <span class="wikipage">MediaWiki:Common.js</span> (site-wide installation) page on your wiki.</p>
+    <p>Scripts installed on a wiki have the risk of impacting your and/or your users' experience. Always verify the code that you are executing on your wiki or userpage.</p>
+    <p>The contents of the scripts listed here are originally listed under the <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank" rel="noreferrer">Creative Commons Attribution-Share Alike License 3.0 (Unported) (CC BY-SA) license</a>. Be sure that you are not violating any terms of the license when you are reusing, modifying, or redistributing the scripts listed below.</p>
+    <h2>List of Scripts</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Name</th>
+          <th>Authors</th>
+          <th>Description</th>
+          <th>Restrictions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{^gadgets}}
+        <tr>
+          <td colspan="5"><i>No gadgets listed</i></td>
+        </tr>
+        {{/gadgets}}
+        {{#gadgets}}
+        <tr>
+          <td rowspan="2">{{idx}}</td>
+          <td>{{name}}</td>
+          <td>
+            <ul>
+              {{^authors}}
+                <i>None listed</i>
+              {{/authors}}
+              {{#authors}}
+                <li>{{.}}</li>
+              {{/authors}}
+            </ul>
+          </td>
+          <td>{{{description}}}</td>
+          <td>{{{resourceLoader}}}</td>
+        </tr>
+        <tr>
+          <td colspan="4">
+            <div class="code-block">
+              <button type="button" class="copy-btn" aria-label="Copy code">
+                Copy
+              </button>
+              <pre>{{loadScript}}</pre>
+            </div>
+          </td>
+        </tr>
+        {{/gadgets}}
+      </tbody>
+    </table>
+    <script>
+      document.querySelectorAll(".code-block").forEach(block => {
+        block.addEventListener("click", (event) => {
+          const button = block.getElementsByTagName("button")[0];
+          const code = block.getElementsByTagName("pre")[0].textContent;
+
+          navigator.clipboard.writeText(code).then(() => {
+            const originalText = button.textContent;
+            button.textContent = "Copied!";
+            button.classList.add("copied");
+
+            setTimeout(() => {
+              button.textContent = originalText;
+              button.classList.remove("copied");
+            }, 1500);
+          });
+          event.stopPropagation();
+        });
+      });
+    </script>
+  </body>
+</html>

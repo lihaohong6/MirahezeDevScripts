@@ -1,9 +1,9 @@
 import { readFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
-import { OutputBundle } from 'rollup';
+import type { OutputBundle } from 'rollup';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
-import { Target } from 'vite-plugin-static-copy';
+import type { Target } from 'vite-plugin-static-copy';
 import { transformWithEsbuild } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
@@ -196,6 +196,15 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
 }
 
 /**
+ * 
+ * @param gadget 
+ * @returns 
+ */
+export function createScriptLoadingStatement(gadgetName: string) {
+  return `mw.loader.load("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
+}
+
+/**
  * Builds the entrypoint file (`load.js`) to be served by the Vite server and to be 
  * loaded on the MediaWiki client.
  * 
@@ -258,7 +267,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   const conditions: string[] = [];
   const normalizeVariable = (variable: string | string[]) => {
     if (typeof variable === 'string') {
-      return variable.split(/\s*,\s*/);
+      return variable.trim().split(/\s*,\s*/).filter((val) => val !== '');
     }
     return variable;
   }
