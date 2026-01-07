@@ -92,7 +92,7 @@ function appendStyles(doc: HTMLDocument): void {
         min-width: none;
       }
       td:first-child {
-        border-top: solid 1px
+        border-top: solid 1px;
       }
       td {
         word-break: break-all;
@@ -114,7 +114,7 @@ function appendStyles(doc: HTMLDocument): void {
         content: 'Load';
       }
     }
-  `;
+  `.trim().replaceAll(/(?<=\}|\{|;)\s*/g, '').replaceAll(/\s*(?=\{)/g, '');
 
   doc.head.append(...styles, styleTag);
 }

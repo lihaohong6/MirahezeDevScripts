@@ -1,9 +1,9 @@
 import { readFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
-import { OutputBundle } from 'rollup';
+import type { OutputBundle } from 'rollup';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
-import { Target } from 'vite-plugin-static-copy';
+import type { Target } from 'vite-plugin-static-copy';
 import { transformWithEsbuild } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
