@@ -38,6 +38,11 @@ jobs:
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
     
+    - name: Set environment variables
+      run: |
+        # Set CDN entrypoint with version pinning
+        echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@latest/dist" >> $GITHUB_ENV
+
     - name: Publish build result to dist branch
       run: |
         bash ./publish.sh
