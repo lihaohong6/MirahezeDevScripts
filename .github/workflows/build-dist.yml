@@ -6,6 +6,7 @@ name: Build and Deploy to Dist Branch
 on:
   push:
     branches: [ master ]
+    paths: [ 'gadgets/**/*.+(js|ts|css|less|json|yaml)' ]
   # Allow manual triggering from the Actions tab
   workflow_dispatch:
 
