@@ -22,17 +22,13 @@
 	//   Configuration
 	// =================
 	/* Default per-wiki configuration */
-	var config = {
+	var defaultConfig = {
 		
 		// List of boilerplates to be populated into the first (primary) dropdown.
 		primary: 'MediaWiki:PreloadTemplates/primary',
-		// Primary dropdown placeholder text. Set as null to use default.
-		placeholderPrimary: "(insert boilerplate)",
 		
 		// List of boilerplates to be populated into the secondary dropdown. Set as null if unneeded
 		secondary: 'MediaWiki:PreloadTemplates/secondary',
-		// Secondary dropdown placeholder text. Set as null if unneeded
-		placeholderSecondary: "(insert template)",
 		
 		// Suffix of each preload template 
 		subpage: 'preload',
@@ -46,15 +42,26 @@
 	};
 	
 	/* Individual user can choose to override */
-	var userConfig = {
-		primary: (window.PreloadTemplates || {}).primary,
-		placeholderPrimary: (window.PreloadTemplates || {}).placeholderPrimary,
-		secondary: (window.PreloadTemplates || {}).secondary,
-		placeholderSecondary: (window.PreloadTemplates || {}).placeholderSecondary,
-		subpage: (window.PreloadTemplates || {}).subpage,
-		storageCacheAge: (window.PreloadTemplates || {}).storageCacheAge,
-		serverCacheAge: (window.PreloadTemplates || {}).serverCacheAge,
+	var userConfig = window.PreloadTemplates || {};
+
+	var config = {
+		/* we do this to get JS to take care of falsy values in userConfig (e.g. empty string (''), undefined ) */
+		primary: userConfig.primary || defaultConfig.primary,
+		secondary: userConfig.secondary || defaultConfig.secondary,
+		subpage: userConfig.subpage || defaultConfig.subpage,
+		/* we do this so only numbers are set, including 0 (no cache) */
+		storageCacheAge: (
+			(typeof userConfig.storageCacheAge === 'number' || !isNaN(userConfig.storageCacheAge)) ? 
+			userConfig.storageCacheAge : 
+			defaultConfig.storageCacheAge
+		),
+		serverCacheAge: (
+			(typeof userConfig.serverCacheAge === 'number' || !isNaN(userConfig.storageCacheAge)) ? 
+			userConfig.serverCacheAge : 
+			defaultConfig.serverCacheAge
+		),
 	};
+	DEBUG && console.table(config);
 	
 	// =================
 	//   Run
@@ -177,9 +184,11 @@
 			namespacePagename + title + '/' + config.subpage;
 
 		$.get(mw.util.wikiScript(), {
-				title: page,
-				action: 'raw',
-				ctype: 'text/plain'
+			title: page,
+			action: 'raw',
+			ctype: 'text/plain',
+			maxage: 0,	// always get latest
+			smaxage: 0, // always get latest
 		}).done(function(preloadData) {
 			// Parse some MediaWiki tags
 			var preloadDataParsed = parseMW(preloadData);
@@ -267,11 +276,11 @@
 		appendModule();
 	}
 		
-	function listHTML(parsed, placeholder) {
+	function listHTML(parsed) {
 		return mw.html.element('option', {
 			selected: true,
 			disabled: true
-		}, placeholder || msg('choose')) + parsed.split('\n').map(function(line) {
+		}, msg('choose')) + parsed.split('\n').map(function(line) {
 			// Ignore empty lines
 			if (line.trim() === '') {
 				return '';
@@ -306,7 +315,7 @@
 
 	// If the initialization failed
 	function initFail() {
-		var primaryPlPagename = userConfig.primary || config.primary;
+		var primaryPlPagename = config.primary;
 		$main.append(
 			i18n.msg(
 				'error',
@@ -322,8 +331,8 @@
 		if ($main.find('#pt-list').length > 0) {
 			return; // Initialize only once
 		}
-		var primaryPlPagename = userConfig.primary || config.primary;
-		var secondaryPlPagename = userConfig.secondary || config.secondary;
+		var primaryPlPagename = config.primary;
+		var secondaryPlPagename = config.secondary;
 		var fetchedFromCache = getListOfTemplatesFromCache(primaryPlPagename, secondaryPlPagename);
 		if (fetchedFromCache !== null) {
 			populateDropdowns(fetchedFromCache[0], fetchedFromCache[1]);
@@ -381,7 +390,7 @@
 		var dropdown = $('<select>', {
 			id: 'pt-list',
 			title: msg('help'),
-			html: listHTML(parsedPrimary, config.placeholderPrimary)
+			html: listHTML(parsedPrimary)
 		}).change(function() {
 			var $this = $(this),
 				val = $this.val();
@@ -397,7 +406,7 @@
 		var dropdownSecondary = $('<select>', {
 			id: 'pt-list-secondary',
 			title: msg('help'),
-			html: parsedSecondary === '' ? undefined : listHTML(parsedSecondary, config.placeholderSecondary),
+			html: parsedSecondary === '' ? undefined : listHTML(parsedSecondary),
 			style: parsedSecondary === '' ? 'display:none;' : undefined,
 		}).change(function() {
 			var $this = $(this),

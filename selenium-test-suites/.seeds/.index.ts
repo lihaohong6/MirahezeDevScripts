@@ -11,6 +11,7 @@ import { seedMassRename } from "./MassRename.ts";
 import { seedMassCategorization } from "./MassCategorization.ts";
 import { seedMassProtect } from "./MassProtect.ts";
 import { seedPageRenameAutoUpdate } from "./PageRenameAutoUpdate.ts";
+import { seedPreloadTemplates } from "./PreloadTemplates.ts";
 
 resolveEnv();
 
@@ -34,6 +35,7 @@ runBotOperation(
     seedMassCategorization,
     seedMassProtect,
     seedPageRenameAutoUpdate,
+    seedPreloadTemplates
   ], 
 
   {
