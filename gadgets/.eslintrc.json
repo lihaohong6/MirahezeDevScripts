@@ -15,6 +15,13 @@
     // identifier injected by esbuild, useful for debugging
     "DEBUG": "readonly"
   },
+  "rules": {
+    "@typescript-eslint/no-unused-expressions": [
+      "error", { 
+        "allowShortCircuit": true 
+      }
+    ]
+  },
   "overrides": [
     {
       "files": [
