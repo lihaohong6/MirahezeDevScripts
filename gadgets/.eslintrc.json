@@ -11,7 +11,9 @@
   "globals": {
     "mw": "readonly",
     "mediaWiki": "readonly",
-    "OO": "readonly"
+    "OO": "readonly",
+    // identifier injected by esbuild, useful for debugging
+    "DEBUG": "readonly"
   },
   "overrides": [
     {

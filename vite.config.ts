@@ -142,6 +142,15 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         'MH_DEVSCRIPTS_CDN_ENTRYPOINT': `"${cdnEntrypoint}"`,
 
         'MH_DEVSCRIPTS_GADGET_NAMESPACE': `"${gadgetNamespace}"`,
+
+        /**
+         * Useful for debugging
+         * In your gadget code, use by writing:
+         * `DEBUG && console.log(obj);`
+         * 
+         * On compilation this will become `console.log(obj);` on debug mode, and no output on dist mode.
+         */
+        'DEBUG': (serverPreviewOrigin || cdnEntrypoint).match(/^https?:\/\/localhost/) !== null ? 'true' : 'false',
       },
 
     },
