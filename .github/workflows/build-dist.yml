@@ -48,7 +48,16 @@ jobs:
     
     - name: Set environment variables
       run: |
-        echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@dist/dist" >> $GITHUB_ENV
+        # Bump semver
+        LATEST_TAG=$(git describe --abbrev=0 --candidates=1 $(git rev-parse --short origin/dist)) 	# by timestamp
+        SEMVER=${LATEST_TAG#v}
+        IFS='.' read -r SEMVER_MAJOR SEMVER_MINOR SEMVER_PATCH <<< "$SEMVER"
+        SEMVER_PATCH=$((SEMVER_PATCH + 1))
+        NEW_TAG="v$SEMVER_MAJOR.$SEMVER_MINOR.$SEMVER_PATCH"
+        echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+        # Set CDN entrypoint with version pinning
+        echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@$NEW_TAG/dist" >> $GITHUB_ENV
 
     - name: Publish build result to dist branch
       run: |

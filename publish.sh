@@ -10,4 +10,11 @@ cp -r "$TEMP_DIR/dist" "$DIST_DIR"
 git add .
 git commit -m "Recompile gadget"
 git push
+
+# Push new tag
+if [[ -v NEW_TAG ]]; then
+  git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+  git push origin $NEW_TAG
+fi
+
 git switch master
