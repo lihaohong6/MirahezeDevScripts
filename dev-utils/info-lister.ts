@@ -13,7 +13,9 @@ import { writeFileSync } from "node:fs";
 export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
   const dom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
   const doc = dom.window.document;
-  doc.head.title = 'MirahezeDevScripts';
+  const title = doc.createElement('title');
+  title.textContent = 'MirahezeDevScripts';
+  doc.head.appendChild(title);
   appendStyles(doc);
 
   buildInfoOverview(doc);
