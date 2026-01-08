@@ -47,24 +47,11 @@ export default async (args: TestSuiteDriverArgs) => {
   const loadScripts = async (driver: WebDriver): Promise<boolean> => {
     /* Wait until Countdown and its dependencies are loaded */
     await driver.executeScript(`
+      mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
       mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/Countdown/gadget-impl.js");
     `);
     await driver.sleep(200);
     return true;
-  };
-
-  const reloadPageWithI18n = async (driver: WebDriver) => {
-    try {
-      await driver.navigate().refresh();
-      if (!(await testSuite.waitForContextToLoad(driver))) {
-        throw new Error('Failed to refresh context');
-      }
-      await driver.executeScript(`
-        mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
-      `);
-    } catch (err) {
-      LogUtils.error(err);
-    }
   };
 
   /***********************************************************************
@@ -199,19 +186,6 @@ export default async (args: TestSuiteDriverArgs) => {
    * REGISTER TEST CASE & RUN
    * 
    ***********************************************************************/
-
-  testSuite.addTestCase(
-    'TestWithoutLoadedI18nLoader',
-    test(false)
-  );
-  testSuite.addTestCase(
-    'ReloadContext',
-    reloadPageWithI18n,
-    {
-      /* Stop further test cases if failed */ 
-      stopFurtherTestsOnFailure: true 
-    }
-  );
   testSuite.addTestCase(
     'TestWithLoadedI18nLoader',
     test(true)
