@@ -11,7 +11,7 @@ import { writeFileSync } from "node:fs";
  * @returns 
  */
 export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
-  const dom = new JSDOM(`<!DOCTYPE html><html><head></head><body></body></html>`);
+  const dom = new JSDOM(`<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>`);
   const doc = dom.window.document;
   const title = doc.createElement('title');
   title.textContent = 'MirahezeDevScripts';
@@ -21,6 +21,8 @@ export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
   buildInfoOverview(doc);
   buildListOfGadgets(doc, gadgets);
 
+  appendScript(doc);
+
   writeFileSync(
     resolveDistPath('index.html', true),
     dom.serialize(),
@@ -29,7 +31,6 @@ export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
 }
 
 /**
- * 
  * @param doc 
  */
 function appendStyles(doc: HTMLDocument): void {
@@ -42,6 +43,7 @@ function appendStyles(doc: HTMLDocument): void {
   });
 
   const styleTag = doc.createElement('style');
+  styleTag.setAttribute('type', 'text/css');
   styleTag.textContent = `
     body {
       grid-template-columns: none;
@@ -67,19 +69,19 @@ function appendStyles(doc: HTMLDocument): void {
     th:nth-child(5) {
       min-width: 200px;
     }
-    @media screen and (min-width:768px) and (max-width: 1200px) {
+    @media (min-width:768px) and (max-width:1200px) {
       body {
         margin: 0 5em;
       }
     }
-    @media (max-width: 767px) {
+    @media (min-width:501px) and (max-width:767px) {
       body {
         margin: 0 2em;
       }
     }
-    @media (max-width: 500px) {
+    @media (max-width:500px) {
       body {
-        margin: 0 20em;
+        margin: 0 20px;
       }
       table, thead, tbody, tr, th, td {
         display: block;
@@ -116,9 +118,74 @@ function appendStyles(doc: HTMLDocument): void {
         content: 'Load';
       }
     }
-  `.trim().replaceAll(/(?<=\}|\{|;)\s*/g, '').replaceAll(/\s*(?=\{)/g, '');
+
+    .code-block {
+      position: relative;
+      margin: 1.5rem 0;
+    }
+    .code-block pre {
+      padding: 1rem;
+      padding-top: 2.5rem; /* space for button */
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    .copy-btn:hover {
+      opacity: 1;
+    }
+    .copy-btn.copied {
+      background: #2ea043;
+    }
+  `
+  .trim()
+  .replaceAll(/(?<=\}|\{|;)\s*/g, '')
+  .replaceAll(/\s*(?=\{)/g, '')
+  .replaceAll(/(;(?=\})|(?<=:) )/g, '');  // ad-hoc minification
 
   doc.head.append(...styles, styleTag);
+}
+
+/**
+ * @param doc 
+ */
+function appendScript(doc: HTMLDocument): void {
+  const script = doc.createElement('script');
+  script.textContent = `
+  document.querySelectorAll(".copy-btn").forEach(button => {
+    button.addEventListener("click", () => {
+      const code = button.nextElementSibling.innerText;
+
+      navigator.clipboard.writeText(code).then(() => {
+        const originalText = button.textContent;
+        button.textContent = "Copied!";
+        button.classList.add("copied");
+
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.classList.remove("copied");
+        }, 1500);
+      });
+    });
+  });
+  `.trim()
+  .replaceAll(/(?<=\{|;)\s*(?=[a-zA-Z]|\})\s*/g, ''); // ad-hoc minification
+  doc.body.appendChild(script);
 }
 
 /**
@@ -128,23 +195,47 @@ function buildInfoOverview(doc: HTMLDocument): void {
   const heading = doc.createElement('h2');
   heading.textContent = 'Miraheze Dev Scripts';
   const instructions = doc.createElement('p');
+  const formatWikipageSpan = (title: string) => {
+    const code = doc.createElement('span');
+    code.style.whiteSpace = 'nowrap';
+    code.textContent = title;
+    return code;
+  } 
   instructions.append(
-    'To use one of these gadgets, copy the line of code listed below (',
+    'To use one of these scripts, copy the line of code listed below (',
     (() => {
       const code = doc.createElement('code');
       code.textContent = 'mw.loader.load(...)';
       return code;
     })(),
-    ') to either your User:<username>/common.js page (single-user installation) or MediaWiki:Common.js (site-wide installation) page on your wiki.'
+    ') to either your ',
+    formatWikipageSpan('User:<username>/common.js'),
+    ' page (single-user installation) or ', 
+    formatWikipageSpan('MediaWiki:Common.js'), 
+    ' (site-wide installation) page on your wiki.'
   );
   const disclaimer = doc.createElement('p');
   disclaimer.append(
     'The state of these scripts is tentative and may change at any time. Always verify the code that you are executing on your wiki or userpage.'
   );
+  const copyrightNotice = doc.createElement('p');
+  copyrightNotice.append(
+    'The contents of the scripts listed here are originally listed under the ',
+    (() => {
+      const a = doc.createElement('a');
+      a.setAttribute('href', 'https://creativecommons.org/licenses/by-sa/3.0/deed.en');
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noreferrer');
+      a.textContent = 'Creative Commons Attribution-Share Alike License 3.0 (Unported) (CC BY-SA) license';
+      return a;
+    })(),
+    '. Be sure that you are not violating any terms of the license when you are reusing, modifying, or redistributing the scripts listed below.'
+  );
   doc.body.append(
     heading,
     instructions,
-    disclaimer
+    disclaimer,
+    copyrightNotice
   );
 }
 
@@ -429,7 +520,22 @@ function buildGadgetLoadingRestrictionsOverview(doc: HTMLDocument, { resourceLoa
  * @returns 
  */
 function buildGadgetLoadingCode(doc: HTMLDocument, { name }: GadgetDefinition): HTMLElement {
+  const divBlock = doc.createElement('div');
+  divBlock.classList.add('code-block');
+  
+  const button = doc.createElement('button');
+  button.setAttribute('type', 'button');
+  button.classList.add('copy-btn');
+  button.setAttribute('aria-label', 'Copy code');
+  button.textContent = 'Copy';
+  
   const pre = doc.createElement('pre');
   pre.textContent = createScriptLoadingStatement(name);
-  return pre;
+
+  divBlock.append(
+    button,
+    pre
+  );
+
+  return divBlock;
 }
