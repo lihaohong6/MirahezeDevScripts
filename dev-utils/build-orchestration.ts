@@ -287,7 +287,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   };
 
   const checkForConditions = [
-    { v: rights, configIsListOfValues: true, configKey: 'wgUserRights', valueIsNumeric: false },
+    { v: rights, configIsListOfValues: true, configKey: 'wgUserGroups', valueIsNumeric: false },
     { v: skins, configIsListOfValues: false, configKey: 'skin', valueIsNumeric: false },
     { v: actions, configIsListOfValues: false, configKey: 'wgAction', valueIsNumeric: false },
     { v: categories, configIsListOfValues: true, configKey: 'wgCategories', valueIsNumeric: false },
