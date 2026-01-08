@@ -123,6 +123,8 @@ By default, the cache only keeps translations for the user's language (<code>wgU
 
 ### i18nLoader object
 [`i18nModule.loadMessages()`](#i18nmoduleloadmessages) returns a jQuery.Deferred() object that resolves as an `i18nLoader` object. This object stores your individual messages and controls access to the language it tries to translate them into. It defines the following methods:
+- <code>getMessages()</code><br />Get the messages map for the set language (default: user language).
+- <code>clearMessages(lang)</code><br />Clear the messages map from internal runtime memory for the language <code>lang</code>. If <code>lang</code> is true, then all the messages will be cleared.
 - <code>useContentLang()</code><br />Set the default language to the value of <code>wgContentLanguage</code>.
 - <code>useUserLang()</code><br />Set the default language to the user language (the user language is the value of <code>wgUserLanguage</code>, unless set otherwise by [the <code>options</code> parameter of <code>loadMessages()</code>](#loading-your-messages)).
 - <code>inContentLang()</code><br />Set the language to the value of <code>wgContentLanguage</code> for the next message only.

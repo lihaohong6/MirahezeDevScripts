@@ -648,14 +648,13 @@ mw.loader.impl(function () {
         return {
           _defaultLang: options.language,
           _tempLang: null,
-          _defaultLangMsgMap: null,
+          _msgMaps: {},
 
           /**
            * @param {String} lang
            */
           setDefaultLang: function (lang) {
             this._defaultLang = lang;
-            this._defaultLangMsgMap = null;
           },
 
           /**
@@ -670,16 +669,23 @@ mw.loader.impl(function () {
            * @returns {mw.Map}
            */
           getMessages: function () {
-            if (this._tempLang === null && this._defaultLangMsgMap !== null) {
-              return this._defaultLangMsgMap;
+            var lang = this._tempLang || this._defaultLang;
+            if (!lang) {
+              console.error('[FandoomUtilsI18nLoader] Language is not set!');
             }
-            if (!this._defaultLang) {
-              console.error('[FandoomUtilsI18nLoader] defaultLang is not set!');
+            function fetch (lang) {
+              if (this._tempLang) {
+                this._tempLang = null;  // Reset for next invocation
+              }
+              return this._msgMaps[lang];
             }
-            var messagesToLoad = messages[this._tempLang || this._defaultLang];
+            if (this._msgMaps[lang]) {
+              return fetch.call(this, lang);
+            }
+            var messagesToLoad = messages[lang];
             if (messagesToLoad === undefined) {
               if (messages.en) {
-                console.warn('[FandoomUtilsI18nLoader] Unable to find messages for the script \'' + name + '\' and the language \'' + (this._tempLang || this._defaultLang) + '\'. Switching to English as fallback.');
+                console.warn('[FandoomUtilsI18nLoader] Unable to find messages for the script \'' + name + '\' and the language \'' + lang + '\'. Switching to English as fallback.');
                 messagesToLoad = messages.en;
               } else {
                 console.error('[FandoomUtilsI18nLoader] No messages to load for ' + name );
@@ -688,21 +694,40 @@ mw.loader.impl(function () {
             }
 
             // Override i18n messages
+            // This does not affect the local storage cache
             if (window.dev && window.dev.i18n && window.dev.i18n.overrides && window.dev.i18n.overrides[name]) {
               Object.entries(window.dev.i18n.overrides[name]).forEach(function (kv) {
                 messagesToLoad[kv[0]] = kv[1];
               });
             }
 
-            if (this._tempLang) {
-              var tempLangMsgMap = new mw.Map();
-              tempLangMsgMap.set(messagesToLoad);
-              this._tempLang = null;  // Reset for next invocation
-              return tempLangMsgMap;
-            } else {
-              this._defaultLangMsgMap = new mw.Map();
-              this._defaultLangMsgMap.set(messagesToLoad);
-              return this._defaultLangMsgMap;
+            /** 
+             * Mechanism to save messages to the internal cache. 
+             * This does mean that the messages are saved indefinitely 
+             * until a new browser context is set (e.g. by refreshing 
+             * the page).
+             * Each developer is responsible for managing resource use
+             * and avoiding memory leaks.
+             */
+            var m = new mw.Map();
+            m.set(messagesToLoad);
+            this._msgMaps[lang] = m;
+
+            return fetch.call(this, lang);
+          },
+
+          /**
+           * Use this to clear messages for a certain or all languages 
+           * @param {Boolean|String} arg 
+           * If `true` is passed, then all messages will be cleared.
+           * If a string is passed, then messages corresponding to that
+           * language will be cleared. 
+           */
+          clearMessages: function (arg) {
+            if (arg === true) {
+              this._msgMaps = {};
+            } else if (typeof arg === 'string' && this._msgMaps[arg]) {
+              delete this._msgMaps[arg];
             }
           },
 
@@ -1091,6 +1116,7 @@ mw.loader.impl(function () {
         
         $.getJSON(entrypoint + '/' + name + '/i18n.json')
           .done(function (json) {
+            // messages are cached to local storage cache in parseMessagesToObject
             deferred.resolve(parseMessagesToObject(name, json, options));
           })
           // .fail() will be called instead of .done() in the event of network failure or JSON parsing failure
