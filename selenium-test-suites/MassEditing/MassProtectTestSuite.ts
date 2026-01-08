@@ -1,4 +1,5 @@
 import { By, WebDriver, WebElement, until } from 'selenium-webdriver';
+import { Select } from 'selenium-webdriver/lib/select.js';
 import { randomBytes } from 'node:crypto';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
 import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
@@ -69,10 +70,8 @@ export default async (args: TestSuiteDriverArgs) => {
   };
 
   const selectProtectOption = async (driver: WebDriver, attribute: 'edit' | 'move' | 'upload' | 'create' | 'comment', protectOption: string): Promise<void> => {
-    const selectOption = await driver.findElement(By.css(`#form-mass-protect #protect-${attribute}`));
-    await selectOption.click();
-    const chooseOption = await selectOption.findElement(By.css(`option[value="${attribute}=${protectOption}"]`));
-    await chooseOption.click();
+    const selectOption = new Select(await driver.findElement(By.css(`#form-mass-protect #protect-${attribute}`)));
+    await selectOption.selectByValue(`${attribute}=${protectOption}`);
     await driver.sleep(200);
   }
 
@@ -251,9 +250,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.sleep(200);
         
         const pageListInput = await modal.findElement(By.id('text-mass-protect'));
-        await pageListInput.sendKeys(
-          ...pagesToProtect.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToProtect) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('mp-start'));
@@ -469,9 +468,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.sleep(200);
 
         const pageListInput = await modal.findElement(By.id('text-mass-protect'));
-        await pageListInput.sendKeys(
-          ...pagesToProtect.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToProtect) {
+          await pageListInput.sendKeys(page + '\n');
+        }
 
         const initiateButton = await modal.findElement(By.id('mp-start'));
         const pauseButton = await modal.findElement(By.id('mp-pause'));
@@ -568,9 +567,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.sleep(200);
 
         const pageListInput = await modal.findElement(By.id('text-mass-protect'));
-        await pageListInput.sendKeys(
-          ...pagesToProtect.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToProtect) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('mp-start'));
@@ -740,9 +739,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.sleep(200);
         
         const pageListInput = await modal.findElement(By.id('text-mass-protect'));
-        await pageListInput.sendKeys(
-          ...pagesToUnprotect.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToUnprotect) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('mp-start'));

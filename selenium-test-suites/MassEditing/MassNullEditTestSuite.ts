@@ -201,9 +201,9 @@ export default async (args: TestSuiteDriverArgs) => {
         modal = await driver.findElement(By.id('mne-main'));
         
         const pageListInput = await modal.findElement(By.id('mne-input'));
-        await pageListInput.sendKeys(
-          ...pagesToNullEdit.map(page => `${page}\n`)
-        );
+        for (const page of pagesToNullEdit) {
+          await pageListInput.sendKeys(page + '\n');
+        }
 
         const initiateButton = await modal.findElement(By.id('mne-main-start'));
         await initiateButton.click();
@@ -420,8 +420,10 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.executeScript(`
           mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
         `);
-        await driver.sleep(200);
+      } else {
+        await preemptivelyDisableI18n(driver, gadgetNamespace);
       }
+      await driver.sleep(200);
       const loadedScripts = await loadScripts(driver);
       assert(loadedPage && loadedScripts, 'Failed to load Category:MassNullEdit');
       const i18nMessages = withI18nJs ? zhI18nMessages : enI18nMessages;
@@ -501,8 +503,10 @@ export default async (args: TestSuiteDriverArgs) => {
         await driver.executeScript(`
           mw.loader.load("${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM}/FandoomUtilsI18nLoader/gadget-impl.js");
         `);
-        await driver.sleep(200);
+      } else {
+        await preemptivelyDisableI18n(driver, gadgetNamespace);
       }
+      await driver.sleep(200);
       const loadedScripts = await loadScripts(driver);
       assert(loadedPage && loadedScripts, 'Failed to load Special:PrefixIndex');
       const i18nMessages = withI18nJs ? zhI18nMessages : enI18nMessages;

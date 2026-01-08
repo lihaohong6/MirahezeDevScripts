@@ -233,9 +233,6 @@ export default async (args: TestSuiteDriverArgs) => {
         
         const pagesToMove = Array(10).fill(null).map((_, index) => `MassRename${withI18nJs ? ' with-i18n' : ''} ${index+1}`);
         const newTitles = pagesToMove.map((page) => `${page} moved`);
-        let sendToInput = Array(10).fill(null).map((_, index) => (
-          `${pagesToMove[index].replaceAll(' ', '_')} ${newTitles[index].replaceAll(' ', '_')}\n`
-        ));
         const comment = `SELENIUM TEST: Move pages without making redirect ${randomBytes(4).toString('hex')}`;
 
         modal = await driver.findElement(By.id('form-mass-rename'));
@@ -243,9 +240,12 @@ export default async (args: TestSuiteDriverArgs) => {
         await moveReasonInput.sendKeys(comment);
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-rename'));
-        await pageListInput.sendKeys(
-          ...sendToInput
-        );
+        for (let i = 0; i < pagesToMove.length; i++) {
+          await pageListInput.sendKeys( pagesToMove[i].replaceAll(' ', '_') );
+          await pageListInput.sendKeys( ' ' );
+          await pageListInput.sendKeys( newTitles[i].replaceAll(' ', '_') );
+          await pageListInput.sendKeys( '\n' );
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('mr1-start'));
@@ -334,9 +334,6 @@ export default async (args: TestSuiteDriverArgs) => {
         
         const pagesToMove = Array(10).fill(null).map((_, index) => `MassRename${withI18nJs ? ' with-i18n' : ''} ${index+11}`);
         const newTitles = pagesToMove.map((page) => `${page} moved`);
-        let sendToInput = Array(10).fill(null).map((_, index) => (
-          `${pagesToMove[index].replaceAll(' ', '_')} ${newTitles[index].replaceAll(' ', '_')}\n`
-        ));
         const comment = `SELENIUM TEST: Move pages while making redirect ${randomBytes(4).toString('hex')}`;
 
         modal = await driver.findElement(By.id('form-mass-rename'));
@@ -346,9 +343,12 @@ export default async (args: TestSuiteDriverArgs) => {
         await moveReasonInput.sendKeys(comment);
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-rename'));
-        await pageListInput.sendKeys(
-          ...sendToInput
-        );
+        for (let i = 0; i < pagesToMove.length; i++) {
+          await pageListInput.sendKeys( pagesToMove[i].replaceAll(' ', '_') );
+          await pageListInput.sendKeys( ' ' );
+          await pageListInput.sendKeys( newTitles[i].replaceAll(' ', '_') );
+          await pageListInput.sendKeys( '\n' );
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('mr1-start'));

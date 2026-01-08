@@ -253,9 +253,9 @@ export default async (args: TestSuiteDriverArgs) => {
         modal = await driver.findElement(By.id('MassCatModal'));
         
         const pageListInput = await modal.findElement(By.css('.MassCat-pages-textarea'));
-        await pageListInput.sendKeys(
-          ...pagesToEdit.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToEdit) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(500);
 
         const addToCategory = `Added by MassCategorization${withI18nJs ? ' with-i18n' : ''}`;
@@ -519,9 +519,9 @@ export default async (args: TestSuiteDriverArgs) => {
         modal = await driver.findElement(By.id('MassCatModal'));
         
         const pageListInput = await modal.findElement(By.css('.MassCat-pages-textarea'));
-        await pageListInput.sendKeys(
-          ...pagesToEdit.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToEdit) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const addCategorizationOptionButton = await modal.findElement(By.id('MassCat-add-category'));
@@ -653,9 +653,9 @@ export default async (args: TestSuiteDriverArgs) => {
         modal = await driver.findElement(By.id('MassCatModal'));
         
         const pageListInput = await modal.findElement(By.css('.MassCat-pages-textarea'));
-        await pageListInput.sendKeys(
-          ...pagesToEdit.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToEdit) {
+          await pageListInput.sendKeys( page + '\n' );
+        }
         await driver.sleep(200);
 
         const categoryInputGroups = await modal.findElements(By.css('.MassCat-category-update'));

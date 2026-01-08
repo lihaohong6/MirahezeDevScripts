@@ -233,9 +233,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await deleteReasonInput.sendKeys(comment);
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-batch-undelete'));
-        await pageListInput.sendKeys(
-          ...pagesToUndelete.map(page => `${page}\n`)
-        );
+        for (const page of pagesToUndelete) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('abu-start'));

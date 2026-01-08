@@ -259,9 +259,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await deleteReasonInput.sendKeys(comment);
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-mass-delete'));
-        await pageListInput.sendKeys(
-          ...pagesToDelete.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToDelete) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
 
         const initiateButton = await modal.findElement(By.id('abd-start'));
@@ -476,9 +476,9 @@ export default async (args: TestSuiteDriverArgs) => {
         await deleteReasonInput.sendKeys(comment);
         await driver.sleep(200);
         const pageListInput = await modal.findElement(By.id('text-mass-delete'));
-        await pageListInput.sendKeys(
-          ...pagesToDelete.map((page) => `${page}\n`)
-        );
+        for (const page of pagesToDelete) {
+          await pageListInput.sendKeys(page + '\n');
+        }
         await driver.sleep(200);
         
         const protectCheck = await modal.findElement(By.id('protect-check'));
