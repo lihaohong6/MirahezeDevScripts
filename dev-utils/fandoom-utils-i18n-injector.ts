@@ -36,6 +36,7 @@ interface LoadOptions {
   usePageViewLang?: boolean
   useContentLang?: boolean
   useUserLang?: boolean
+  doNotLoadGadgetOnError?: boolean
 }
 
 /**
@@ -59,15 +60,17 @@ interface I18nOptions {
  */
 export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptions?: LoadOptions, i18nOptions?: I18nOptions): Promise<string[] | null> {
   const { name, i18n } = gadget;
+  let fallbackMessages: Record<string, string>;
 
-  const i18nMessages = JSON.parse(await readFile(resolveSrcGadgetsPath(name, i18n![0]), { encoding: 'utf-8', flag: 'r' }));
-  if (i18nMessages.en === undefined) return null;
-  
-  const fallbackMessages: Record<string, string> = i18nMessages.en;
+  if (!loadOptions?.doNotLoadGadgetOnError) {
+    const i18nMessages = JSON.parse(await readFile(resolveSrcGadgetsPath(name, i18n![0]), { encoding: 'utf-8', flag: 'r' }));
+    if (i18nMessages.en === undefined) return null;
+    fallbackMessages = i18nMessages.en;
+  }
 
   const i18nLoaderGadgetName = 'FandoomUtilsI18nLoader';
 
-  return [
+  const code = [
     /**
      * Defines the i18n object that parses the messages that will be rendered in DOM
      * @param   i18nLoader  Either the FandoomUtilsI18nLoader object loaded from the gadget or a mock 
@@ -100,10 +103,16 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
     `}`,
 
     /**
-     * Creates a jQuery.Deferred() object that either resolves 1) the output of 
+     * Creates a jQuery.Deferred object that either resolves 1) the output of 
      * FandoomUtilsI18nLoader.loadMessages(), or 2) the output of 
      * getFallbackMessages() on event of failure in the process of trying to
      * call FandoomUtilsI18nLoader.loadMessages()
+     * 
+     * If doNotLoadGadgetOnError is passed onto the injector then the returned
+     * jQuery.Deferred object will reject on failure (default behaviour is to
+     * resolve with fallback messages)
+     * 
+     * @returns {jQuery.Deferred}
      */
     `function getI18nLoader() {`,
       `var deferred = new $.Deferred();`,
@@ -155,7 +164,11 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
         `.then(onLoadedMessages)`,
         `.catch(function (err) {`,
           `console.error(err);`,
-          `deferred.resolve(getFallbackMessages());`,
+          (
+            loadOptions?.doNotLoadGadgetOnError ? 
+            'deferred.reject()' : 
+            'deferred.resolve(getFallbackMessages());'
+          ),
         `});`,
 
       /* Load and execute the FandoomUtilsI18nLoader gadget from CDN if not yet loaded */
@@ -173,8 +186,11 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
 
       `return deferred;`,
     `}`,
+  ];
 
-    /** 
+  if (!loadOptions?.doNotLoadGadgetOnError) {
+    code.push(...[
+      /** 
      * Create a mock object with the same API as the output of 
      * FandoomUtilsI18nLoader.loadMessages 
      * */
@@ -182,7 +198,7 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
       `console.warn('[FandoomUtilsI18nLoader] Failed to load messages. Using fallback messages instead.');`,
       /* We inject the English i18n messages into the script/bundle as fallback messages */
       `var msgMap = new mw.Map();`,
-      `msgMap.set(${JSON.stringify(fallbackMessages)});`,
+      `msgMap.set(${JSON.stringify(fallbackMessages!)});`,
       /* We do the below to ensure backwards compatibility with Fandom's i18n-js */
       `if (mw.Message.prototype.escape === undefined) {`,
         `mw.Message.prototype.escape = mw.Message.prototype.escaped;`,
@@ -203,7 +219,9 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
         `});`,
       `return m;`,
     `}`,
-  ]
+    ]);
+  }
+  return code;
 }
 
 /**

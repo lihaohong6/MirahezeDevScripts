@@ -196,10 +196,12 @@
 	getI18nLoader().done(function (loader) {
 		i18n = prepareI18n(loader);
 		mw.hook('wikipage.content').add(init);
+	}).fail(function () {
+		console.error('[Countdown] Failed to fetch FandoomUtilsI18nLoader. The gadget will not execute.');
 	});
 	
 	/* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
-  INJECT_FANDOM_UTILS_I18N({ "useContentLang": true });
+  INJECT_FANDOM_UTILS_I18N({ "useContentLang": true, "doNotLoadGadgetOnError": true });
 
 }(window.countdownTimer = window.countdownTimer || {}, mediaWiki, jQuery));
 
