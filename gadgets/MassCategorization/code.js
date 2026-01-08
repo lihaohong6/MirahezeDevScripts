@@ -478,7 +478,7 @@
           var newCat = this.categoryLocal + ':' + this.upcaseFirst(replacement);
           
           if (regex.test(newContent)) {
-            changes.push(this.i18n.msg('change-replaced', category, replacement).plain());
+            changes.push(this.i18n.inContentLang().msg('change-replaced', category, replacement).plain());
             newContent = newContent.replace(regex, '[[' + newCat + ']]');
             
             var index = categories.indexOf(category.toLowerCase());
@@ -500,7 +500,7 @@
           var regex = new RegExp(sRegEx, flags);
           
           if (regex.test(newContent)) {
-            changes.push(this.i18n.msg('change-removed', category).plain());
+            changes.push(this.i18n.inContentLang().msg('change-removed', category).plain());
             newContent = newContent.replace(regex, '');
             
             var index = categories.indexOf(category.toLowerCase());
@@ -522,7 +522,7 @@
           
           addingCategories.forEach(function(category) {
             if (!categories.includes(category.toLowerCase())) {
-              changes.push(this.i18n.msg('change-added', category).plain());
+              changes.push(this.i18n.inContentLang().msg('change-added', category).plain());
               
               appendContent += '[[' + this.categoryLocal + ':' + category + ']]\n'
             }
@@ -551,10 +551,10 @@
         if (content !== newContent) {
           currentStep = this.replaceStatus(currentStep, this.i18n.msg('status-publishing', title).plain());
           
-          var summary = this.i18n.msg('summary', changes.join(', ')).plain();
+          var summary = this.i18n.inContentLang().msg('summary', changes.join(', ')).plain();
           
           if (!this.refs.suppressAutomaticCheckbox.checked) {
-            summary += ' (' + this.i18n.msg('automatic').plain() + ')';
+            summary += ' (' + this.i18n.inContentLang().msg('automatic').plain() + ')';
           }
           
           this.api.postWithEditToken({
