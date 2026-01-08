@@ -24,7 +24,7 @@ gadgets:
       - Grunny
       - KnazO
       - KockaAdmiralac
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchDelete
     requires: 
@@ -43,7 +43,7 @@ gadgets:
       - UltimateSupreme
       - Nerfmaster8
       - Noreplyz
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchUndelete
     requires: 
@@ -60,7 +60,7 @@ gadgets:
     description: "Allows redirecting a list of pages in a form."
     authors:
       - MonkeysHK
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxBatchRedirect
     requires: 
@@ -79,7 +79,7 @@ gadgets:
       - Grunny
       - Cqm
       - KockaAdmiralac
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/AjaxUndo
     scripts:
@@ -94,7 +94,7 @@ gadgets:
       - Eladkse
       - Pecoes
       - Asaba
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/Countdown
     scripts:
@@ -148,7 +148,7 @@ gadgets:
     authors:
       - Cqm
       - OneTwoThreeFall
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22
     links:
       - https://dev.fandom.com/wiki/I18n-js
     scripts:
@@ -164,7 +164,7 @@ gadgets:
       - Manuel de la Fuente
       - KockaAdmiralac
       - Macklin
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/HTML5AudioPlayer
     scripts:
@@ -177,7 +177,7 @@ gadgets:
     authors:
       - KnazO
       - Dorumin
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassCategorization
     requires:
@@ -194,7 +194,7 @@ gadgets:
   MassCopyUpload:
     description: "Adds a special page to copy upload many files/images to a wiki at once."
     authors:
-      - CoolMikeHatsune22
+      - ccxtwf / CoolMikeHatsune22
     links:
       - https://dev.miraheze.org/wiki/Mass_Copy_Upload
     scripts:
@@ -206,7 +206,7 @@ gadgets:
       - KnazO
       - DarthKitty
       - OneTwoThreeFall 
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassNullEdit
     requires:
@@ -224,7 +224,7 @@ gadgets:
     authors:
       - KnazO
       - TheGoldenPatrik1
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassProtect
     requires:
@@ -242,7 +242,7 @@ gadgets:
     authors:
       - KnazO
       - TheGoldenPatrik1
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/MassRename
     requires:
@@ -261,7 +261,7 @@ gadgets:
       - Jr Mime
       - Foodbandlt
       - KockaAdmiralac
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/PageRenameAuto-update
     requires:
@@ -277,7 +277,7 @@ gadgets:
   PowertoolsPlacement:
     description: "Convenience script for placing links to loaded userscripts in a shared portlet. Works across skins."
     authors:
-      - CoolMikeHatsune22
+      - ccxtwf / CoolMikeHatsune22
     scripts:
       - code.js
     styles:
@@ -289,7 +289,7 @@ gadgets:
       - leviathan_89
       - Grunny
       - KockaAdmiralac
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/PreloadTemplates
     scripts:
@@ -305,7 +305,7 @@ gadgets:
     description: "Adds a \"View source\" link to the \"Edit\" menu"
     authors:
       - Pecoes
-      - CoolMikeHatsune22 (port)
+      - ccxtwf / CoolMikeHatsune22 (port)
     links:
       - https://dev.fandom.com/wiki/View_Source
     scripts:
