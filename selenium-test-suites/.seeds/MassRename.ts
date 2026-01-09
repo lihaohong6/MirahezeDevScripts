@@ -8,22 +8,22 @@ export function seedMassRename(operations: SeedingWikipageOperations) {
       seedPage(operations, {
         title,
       });
-      if (j >= 10) {
-        /* Delete any page that was moved */
-        operations.set(
-          `${title} moved`,
-          {
-            callbacks: [
-              async (bot, pageTitle, defaultEditSummary) => {
-                try {
-                  await bot.delete(pageTitle, defaultEditSummary);
-                  console.log(`Deleted page ${pageTitle}`);
-                } catch (err) {}
-              }
-            ]
-          }
-        );
-      }
+
+      /* Delete any page that was moved */
+      operations.set(
+        `${title} moved`,
+        {
+          callbacks: [
+            async (bot, pageTitle, defaultEditSummary) => {
+              try {
+                await bot.delete(pageTitle, defaultEditSummary);
+                console.log(`Deleted page ${pageTitle}`);
+              } catch (err) {}
+            }
+          ]
+        }
+      );
+      
     }
   }
 }
