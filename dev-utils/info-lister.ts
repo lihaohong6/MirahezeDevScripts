@@ -98,7 +98,10 @@ function appendStyles(doc: HTMLDocument): void {
       td:first-child {
         border-top: solid 1px;
       }
-      td {
+      td:last-child {
+        border-bottom: solid 1px;
+      }
+      td a {
         word-break: break-all;
       }
       td::before {
@@ -125,7 +128,7 @@ function appendStyles(doc: HTMLDocument): void {
     }
     .code-block pre {
       padding: 1rem;
-      padding-top: 2.5rem; /* space for button */
+      padding-top: 2.5rem;
       background: #1e1e1e;
       color: #d4d4d4;
       border-radius: 6px;
