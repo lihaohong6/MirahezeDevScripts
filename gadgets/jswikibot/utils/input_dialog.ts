@@ -10,6 +10,7 @@ export enum InputType {
     SELECT,
     NUMBER,
     BOOLEAN,
+    TIMESTAMP,
 }
 
 export type ValidationResult<T = string | number | boolean> = Result<T>;
@@ -27,6 +28,7 @@ export interface UserInputOption {
     validator?: ValidationFunction;
     help?: string | OO.ui.HtmlSnippet;
     rows?: number;
+    optional?: boolean;
 }
 
 export class InputDialog {
@@ -35,83 +37,10 @@ export class InputDialog {
         const widgets: Record<string, OO.ui.Widget> = {};
         const fieldset = new OO.ui.FieldsetLayout(fieldsetOptions);
         for (const inputField of inputFields) {
-            let widget: OO.ui.Widget;
-            let align: "left" | "top" | "right" | "inline" = "top";
 
-            switch (inputField.type) {
-                case InputType.BOOLEAN:
-                    widget = new OO.ui.CheckboxInputWidget({selected: (inputField.defaultValue || false) as boolean});
-                    align = "inline";
-                    break;
-                case InputType.PAGE:
-                    // @ts-expect-error mw.widgets.TitleInputWidget does exist
-                    widget = new mw.widgets.TitleInputWidget({
-                        value: inputField.defaultValue || "",
-                        suggestions: true,
-                        required: true
-                    });
-                    break;
-                case InputType.NAMESPACE:
-                    widget = new OO.ui.ComboBoxInputWidget({
-                        value: inputField.defaultValue as string || '',
-                        options: getNamespaces().namespaces.map(ns => ({
-                            data: ns.name,
-                            label: ns.name
-                        })),
-                        menu: {
-                            filterFromInput: true
-                        }
-                    });
-                    break;
-                case InputType.NAMESPACES:
-                    widget = new OO.ui.MenuTagMultiselectWidget({
-                        // Handle potential default value as an array or single string
-                        selected: [],
-                        options: getNamespaces().namespaces.map(ns => ({
-                            data: ns.name,
-                            label: ns.name
-                        })),
-                        allowArbitrary: true,
-                        inputPosition: 'inline',
-                        placeholder: 'Select namespaces...',
-                        menu: {
-                            filterFromInput: true
-                        }
-                    });
-                    break;
-                case InputType.MULTILINE_TEXT:
-                    widget = new OO.ui.MultilineTextInputWidget({
-                        value: inputField.defaultValue as string || '',
-                    });
-                    break;
-                case InputType.SELECT: {
-                    const options = inputField.options!;
-                    if (options.length == 2) {
-                        widget = new OO.ui.ButtonSelectWidget({
-                            items: options.map((option) => new OO.ui.ButtonOptionWidget(option))
-                        });
-                        if (inputField.defaultValue) {
-                            (widget as OO.ui.ButtonSelectWidget).selectItemByData(inputField.defaultValue as string);
-                        }
-                    } else if (options.length > 2) {
-                        widget = new OO.ui.ComboBoxInputWidget({
-                            menu: {
-                                items: options.map((option) => new OO.ui.MenuOptionWidget(option)),
-                                filterFromInput: true,
-                                filterMode: 'substring',
-                            },
-                            autocomplete: true,
-                        });
-                    } else {
-                        throw new Error();
-                    }
-                    break;
-                }
-                default:
-                    widget = new OO.ui.TextInputWidget({
-                        value: inputField.defaultValue as string || ''
-                    });
-            }
+            const __ret = this.constructWidget(inputField);
+            const widget = __ret.widget;
+            const align = __ret.align;
 
             widgets[inputField.key] = widget;
             const layout = new OO.ui.FieldLayout(widget, {
@@ -140,6 +69,90 @@ export class InputDialog {
         };
     }
 
+    private static constructWidget(inputField: UserInputOption) {
+        let align: "left" | "top" | "right" | "inline" = "top";
+        let widget: OO.ui.Widget;
+        switch (inputField.type) {
+            case InputType.BOOLEAN:
+                widget = new OO.ui.CheckboxInputWidget({selected: (inputField.defaultValue || false) as boolean});
+                align = "inline";
+                break;
+            case InputType.PAGE:
+                widget = new mw.widgets.TitleInputWidget({
+                    value: inputField.defaultValue as string || "",
+                    suggestions: true,
+                    required: true
+                });
+                break;
+            case InputType.NAMESPACE:
+                widget = new OO.ui.ComboBoxInputWidget({
+                    value: inputField.defaultValue as string || '',
+                    options: getNamespaces().namespaces.map(ns => ({
+                        data: ns.name,
+                        label: ns.name
+                    })),
+                    menu: {
+                        filterFromInput: true
+                    }
+                });
+                break;
+            case InputType.NAMESPACES:
+                widget = new OO.ui.MenuTagMultiselectWidget({
+                    // Handle potential default value as an array or single string
+                    selected: [],
+                    options: getNamespaces().namespaces.map(ns => ({
+                        data: ns.name,
+                        label: ns.name
+                    })),
+                    allowArbitrary: true,
+                    inputPosition: 'inline',
+                    placeholder: 'Select namespaces...',
+                    menu: {
+                        filterFromInput: true
+                    }
+                });
+                break;
+            case InputType.MULTILINE_TEXT:
+                widget = new OO.ui.MultilineTextInputWidget({
+                    value: inputField.defaultValue as string || '',
+                });
+                break;
+            case InputType.SELECT: {
+                const options = inputField.options!;
+                if (options.length == 2) {
+                    widget = new OO.ui.ButtonSelectWidget({
+                        items: options.map((option) => new OO.ui.ButtonOptionWidget(option))
+                    });
+                    if (inputField.defaultValue) {
+                        (widget as OO.ui.ButtonSelectWidget).selectItemByData(inputField.defaultValue as string);
+                    }
+                } else if (options.length > 2) {
+                    widget = new OO.ui.ComboBoxInputWidget({
+                        menu: {
+                            items: options.map((option) => new OO.ui.MenuOptionWidget(option)),
+                            filterFromInput: true,
+                            filterMode: 'substring',
+                        },
+                        autocomplete: true,
+                    });
+                } else {
+                    throw new Error();
+                }
+                break;
+            }
+            case InputType.TIMESTAMP:
+                widget = new mw.widgets.datetime.DateTimeInputWidget({
+                    value: inputField.defaultValue as string || undefined
+                });
+                break;
+            default:
+                widget = new OO.ui.TextInputWidget({
+                    value: inputField.defaultValue as string || ''
+                });
+        }
+        return {widget, align};
+    }
+
     public static getInputData<T>(inputFields: UserInputOption[], widgets: Record<string, OO.ui.Widget>): Result<T> {
         const args: Record<string, string | number | boolean> = {};
         const validationErrors: Record<string, string> = {};
@@ -164,6 +177,11 @@ export class InputDialog {
                 } else {
                     validationErrors[inputField.key] = validationResult.error;
                 }
+            }
+
+            // Skip empty values
+            if (rawValue === "" && inputField.optional) {
+                continue;
             }
 
             args[inputField.key] = rawValue;

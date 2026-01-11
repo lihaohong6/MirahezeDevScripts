@@ -38,6 +38,7 @@ gadgets:
         - 'oojs-ui-windows'
         - 'mediawiki.widgets'
         - 'mediawiki.util'
+        - 'mediawiki.widgets.datetime'
 
   StatCalc:
     scripts:

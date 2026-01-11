@@ -83,8 +83,8 @@ export abstract class ApiListQuery<T = PageProps> extends PageLister<T> {
 
             const r = response.query?.[this.listName];
             const arr: T[] =
-            Array.isArray(r) ? r :
-                r?.results ?? [];
+                Array.isArray(r) ? r :
+                    r?.results ?? [];
             for (const page of arr) {
                 yield page;
 
@@ -246,6 +246,65 @@ export class QueryPageQuery extends ApiListQuery {
 
 }
 
+const LOG_EVENT_TYPES = [
+    "block", "create", "delete", "import", "move", "newusers", "patrol", "protect", "rights", "upload"
+]
+
+export class LogEventsQuery extends ApiListQuery {
+    static override readonly inputs: UserInputOption[] = [
+        {
+            key: "letype",
+            label: 'Log type:',
+            type: InputType.SELECT,
+            options: LOG_EVENT_TYPES.map(value => {
+                return {
+                    data: value,
+                    label: value,
+                }
+            }),
+            optional: true,
+            help: new OO.ui.HtmlSnippet("Leave empty for all log types. Only the most common log types are listed, but you are free to enter any valid log type. See <a href='/w/api.php?action=help&modules=query%2Blogevents'>API help page</a> for a complete list.")
+        },
+        {
+            key: "leaction",
+            label: "Log action:",
+            type: InputType.TEXT,
+            optional: true,
+            help: new OO.ui.HtmlSnippet("Overrides log type with more specific requirements. Leave empty unless you know what you are looking for. For example, delete/delete refers to page deletions in the delete log while delete/resotre refers to page undeletions in the same log. See <a href='/w/api.php?action=help&modules=query%2Blogevents'>API help page</a> for a complete list.")
+        },
+        {
+            key: "lestart",
+            label: "Before:",
+            type: InputType.TIMESTAMP,
+            optional: true,
+        },
+        {
+            key: "leend",
+            label: "After:",
+            type: InputType.TIMESTAMP,
+            optional: true,
+        },
+        {
+            key: "leuser",
+            label: "Filter entries to those made by the given user: ",
+            type: InputType.TEXT,
+            optional: true,
+        }
+    ]
+
+    constructor(args: QueryArguments) {
+        super("logevents", "le", args);
+    }
+
+    getDescription(): string {
+        const entries = Object.entries(this.args)
+            .filter((pair) => pair[1])
+            .map((pair) => `(${pair[0]}, ${pair[1]})`)
+            .join(", ")
+        return `Log entries with ${entries}`;
+    }
+}
+
 export class PageLinksQuery extends ApiPropQuery<"links"> {
     static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'Title: ', type: InputType.PAGE},
@@ -320,4 +379,5 @@ export const allQueryLister = [
     new ListerWrapper(FileUsageQuery, "All pages using a file"),
     new ListerWrapper(PageImagesQuery, "All files on a page"),
     new ListerWrapper(QueryPageQuery, "All pages on a Special page"),
+    new ListerWrapper(LogEventsQuery, "Pages in log entries"),
 ];
