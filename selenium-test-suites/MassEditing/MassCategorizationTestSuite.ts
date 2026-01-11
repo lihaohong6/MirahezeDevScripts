@@ -334,14 +334,22 @@ export default async (args: TestSuiteDriverArgs) => {
         await promptAlert.sendKeys(`MassCategorization Remove${withI18nJs ? ' with-i18n' : ''}`);
         await promptAlert.accept();
         await driver.wait(
+          until.alertIsPresent(),
+          /* 3 minutes */ 3*60*1000,
+          'Failed to fetch pages from category',
+          /* 250 ms */ 250
+        );
+        const successAlert = await driver.switchTo().alert();
+        await successAlert.dismiss();
+        await driver.wait(
           async () => (
             (await driver.executeScript(`
               return $('#MassCatModal .MassCat-pages-textarea').val() || '';
             `)) !== ''
           ),
-          /* 3 minutes */ 3*60*1000,
-          'Failed to fetch pages from category',
-          /* 500 ms */ 500
+          /* 1 minute */ 1*60*1000,
+          'Textarea is not filled',
+          /* 200 ms */ 200
         );
 
         const removeFromCategory = `MassCategorization Remove${withI18nJs ? ' with-i18n' : ''}`;
@@ -421,15 +429,24 @@ export default async (args: TestSuiteDriverArgs) => {
         await promptAlert.sendKeys(`MassCategorization Replace${withI18nJs ? ' with-i18n' : ''}`);
         await promptAlert.accept();
         await driver.wait(
+          until.alertIsPresent(),
+          /* 3 minutes */ 3*60*1000,
+          'Failed to fetch pages from category',
+          /* 250 ms */ 250
+        );
+        const successAlert = await driver.switchTo().alert();
+        await successAlert.dismiss();
+        await driver.wait(
           async () => (
             (await driver.executeScript(`
               return $('#MassCatModal .MassCat-pages-textarea').val() || '';
             `)) !== ''
           ),
-          /* 3 minutes */ 3*60*1000,
-          'Failed to fetch pages from category',
-          /* 500 ms */ 500
+          /* 1 minute */ 1*60*1000,
+          'Textarea is not filled',
+          /* 200 ms */ 200
         );
+
         const pagesToEdit = (await (async () => (
           await driver.executeScript(`
             return $('#MassCatModal .MassCat-pages-textarea').val() || '';

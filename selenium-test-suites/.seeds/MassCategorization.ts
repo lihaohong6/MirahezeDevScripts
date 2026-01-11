@@ -10,15 +10,35 @@ export function seedMassCategorization(operations: SeedingWikipageOperations) {
       });
     }
     for (let j = 0; j < 10; j++) {
+      const cats = [
+        `[[Category:MassCategorization Remove${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[Category:MassCategorization_Remove${i === 0 ? '' : '_with-i18n'}]]`,
+        `[[Category:massCategorization Remove${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[ Category:   MassCategorization Remove${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[category:MassCategorization Remove${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[Category:MassCategorization Remove${i === 0 ? '' : '_with-i18n'}|]]`,
+        `[[Category:MassCategorization Remove${i === 0 ? '' : '_with-i18n'}|sortkey]]`,
+        `[[Category:MassCategorization Remove${i === 0 ? '' : '_with-i18n'}| ]]`,
+      ];
       seedPage(operations, {
         title: `MassCategorization Test Remove${i === 0 ? '' : ' with-i18n'} ${j+1}`,
-        additionalDescription: ` Try to remove a category using this tool!\n\n[[Category:MassCategorization Remove${i === 0 ? '' : ' with-i18n'}]]`
+        additionalDescription: ` Try to remove a category using this tool!\n\n${cats[j % cats.length]}`
       });
     }
     for (let j = 0; j < 10; j++) {
+      const cats = [
+        `[[Category:MassCategorization Replace${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[Category:MassCategorization_Replace${i === 0 ? '' : '_with-i18n'}]]`,
+        `[[Category:massCategorization Replace${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[ Category:   MassCategorization Replace${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[category:MassCategorization Replace${i === 0 ? '' : ' with-i18n'}]]`,
+        `[[Category:MassCategorization Replace${i === 0 ? '' : '_with-i18n'}|]]`,
+        `[[Category:MassCategorization Replace${i === 0 ? '' : '_with-i18n'}|sortkey]]`,
+        `[[Category:MassCategorization Replace${i === 0 ? '' : '_with-i18n'}| ]]`,
+      ];
       seedPage(operations, {
         title: `MassCategorization Test Replace${i === 0 ? '' : ' with-i18n'} ${j+1}`,
-        additionalDescription: ` Try to replace a category using this tool!\n\n[[Category:MassCategorization Replace${i === 0 ? '' : ' with-i18n'}]]`
+        additionalDescription: ` Try to replace a category using this tool!\n\n${cats[j % cats.length]}`
       });
     }
     for (let j = 0; j < 10; j++) {

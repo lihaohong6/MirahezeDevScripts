@@ -424,11 +424,57 @@
     showModal: function() {
       this.modal.show();
     },
-    
+
     escapeRegex: mw.util.escapeRegExp,
     
+    /**
+     * Capitalize the first letter of a word 
+     * @param {String} s 
+     * @returns 
+     */
     upcaseFirst: function(s) {
       return s[0].toUpperCase() + s.slice(1);
+    },
+
+    /**
+     * e.g. "foo category" -> "[Ff]oo[_ ]*category"
+     *      This will match "foo category", "Foo category", "Foo_category", "foo  category"
+     *      "+some category" -> "\+some[_ ]*category"
+     * @param {String} id 
+     * @returns {String}
+     */
+    escapeIdentifier: function (id) {
+      return this.escapeRegex(id)
+        .replace(/ +/g, '[_ ]*')
+        .replace(/^([a-zA-Z])/g, function (c) {
+          return '[' + c.toUpperCase() + c.toLowerCase() + ']';
+        });
+    },
+
+    /**
+     * Builds a RegExp object from a category string 
+     * @param {String} category 
+     * @param {boolean} isCaseSensitive 
+     * @returns {RegExp}
+     */
+    getCategoryRegex: function (category, isCaseSensitive) {
+      var flags = 'g' + (isCaseSensitive ? '' : 'i');
+
+      var escapedCat = this.escapeIdentifier(category);
+      var categoryNamespaceGroup = '(?:' + this.categoryAliases.join('|') + ')';
+      var leftPrefix = '\\[\\[\\s*' + categoryNamespaceGroup + '\\s*:\\s*' + escapedCat + '\\s*'
+      var sRegEx = (
+        '(?:' + 
+          leftPrefix + '\\|(.*?)\\]\\]' + 
+        '|' + 
+          leftPrefix + '\\]\\]' + 
+        ')'
+      );
+
+      DEBUG && console.log('[MassCategorization] Build regex from string: ', sRegEx);
+      var regex = new RegExp(sRegEx, flags);
+      DEBUG && console.log('[MassCategorization] Built regex: ', regex);
+      return regex;
     },
     
     categorize: function(title, updates) {
@@ -447,7 +493,7 @@
           return;
         }
         
-        var content = page.revisions[0]['*'];
+        var content = page.revisions[0]['*'].trim();
         var newContent = content;
         var categories = !page.categories ? [] : page.categories.map(function(category) {
           return category.title.slice(category.title.indexOf(':') + 1).toLowerCase();
@@ -469,18 +515,21 @@
           var replacement = update.replacement;
           
           var cSens = this.refs.caseSensitiveCheckbox.checked;
-          var flags = 'g' + (cSens ? '' : 'i');
-          var escapedCat = this.escapeRegex(category);
-          var categoryNamespaceGroup = '(' + this.categoryAliases.join('|') + ')';
-          // TODO: Simplify
-          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\|.*?\\]\\])';
-          var regex = new RegExp(sRegEx, flags);
-          var newCat = this.categoryLocal + ':' + this.upcaseFirst(replacement);
+          var regex = this.getCategoryRegex(category, cSens);
           
-          if (regex.test(newContent)) {
+          var matches = regex.exec(newContent);
+          if (matches) {
             changes.push(this.i18n.inContentLang().msg('change-replaced', category, replacement).plain());
-            newContent = newContent.replace(regex, '[[' + newCat + ']]');
-            
+            var sortkey = matches[1];
+            var newCat = (
+              '[[' + 
+                this.categoryLocal + ':' + 
+                this.upcaseFirst(replacement) + (sortkey ? '|'+sortkey : '') +
+              ']]'
+            );
+            newContent = newContent.replace(regex, newCat);
+            DEBUG && console.log('[MassCategorization] Replaced category ' + matches[0] + ' with ' + newCat + ' for ' + page.title);
+
             var index = categories.indexOf(category.toLowerCase());
             if (index !== -1) {
               categories.splice(index, 1, replacement.toLowerCase());
@@ -492,16 +541,13 @@
           var category = update.category;
           
           var cSens = this.refs.caseSensitiveCheckbox.checked;
-          var flags = 'g' + (cSens ? '' : 'i');
-          var escapedCat = this.escapeRegex(category);
-          var categoryNamespaceGroup = '(' + this.categoryAliases.join('|') + ')';
-          // TODO: Simplify
-          var sRegEx = '(\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\]\\]|\\[\\[' + categoryNamespaceGroup + ':\\s*' + escapedCat + '\\|.*?\\]\\])';
-          var regex = new RegExp(sRegEx, flags);
+          var regex = this.getCategoryRegex(category, cSens);
           
-          if (regex.test(newContent)) {
+          var matches = regex.exec(newContent);
+          if (matches) {
             changes.push(this.i18n.inContentLang().msg('change-removed', category).plain());
             newContent = newContent.replace(regex, '');
+            DEBUG && console.log('[MassCategorization] Removed category ' + matches[0] + ' for ' + page.title);
             
             var index = categories.indexOf(category.toLowerCase());
             if (index !== -1) {
@@ -511,7 +557,7 @@
         }.bind(this));
         
         var shouldAdd = updateMap.add.some(function(update) {
-          return !categories.includes(update.category.toLowerCase());
+          return categories.indexOf(update.category.toLowerCase()) === -1;
         });
         
         if (shouldAdd) {
@@ -521,8 +567,9 @@
           var appendContent = '\n';
           
           addingCategories.forEach(function(category) {
-            if (!categories.includes(category.toLowerCase())) {
+            if (categories.indexOf(category.toLowerCase()) === -1) {
               changes.push(this.i18n.inContentLang().msg('change-added', category).plain());
+              DEBUG && console.log('[MassCategorization] Added category ' + category + ' for ' + page.title);
               
               appendContent += '[[' + this.categoryLocal + ':' + category + ']]\n'
             }
@@ -566,22 +613,27 @@
             text: newContent,
             bot: true,
             minor: true
-          }).then(function(res) {
-            this.removeStatus(currentStep, this.i18n.msg('status-published-waiting', title).plain());
-            
-            if (res.error && res.error.code) {
-              this.logError(this.i18n.msg('error-publishing', title).plain() + ': ' + res.error.code);
-            }
-          }.bind(this)).fail(function(code) {
-            this.removeStatus(currentStep, this.i18n.msg('status-failed-publish-waiting', title).plain());
-            
-            if (typeof code === 'string') {
-              this.logError(this.i18n.msg('error-publishing', title).plain() + ': ' + code);
-            } else {
-              this.logError(this.i18n.msg('error-publishing', title).plain());
-            }
-          }.bind(this));
+          })
+            .done(function(res) {
+              DEBUG && console.log('[MassCategorization] Successfully saved edit on ' + title);
+              this.removeStatus(currentStep, this.i18n.msg('status-published-waiting', title).plain());
+              
+              if (res.error && res.error.code) {
+                this.logError(this.i18n.msg('error-publishing', title).plain() + ': ' + res.error.code);
+              }
+            }.bind(this))
+            .fail(function(code) {
+              DEBUG && console.error('[MassCategorization] Failed to save edit on ' + title);
+              this.removeStatus(currentStep, this.i18n.msg('status-failed-publish-waiting', title).plain());
+              
+              if (typeof code === 'string') {
+                this.logError(this.i18n.msg('error-publishing', title).plain() + ': ' + code);
+              } else {
+                this.logError(this.i18n.msg('error-publishing', title).plain());
+              }
+            }.bind(this));
         } else {
+          DEBUG && console.log('[MassCategorization] No change on ' + title);
           this.removeStatus(currentStep, this.i18n.msg('status-no-changes-waiting', title).plain());
         }
       }.bind(this));
@@ -650,7 +702,7 @@
       
       this.running = true;
       
-      var deleteNext = function() {
+      var editNext = function() {
         if (!this.running) {
           this.logError(this.i18n.msg('interrupted').plain());
           return;
@@ -667,10 +719,10 @@
         
         this.categorize(next, updates);
         
-        setTimeout(deleteNext.bind(this), this.delay);
+        setTimeout(editNext.bind(this), this.delay);
       }.bind(this);
       
-      deleteNext.call(this);
+      editNext.call(this);
     },
     
     addCategoryContents: function() {
@@ -689,17 +741,17 @@
         
         var textarea = this.refs.pagesTextarea;
         var needsNewline = textarea.value.length !== 0 && textarea.value.charAt(textarea.value.length - 1) !== '\n';
-        var toAdd = needsNewline
-        ? '\n'
-        : '';
+        var toAdd = needsNewline ? '\n' : '';
         
         toAdd += members.join('\n');
         
         textarea.value += toAdd;
+      }.bind(this), function () {
+        alert(this.i18n.msg('status-finished-fetch').plain());
       }.bind(this));
     },
     
-    streamCategoryMembers: function(category, callback) {
+    streamCategoryMembers: function(category, callback, alertOnFinished) {
       var params = {
         action: 'query',
         list: 'categorymembers',
@@ -709,37 +761,48 @@
         cmlimit: 'max',
         cachebuster: Date.now()
       };
+
+      var curPromise = $.when();
+      curPromise.catch(function() {
+        this.logError(this.i18n.msg('error-failed-to-get-contents', category).plain());
+      }.bind(this));
+
+      function continueQuery() {
+        var d = $.Deferred();
+        this.api.get(params)
+          .done((function(data) {
+            if (data['continue'] !== undefined) {
+              Object.assign(params, data['continue']);
+              curPromise.then(continueQuery.bind(this));
+            }
+          
+            if (data['query-continue'] !== undefined) {
+              // Deep merge, query-continue is just whack
+              var args = [
+                params
+              ].concat(Object.values(data['query-continue']));
+              
+              Object.assign.apply(undefined, args);
+              curPromise.then(continueQuery.bind(this));
+            }
+            
+            var titles = data.query.categorymembers.map(function(page) {
+              return page.title;
+            });
+          
+            callback(titles);
+            d.resolve();
+
+            if (data['continue'] === undefined && data['query-continue'] === undefined) {
+              alertOnFinished();
+            }
+          }).bind(this))
+          .fail(d.reject);
+        return d;
+      }
       
-      var doFetch = function() {
-        this.api.get(params).then(function(data) {
-          if (data['continue'] !== undefined) {
-            Object.assign(params, data['continue']);
-            
-            doFetch();
-          }
-          
-          if (data['query-continue'] !== undefined) {
-            // Deep merge, query-continue is just whack
-            var args = [
-              params
-            ].concat(Object.values(data['query-continue']));
-            
-            Object.assign.apply(undefined, args);
-            
-            doFetch();
-          }
-          
-          var titles = data.query.categorymembers.map(function(page) {
-            return page.title;
-          });
-          
-          callback(titles);
-        }.bind(this)).fail(function() {
-          this.logError(this.i18n.msg('error-failed-to-get-contents', category).plain());
-        }.bind(this));
-      }.bind(this);
+      curPromise.then(continueQuery.bind(this));
       
-      doFetch();
     },
     
     addStatus: function(msg, temp) {
@@ -914,11 +977,7 @@
         .filter(function(key) {
           return this.wg.wgNamespaceIds[key] === 14
         }.bind(this))
-        .map(function(namespace) {
-          var ns = namespace.replace(/_/g, ' ');
-          
-          return this.upcaseFirst(ns);
-        }.bind(this));
+        .map(this.escapeIdentifier.bind(this));
       
       this.setDefaultDelay();
       
