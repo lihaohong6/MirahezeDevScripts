@@ -6,16 +6,33 @@ type UnknownApiParams = Record<
     string | number | boolean | File | string[] | number[] | undefined
 >;
 
+type ThrottleType = 'read' | 'write' | 'download';
+
 class ThrottleControl {
-    lastRead: number = 0;
-    lastWrite: number = 0;
+    lastAction: Record<ThrottleType, number>;
+
+    constructor() {
+        this.lastAction = {download: 0, read: 0, write: 0};
+    }
+
+    async throttle(type: ThrottleType, time: number) {
+        let curTime = Date.now();
+        if (this.lastAction[type]) {
+            const sleepUntil= this.lastAction[type] + time * 1000;
+            if (sleepUntil > curTime) {
+                await new Promise(r => setTimeout(r, sleepUntil - curTime));
+                curTime = Date.now();
+            }
+        }
+        this.lastAction[type] = curTime;
+    }
 }
 
 class Api {
 
     private token?: string;
     private defaultParams: UnknownApiParams = {format: 'json'};
-    private throttleControl: ThrottleControl = new ThrottleControl();
+    public throttleControl: ThrottleControl = new ThrottleControl();
 
     constructor(private readonly api: mw.Api = new mw.Api()) {
     }
@@ -40,41 +57,28 @@ class Api {
         }
     }
 
-    private async throttle(read: boolean = true) {
-        let sleepUntil;
-        if (read) {
-            sleepUntil = this.throttleControl.lastRead + state.config.readThrottle * 1000;
-        } else {
-            sleepUntil = this.throttleControl.lastWrite + state.config.writeThrottle * 1000;
+    public async throttle(type: ThrottleType, time?: number): Promise<void> {
+        if (!time) {
+            time = type == 'read' ? state.config.readThrottle : state.config.writeThrottle;
         }
-        let curTime = Date.now();
-        if (sleepUntil > curTime) {
-            await new Promise(r => setTimeout(r, sleepUntil - curTime));
-            curTime = Date.now();
-        }
-        if (read) {
-            this.throttleControl.lastRead = curTime;
-        } else {
-            this.throttleControl.lastWrite = curTime;
-        }
+        await this.throttleControl.throttle(type, time);
     }
 
     async get(args: UnknownApiParams) {
         this.processParams(args);
-        await this.throttle(true);
+        await this.throttle('read');
         return this.api.get(args);
     }
 
     async post(args: UnknownApiParams) {
         this.processParams(args);
-        await this.throttle(false);
+        await this.throttle('write');
         return this.api.post(args);
     }
 
     async postWithToken(args: UnknownApiParams) {
         this.processParams(args);
-        await this.throttle(false);
-        args['token'] = this.token;
+        await this.throttle('write');
         return this.api.postWithToken('csrf', args)
     }
 }
