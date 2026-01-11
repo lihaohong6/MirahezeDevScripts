@@ -5,13 +5,12 @@ import {showDiffDialog} from "../utils/diff";
 import {fetchPageText} from "../utils/page_info_fetcher";
 import {simpleAlert} from "../utils/alert_window";
 import {InputType} from "../utils/input_dialog";
+import {RegexConfigOptions, RegexHelper} from "../utils/regex_helper";
 
-interface ReplacementConfig {
+interface ReplacementConfig extends RegexConfigOptions {
     pages: string[];
     originalText: string;
     replacementText: string;
-    useRegex: boolean;
-    regexFlags: string;
     summary: string;
 }
 
@@ -41,19 +40,7 @@ export const replaceTextBot = new Bot<ReplacementConfig, ReplaceTextState>({
                 rows: 5,
                 help: "Use the keyboard's enter key for newlines instead of \\n."
             },
-            {
-                key: "useRegex",
-                label: "Use regular expressions",
-                type: InputType.BOOLEAN
-            },
-            {
-                key: "regexFlags",
-                label: "Regex flags",
-                type: InputType.TEXT,
-                defaultValue: "gm",
-                depends: "useRegex",
-                help: new OO.ui.HtmlSnippet("See <a href='https://developer.mozilla.org/docs/Web/JavaScript/Reference/Regular_expressions#regex_flags'>Mozilla's documentation</a> for details")
-            },
+            ...RegexHelper.createRegexInputGroup("useRegex", "regexFlags"),
             {
                 key: "summary",
                 label: "Edit summary",
@@ -66,15 +53,7 @@ export const replaceTextBot = new Bot<ReplacementConfig, ReplaceTextState>({
                 simpleAlert("Invalid input", "Text to be replaced must be non-empty");
                 return false;
             }
-            if (config.useRegex) {
-                try {
-                    new RegExp(config.originalText, config.regexFlags);
-                } catch (e) {
-                    simpleAlert("Invalid regex", e.message);
-                    return false;
-                }
-            }
-            return true;
+            return RegexHelper.regexValidator(config, config.originalText);
         }
     }),
     processBatch: async (pages, config, state, bot) => {

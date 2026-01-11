@@ -123,7 +123,7 @@ export async function openBotConfigDialog<T>(dialog: BotConfigurationDialog<T>, 
 
 // This is equivalent to UserInputOption[] except that keys are checked to be inside T, which prevents
 // typos from causing errors.
-type InputConfig<T> = Array<
+export type InputConfig<T> = Array<
     { [K in Extract<keyof T, string>]: Omit<UserInputOption, 'key'> & { key: K } }[Extract<keyof T, string>]
 >;
 
