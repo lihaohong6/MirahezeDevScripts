@@ -201,7 +201,7 @@ export class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
         });
 
         const step1Fieldset = new OO.ui.FieldsetLayout({
-            label: 'Select Pages',
+            label: 'Select pages to work on',
             items: [
                 new OO.ui.FieldLayout(pageSelectorButton, {
                     label: 'Page selector tool',
@@ -219,7 +219,7 @@ export class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
     }
 
     protected setupStep2() {
-        const res = InputDialog.setUpWidgets(this.config.inputOptions, {label: 'Add Text Settings'});
+        const res = InputDialog.setUpWidgets(this.config.inputOptions, {label: 'Additional bot settings'});
         this.step2Widgets = res.widgets;
 
         this.step2 = new OO.ui.PanelLayout({

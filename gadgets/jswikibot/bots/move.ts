@@ -51,7 +51,7 @@ export const moveBot = new Bot<MoveConfig>({
                 placeholder: 'Enter target page titles, one per line (same order as source pages)',
                 rows: 10,
                 depends: {key: "manualInput"},
-                help: 'Enter one target title per line, in the same order as the source pages selected in step 1.'
+                help: 'Enter one target title per line in the same order as the source pages selected in step 1.'
             },
             {
                 key: "moveTalk",
@@ -75,7 +75,7 @@ export const moveBot = new Bot<MoveConfig>({
                 key: "summary",
                 label: "Summary",
                 type: InputType.TEXT,
-                defaultValue: '$bot: bulk move page from $from to $to'
+                defaultValue: '$bot: bulk move page from [[$from]] to [[$to]]'
             }
         ],
         validator: (config: MoveConfig) => {
