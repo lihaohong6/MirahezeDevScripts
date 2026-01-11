@@ -67,7 +67,7 @@ export async function fetchPageInfo(pageTitles: string[], api = API): Promise<Pa
     return results;
 }
 
-interface QueryRevisionsResponse {
+interface MwQueryResponse {
     batchcomplete: string
     query: {
         normalized?: {
@@ -75,10 +75,13 @@ interface QueryRevisionsResponse {
             to: string
         }[],
         pages: Record<string, {
-            pageid: number,
+            pageid?: number,
             ns: number,
+            missing?: string,
             title: string,
-            revisions: {
+
+            // For revision queries
+            revisions?: {
                 slots: {
                     main: {
                         contentmodel: string,
@@ -86,7 +89,12 @@ interface QueryRevisionsResponse {
                         "*": string,
                     }
                 }
-            }[]
+            }[],
+
+            // For imageinfo queries
+            imageinfo?: {
+                url?: string;
+            }[];
         }>
     }
 }
@@ -113,61 +121,97 @@ interface CategoryMembersResponse {
         }>
     }
 }
-
-export async function* fetchPageText(pages: PageInfo[], api = API): AsyncGenerator<PageInfo, void, unknown> {
-    if (pages.length === 0) {
-        return;
-    }
-
+type PageProcessor = (pageInfo: PageInfo, apiResult: MwQueryResponse['query']['pages'][string]) => void;
+async function* fetchPagePropBatch(
+    pages: PageInfo[],
+    queryParams: QueryArguments,
+    processPage: PageProcessor,
+    api = API,
+): AsyncGenerator<PageInfo> {
     const batchSize = 50;
 
     for (let i = 0; i < pages.length; i += batchSize) {
         const batch = pages.slice(i, i + batchSize);
         const titles = batch.map(p => p.title).join('|');
 
+        // Merge base params with specific titles
         const params: QueryArguments = {
-            action: 'query',
-            titles: titles,
-            prop: 'revisions',
-            rvprop: 'content',
-            rvslots: 'main',
+            ...queryParams,
+            titles: titles
         };
 
         const titleMap = new Map<string, PageInfo>(pages.map(p => [p.title, p]));
 
         try {
-            const response = await api.get(params) as QueryRevisionsResponse;
+            const response = await api.get(params) as MwQueryResponse;
 
             if (!response.query || !response.query.pages) {
-                return;
+                continue;
             }
 
             if (response.query.normalized) {
                 for (const norm of response.query.normalized) {
-                    titleMap.set(norm.to, titleMap.get(norm.from)!);
+                    const original = titleMap.get(norm.from);
+                    if (original) {
+                        titleMap.set(norm.to, original);
+                    }
                 }
             }
 
             for (const pageKey in response.query.pages) {
-                const page = response.query.pages[pageKey];
-                const title: string = page.title;
-                const pageInfo = titleMap.get(title)!;
-                pageInfo.ns = page.ns;
-                let text = "";
-                if (page && page.revisions && page.revisions.length > 0) {
-                    const revision = page.revisions[0];
-                    if (revision.slots && revision.slots.main) {
-                        text = revision.slots.main['*'];
-                    }
+                const apiPage = response.query.pages[pageKey];
+                const pageInfo = titleMap.get(apiPage.title);
+
+                if (pageInfo) {
+                    pageInfo.ns = apiPage.ns;
+                    processPage(pageInfo, apiPage);
+                    yield pageInfo;
                 }
-                pageInfo.text = text;
-                yield pageInfo;
             }
         } catch (error) {
-            console.error('Error fetching page text:', error);
+            console.error('Error in batch fetch:', error);
             throw error;
         }
     }
+}
+
+export async function* fetchFileUrl(pages: PageInfo[], api = API): AsyncGenerator<PageInfo> {
+    const params: QueryArguments = {
+        action: 'query',
+        prop: 'imageinfo',
+        iiprop: 'url',
+    };
+
+    // Use the generic function with a specific processor
+    yield* fetchPagePropBatch(pages, params, (pageInfo, apiPage) => {
+        if (apiPage.imageinfo && apiPage.imageinfo.length > 0) {
+            const info = apiPage.imageinfo[0];
+            if (info.url) {
+                pageInfo.fileUrl = info.url;
+            }
+        }
+    }, api);
+}
+
+export async function* fetchPageText(pages: PageInfo[], api = API): AsyncGenerator<PageInfo> {
+    const params: QueryArguments = {
+        action: 'query',
+        prop: 'revisions',
+        rvprop: 'content',
+        rvslots: 'main',
+    };
+
+    // Use the generic function with a specific processor
+    yield* fetchPagePropBatch(pages, params, (pageInfo, apiPage) => {
+        if (apiPage.revisions && apiPage.revisions.length > 0) {
+            const revision = apiPage.revisions[0];
+            if (revision.slots?.main) {
+                pageInfo.text = revision.slots.main['*'];
+            }
+        } else {
+            pageInfo.text = ""; // Default to empty string if missing
+        }
+    }, api);
 }
 
 export async function fetchPageCategories(pages: PageInfo[], api = API): Promise<void> {

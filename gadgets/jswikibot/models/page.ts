@@ -11,8 +11,16 @@ export class PageProps {
 export class PageInfo extends PageProps {
     text?: string;
     categories: string[] = [];
+    fileUrl?: string;
 
     constructor(props: PageProps) {
         super(props.title, props.pageid, props.ns);
+    }
+
+    titleWithoutNs() {
+        if (Number.isInteger(this.ns) && this.ns !== 0) {
+            return this.title.split(":").splice(1).join(":");
+        }
+        return this.title;
     }
 }
