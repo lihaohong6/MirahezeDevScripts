@@ -17,6 +17,13 @@ export type ValidationResult<T = string | number | boolean> = Result<T>;
 
 export type ValidationFunction<T = string | number | boolean> = (value: T) => ValidationResult<T>;
 
+export interface InputDepends {
+    key: string;
+    // By default, show this input when the input corresponding to key is true.
+    // If invert is true, show when the input is false.
+    invert?: boolean;
+}
+
 export interface UserInputOption {
     key: string;
     label: string;
@@ -24,7 +31,7 @@ export interface UserInputOption {
     options?: { data: string, label: string }[]; // For SELECT types
     defaultValue?: string | boolean | number;
     placeholder?: string;
-    depends?: string;
+    depends?: InputDepends | InputDepends[];
     validator?: ValidationFunction;
     help?: string | OO.ui.HtmlSnippet;
     rows?: number;
@@ -52,16 +59,22 @@ export class InputDialog {
             fieldset.addItems([layout]);
 
             if (inputField.depends) {
-                const prev = widgets[inputField.depends];
-                const toggleLayout = (selected: string | boolean) => {
-                    if (selected) {
-                        layout.toggle(true);
-                    } else {
-                        layout.toggle(false);
-                    }
+                const depends = Array.isArray(inputField.depends) ? inputField.depends : [inputField.depends];
+
+                const checkDependencies = () => {
+                    const allMet = depends.every(dep => {
+                        const widget = widgets[dep.key] as OO.ui.CheckboxInputWidget;
+                        return widget.isSelected() !== (!!dep.invert);
+                    });
+                    layout.toggle(allMet);
+                };
+
+                for (const dep of depends) {
+                    const prev = widgets[dep.key];
+                    prev.on('change', checkDependencies);
                 }
-                prev.on('change', toggleLayout);
-                toggleLayout((prev as OO.ui.InputWidget).getValue());
+
+                checkDependencies();
             }
         }
         return {
@@ -116,6 +129,7 @@ export class InputDialog {
             case InputType.MULTILINE_TEXT:
                 widget = new OO.ui.MultilineTextInputWidget({
                     value: inputField.defaultValue as string || '',
+                    rows: inputField.rows || 5
                 });
                 break;
             case InputType.SELECT: {

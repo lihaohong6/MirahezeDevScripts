@@ -7,6 +7,7 @@ import {purgeBot} from "./bots/purge";
 import {deleteBot} from "./bots/delete";
 import {addTextBot} from "./bots/add_text";
 import {downloadBot} from "./bots/download";
+import {moveBot} from "./bots/move";
 
 class BotSelectorDialog extends OO.ui.ProcessDialog {
     static static = {
@@ -89,7 +90,8 @@ export function runBotSelector(): void {
         purgeBot,
         deleteBot,
         addTextBot,
-        downloadBot
+        downloadBot,
+        moveBot,
     ] as Bot<never>[];
 
     const botSelector = new BotSelectorDialog(availableBots);

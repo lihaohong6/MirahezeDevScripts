@@ -18,7 +18,7 @@ class ThrottleControl {
     async throttle(type: ThrottleType, time: number) {
         let curTime = Date.now();
         if (this.lastAction[type]) {
-            const sleepUntil= this.lastAction[type] + time * 1000;
+            const sleepUntil = this.lastAction[type] + time * 1000;
             if (sleepUntil > curTime) {
                 await new Promise(r => setTimeout(r, sleepUntil - curTime));
                 curTime = Date.now();
@@ -173,6 +173,35 @@ export async function undeletePage(title: string, reason: string, undeleteTalk: 
         }
     } catch (error) {
         console.error('Failed to undelete page:', title, error);
+        return newErrorResult(error.toString());
+    }
+}
+
+export async function movePage(from: string, to: string, options: {
+    reason: string,
+    moveTalk: boolean,
+    moveSubpages: boolean,
+    noRedirect: boolean,
+    bot: boolean,
+}, api = API): Promise<Result<boolean>> {
+    try {
+        await api.postWithToken({
+            action: 'move',
+            from: from,
+            to: to,
+            reason: formatSummary(options.reason),
+            movetalk: options.moveTalk,
+            movesubpages: options.moveSubpages,
+            noredirect: options.noRedirect,
+            bot: options.bot,
+        });
+
+        return {
+            ok: true,
+            value: true,
+        }
+    } catch (error) {
+        console.error('Failed to move page:', from, 'to:', to, error);
         return newErrorResult(error.toString());
     }
 }
