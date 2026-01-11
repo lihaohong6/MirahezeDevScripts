@@ -46,7 +46,7 @@ export class ProgressWindow {
             this.hideCancelButton();
             this.addLog(
                 LogSeverity.WARNING,
-                "Attempting to cancel. Note that not all bots support cancellation. " +
+                "Cancellation initiated. Note that the bot will likely perform one more operation before stopping. " +
                 "Refreshing the page definitively cancels the bot.");
         });
         
