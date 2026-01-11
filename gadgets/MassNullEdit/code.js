@@ -462,7 +462,7 @@
     mw.loader.using([
       'mediawiki.api',
       'mediawiki.user'
-    ]).then(function () {
+    ]).done(function () {
       if (!(editApi instanceof mw.Api)) {
         editApi = new mw.Api({parameters: editApi});
       }
@@ -489,7 +489,7 @@
     });
   }
   
-  getI18nLoader().then(function (loader) {
+  getI18nLoader().done(function (loader) {
     i18n = prepareI18n(loader);
     i18n = i18n.msg.bind(i18n);
     mw.hook('dev.qdmodal').add(main);

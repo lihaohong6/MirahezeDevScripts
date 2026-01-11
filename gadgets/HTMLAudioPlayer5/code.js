@@ -195,7 +195,7 @@
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
 
-  getI18nLoader().then(function (i18nLoader) {
+  getI18nLoader().done(function (i18nLoader) {
     var i18n = prepareI18n(i18nLoader);
     msg = i18n.msg.bind(i18n);
     mw.hook('wikipage.content').add(init);

@@ -433,7 +433,7 @@
 	$.when(
 		getI18nLoader(),
 		mw.loader.using('mediawiki.util')
-	).then(function(i18nLoader) {
+	).done(function(i18nLoader) {
 		preInit(i18nLoader);
 		// Doesn't work for Visual Editor, disabled
 		//mw.hook('ve.activationComplete').add(function () { // Visual Editor

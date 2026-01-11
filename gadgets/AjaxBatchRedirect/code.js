@@ -239,7 +239,7 @@ maxerr: 999999, forin: false, -W082, -W084
       }
       if (deleteRedirectList.length > 0) {
         if (!config.wgUserGroups.some(function (g) {
-          return groupsWithDeletePerm.includes(g);
+          return groupsWithDeletePerm.indexOf(g) > -1;
         })) {
           for (i in deleteRedirectList) {
             modalConsoleLog("consoleDeleteNoPerm", colorWarning, deleteRedirectList[i][0], deleteRedirectList[i][1]);
@@ -378,7 +378,7 @@ maxerr: 999999, forin: false, -W082, -W084
       mw.loader.using([
         "mediawiki.api",
         "mediawiki.user"
-      ]).then(init);
+      ]).done(init);
     }
   }
   mw.hook("dev.modal").add(preload);

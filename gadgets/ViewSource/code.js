@@ -256,7 +256,7 @@
   $.when(
     getI18nLoader(),
     mw.loader.using('mediawiki.util')
-  ).then(function (i18nLoader) {
+  ).done(function (i18nLoader) {
     i18n = prepareI18n(i18nLoader);
     preload();
   });

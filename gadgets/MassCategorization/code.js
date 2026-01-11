@@ -98,19 +98,19 @@
         return mod.slice(0, len) === prefix;
       });
       
-      return mw.loader.using(moduleName).then(function(require) {
+      return mw.loader.using(moduleName).done(function(require) {
         return require(moduleName);
       });
     },
     preload: function() {
-      getI18nLoader().then(this.onload.bind(this, 'i18n'));
+      getI18nLoader().done(this.onload.bind(this, 'i18n'));
       
       mw.hook('dev.modal').add(this.onload.bind(this, 'modal-js'));
       mw.hook('dev.doru.ui').add(this.onload.bind(this, 'dorui'));
       mw.hook('dev.powertools.placement').add(this.onload.bind(this, 'placement'));
       
       // Loader modules
-      mw.loader.using('mediawiki.api').then(this.onload.bind(this, 'api'));
+      mw.loader.using('mediawiki.api').done(this.onload.bind(this, 'api'));
     },
     
     // Functions

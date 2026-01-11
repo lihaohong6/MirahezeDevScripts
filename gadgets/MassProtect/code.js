@@ -295,7 +295,7 @@ mw.loader.using([
   mw.hook('dev.modal').add(preload);
   mw.hook('dev.powertools.placement').add(preload);
   
-  getI18nLoader().then(function (loader) {
+  getI18nLoader().done(function (loader) {
     i18n = prepareI18n(loader);
     preload();
   });
