@@ -3,7 +3,7 @@
 **FandoomUtilsI18nLoader** is a fork of [Fandom's utility script I18n-js](https://dev.fandom.com/wiki/I18n-js). This utility script is required for multiple-language supports in many of the scripts originating from Fandom Developers Wiki.
 
 ## Differences with I18n-js
- - Unlike I18n-js, FandoomUtilsI18nLoader does not expose an interface for parsing the messages into the DOM. This is by design, so as to minimize the risks of [Cross Site Scripting](https://owasp.org/www-community/attacks/xss/).
+ - Unlike I18n-js, FandoomUtilsI18nLoader does not expose an interface for parsing the messages into the DOM.
  - Parsing of messages is instead done using `mediawiki.message` which is shipped with every MediaWiki installation.
  - The original I18n-js uses a hook event to signal its readiness to other scripts that may depend on it. This is changed in FandoomUtilsI18nLoader, such that you can no longer use `mw.hook('dev.i18n')` to respond to FandoomUtilsI18nLoader's readiness on the MediaWiki environment. Instead, you must call upon the module using `mw.loader.using`.
 
@@ -124,7 +124,6 @@ By default, the cache only keeps translations for the user's language (<code>wgU
 ### i18nLoader object
 [`i18nModule.loadMessages()`](#i18nmoduleloadmessages) returns a jQuery.Deferred() object that resolves as an `i18nLoader` object. This object stores your individual messages and controls access to the language it tries to translate them into. It defines the following methods:
 - <code>getMessages()</code><br />Get the messages map for the set language (default: user language).
-- <code>clearMessages(lang)</code><br />Clear the messages map from internal runtime memory for the language <code>lang</code>. If <code>lang</code> is true, then all the messages will be cleared.
 - <code>useContentLang()</code><br />Set the default language to the value of <code>wgContentLanguage</code>.
 - <code>useUserLang()</code><br />Set the default language to the user language (the user language is the value of <code>wgUserLanguage</code>, unless set otherwise by [the <code>options</code> parameter of <code>loadMessages()</code>](#loading-your-messages)).
 - <code>inContentLang()</code><br />Set the language to the value of <code>wgContentLanguage</code> for the next message only.
@@ -153,10 +152,7 @@ There are several methods available for outputting the message stored in the <co
 - <code>escape()</code><br />This outputs the message with any HTML characters escaped.
 - <code>escaped()</code><br />Synonymous with <code>escape()</code>.
 - <code>parse()</code><br />This outputs the message with all basic wikitext links converted into HTML and some locale-specific magic words parsed.
-<!--
-This was fixed by having mediawiki.jqueryMsg be loaded along with FandoomUtilsI18nLoader
-> <code>parse()</code> works identically with [<code>mw.Message.parse()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parse). This means that <code>parse()</code> acts differently before and after <code>mediawiki.jqueryMsg</code> is loaded. If <code>mediawiki.jqueryMsg</code> is not loaded, then <code>escape()</code> and <code>parse()</code> works essentially the same as <code>plain()</code>. See *[the page "Manual:Messages API" on the official MediaWiki site](https://www.mediawiki.org/wiki/Manual:Messages_API#Using_messages_in_JavaScript)*.-->
-- <code>parseDom()</code><br />This works identically with [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom).<!--This is only available if <code>jqueryMsg</code> is loaded.-->
+- <code>parseDom()</code><br />This works identically with [<code>mw.Message.parseDom()</code>](https://doc.wikimedia.org/mediawiki-core/master/js/mw.Message.html#parseDom).
 
 If <code>inLang</code>, <code>inContentLang</code>, or <code>inUserLang</code> are being used, you can also chain the message call:
 

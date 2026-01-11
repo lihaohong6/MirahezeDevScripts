@@ -648,19 +648,27 @@ mw.loader.impl(function () {
         return {
           _defaultLang: options.language,
           _tempLang: null,
+          /**
+           * For accessing the messages that have been turned into an mw.Map instance.
+           */
           _msgMaps: {},
+          /**
+           * For accessing the raw messages (i.e. messages that were obtained from i18n.json).
+           * Scripts should not rely on it or any of its properties existing.
+           */
+          _rawMessageJson: messages,
 
           /**
            * @param {String} lang
            */
-          setDefaultLang: function (lang) {
+          _setDefaultLang: function (lang) {
             this._defaultLang = lang;
           },
 
           /**
            * @param {String} lang
            */
-          setTempLang: function (lang) {
+          _setTempLang: function (lang) {
             this._tempLang = lang;
           },
 
@@ -703,32 +711,17 @@ mw.loader.impl(function () {
 
             /** 
              * Mechanism to save messages to the internal cache. 
-             * This does mean that the messages are saved indefinitely 
-             * until a new browser context is set (e.g. by refreshing 
-             * the page).
-             * Each developer is responsible for managing resource use
-             * and avoiding memory leaks.
              */
             var m = new mw.Map();
             m.set(messagesToLoad);
             this._msgMaps[lang] = m;
+            // clear messages from the raw messages JSON object since we've already saved 
+            // a copy in this._msgMaps
+            // the trade-off is that we do not save the original copy (pre-override) 
+            // in-memory
+            delete messages[lang];
 
             return fetch.call(this, lang);
-          },
-
-          /**
-           * Use this to clear messages for a certain or all languages 
-           * @param {Boolean|String} arg 
-           * If `true` is passed, then all messages will be cleared.
-           * If a string is passed, then messages corresponding to that
-           * language will be cleared. 
-           */
-          clearMessages: function (arg) {
-            if (arg === true) {
-              this._msgMaps = {};
-            } else if (typeof arg === 'string' && this._msgMaps[arg]) {
-              delete this._msgMaps[arg];
-            }
           },
 
           /**
@@ -753,7 +746,7 @@ mw.loader.impl(function () {
               console.warn('[FandoomUtilsI18nLoader] “inLang()” is not supported without configuring `options.cacheAll` (used in “' + name + '”) - using user language.');
               return this;
             }
-            this.setTempLang(lang);
+            this._setTempLang(lang);
             return this;
           },
           
@@ -761,7 +754,7 @@ mw.loader.impl(function () {
            * Set the default language to the content language.
            */
           useContentLang: function () {
-            this.setDefaultLang(conf.wgContentLanguage);
+            this._setDefaultLang(conf.wgContentLanguage);
           },
           
           /**
@@ -770,7 +763,7 @@ mw.loader.impl(function () {
            * @return {object} The current object for use in chaining.
            */
           inContentLang: function () {
-            this.setTempLang(conf.wgContentLanguage);
+            this._setTempLang(conf.wgContentLanguage);
             return this;
           },
           
@@ -778,7 +771,7 @@ mw.loader.impl(function () {
            * Set the default language to the page language.
            */
           usePageLang: function () {
-            this.setDefaultLang(conf.wgPageContentLanguage);
+            this._setDefaultLang(conf.wgPageContentLanguage);
           },
           
           /**
@@ -787,7 +780,7 @@ mw.loader.impl(function () {
            * @return {object} The current object for use in chaining.
            */
           inPageLang: function () {
-            this.setTempLang(conf.wgPageContentLanguage);
+            this._setTempLang(conf.wgPageContentLanguage);
             return this;
           },
           
@@ -796,7 +789,7 @@ mw.loader.impl(function () {
            * This is also known as the user language variant.
            */
           usePageViewLang: function () {
-            this.setDefaultLang(
+            this._setDefaultLang(
               conf.wgUserVariant || conf.wgPageContentLanguage || conf.wgContentLanguage
             );
           },
@@ -808,7 +801,7 @@ mw.loader.impl(function () {
            * @return {object} The current object for use in chaining.
            */
           inPageViewLang: function () {
-            this.setTempLang(
+            this._setTempLang(
               conf.wgUserVariant || conf.wgPageContentLanguage || conf.wgContentLanguage
             );
             return this;
@@ -818,7 +811,7 @@ mw.loader.impl(function () {
            * Set the default language to the user's language.
            */
           useUserLang: function () {
-            this.setDefaultLang(options.language);
+            this._setDefaultLang(options.language);
           },
 
           /**
@@ -827,15 +820,9 @@ mw.loader.impl(function () {
            * @return {object} The current object for use in chaining.
            */
           inUserLang: function () {
-            this.setTempLang(options.language);
+            this._setTempLang(options.language);
             return this;
-          },
-
-          /**
-           * For accessing the raw messages.
-           * Scripts should not rely on it or any of its properties existing.
-           */
-          _messages: messages
+          }
         };
       }
       
@@ -848,7 +835,7 @@ mw.loader.impl(function () {
        * @param {object} options Options set by the loading script.
        */
       function optimiseMessages(name, messages, options) {
-        var existingLangs = cache[name] && cache[name]._messages._isOptimised,
+        var existingLangs = cache[name] && cache[name]._rawMessageJson._isOptimised,
             langs = [options.language],
             msgKeys = Object.keys(messages.en || {}),
             optimised = {};
@@ -923,7 +910,7 @@ mw.loader.impl(function () {
        * @return {boolean} Whether the cache should be used.
        */
       function cacheIsSuitable(name, options) {
-        var messages = cache[name] && cache[name]._messages;
+        var messages = cache[name] && cache[name]._rawMessageJson;
         
         // Nothing in cache
         if (!messages) {
