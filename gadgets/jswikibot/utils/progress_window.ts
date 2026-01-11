@@ -1,15 +1,31 @@
 import {openWindow} from "./alert_window";
 
 export enum LogSeverity {
-    SUCCESS = 0,
-    INFO,
-    WARNING,
-    ERROR,
+    SUCCESS = "Success",
+    INFO = "Info",
+    WARNING = "Warning",
+    ERROR = "Error",
 }
 
+export const ALL_SEVERITIES = [LogSeverity.SUCCESS, LogSeverity.INFO, LogSeverity.WARNING, LogSeverity.ERROR];
+
 export class LogEntry {
+    public readonly element: JQuery;
+
     constructor(public readonly severity: LogSeverity,
                 public readonly text: string) {
+        this.element = this.renderLogLine(severity, text);
+    }
+
+    private formatLogSeverity(severity: LogSeverity) {
+        const text = severity;
+        return $("<span>").text(`[${text}]`).addClass(`log-${text.toLowerCase()}`);
+    }
+
+    public renderLogLine(severity: LogSeverity, text: string): JQuery {
+        const logElement = $("<div></div>");
+        logElement.append(this.formatLogSeverity(severity), $("<span>").text(": " + text));
+        return logElement;
     }
 }
 
@@ -19,28 +35,30 @@ export class ProgressWindow {
     private readonly progressDialog: OO.ui.MessageDialog;
     private readonly logLabel: OO.ui.LabelWidget;
     private readonly cancelButton: OO.ui.ButtonWidget;
+    private readonly logPanelWidget: OO.ui.Widget;
     private isDone = false;
     private progress = 0;
 
-    constructor(private readonly total: number, private readonly cancelCallback: () => void = () => {} ) {
+    constructor(private readonly total: number,
+                private readonly cancelCallback: () => void = () => false) {
         this.progressBar = new OO.ui.ProgressBarWidget({
             progress: 0
         });
-        
+
         this.progressLabel = new OO.ui.LabelWidget({
             label: `Progress: 0 / ${this.total}`
         });
-        
+
         this.logLabel = new OO.ui.LabelWidget({
             label: '',
             classes: ['progress-window-logs']
         });
-        
+
         this.cancelButton = new OO.ui.ButtonWidget({
             label: 'Cancel',
             flags: ['destructive']
         });
-        
+
         this.cancelButton.on('click', () => {
             this.cancelCallback();
             this.hideCancelButton();
@@ -49,7 +67,7 @@ export class ProgressWindow {
                 "Cancellation initiated. Note that the bot will likely perform one more operation before stopping. " +
                 "Refreshing the page definitively cancels the bot.");
         });
-        
+
         const progressAndCancelWidget = new OO.ui.Widget({
             content: [
                 this.progressLabel.$element,
@@ -62,11 +80,35 @@ export class ProgressWindow {
             alignItems: 'center'
         });
 
-        const logPanelWidget = new OO.ui.Widget({
+        this.severityEnabled = Object.fromEntries(
+            ALL_SEVERITIES.map(severity => [severity, true])
+        ) as Record<LogSeverity, boolean>;
+
+        const toggleButtons = ALL_SEVERITIES.map(severity => {
+            const btn = new OO.ui.ToggleButtonWidget({
+                label: severity,
+                data: severity,
+                value: true,
+            });
+
+            btn.on('change', (selected) => {
+                this.severityEnabled[severity] = selected;
+                this.refreshLogs();
+            });
+
+            return btn;
+        });
+
+        const logFilterButtons = new OO.ui.ButtonGroupWidget({
+            items: toggleButtons as unknown as OO.ui.ButtonWidget[],
+            classes: ['jswikibot-log-filter-button-group']
+        });
+
+        this.logPanelWidget = new OO.ui.Widget({
             classes: ['progress-window-log-panel'],
         });
-        logPanelWidget.$element.addClass('jswikibot-log-panel');
-        logPanelWidget.$element.append(this.logLabel.$element);
+        this.logPanelWidget.$element.addClass('jswikibot-log-panel');
+        this.logPanelWidget.$element.append(this.logLabel.$element);
 
         const fieldsetLayout = new OO.ui.FieldsetLayout();
         fieldsetLayout.addItems([
@@ -76,11 +118,15 @@ export class ProgressWindow {
             new OO.ui.FieldLayout(progressAndCancelWidget, {
                 align: 'top'
             }),
-            new OO.ui.FieldLayout(logPanelWidget, {
+            new OO.ui.FieldLayout(logFilterButtons, {
+                align: 'top',
+                label: "Filter log entries"
+            }),
+            new OO.ui.FieldLayout(this.logPanelWidget, {
                 align: 'top'
             })
         ]);
-        
+
         this.progressDialog = new OO.ui.MessageDialog();
         openWindow(this.progressDialog, {
             title: 'Progress',
@@ -111,18 +157,39 @@ export class ProgressWindow {
     }
 
     private readonly logEntries: LogEntry[] = [];
+    private readonly severityEnabled: Record<LogSeverity, boolean>;
     private readonly logText: JQuery = $('<div></div>');
 
-    private formatLogSeverity(severity: LogSeverity) {
-        const text = LogSeverity[severity];
-        return $("<span>").text(`[${text}]`).addClass(`log-${text.toLowerCase()}`);
+    scrollToBottom() {
+        const $panel = this.logPanelWidget.$element;
+        const panelElement = $panel[0];
+        const elementHeight = ($panel.scrollTop() ?? 0) + ($panel.innerHeight() ?? 0);
+        const scrollThreshold = panelElement.scrollHeight - 100;
+        const isAtBottom = elementHeight >= scrollThreshold;
+        if (isAtBottom) {
+            $panel.scrollTop(panelElement.scrollHeight);
+        }
     }
 
     addLog(severity: LogSeverity, text: string) {
-        this.logEntries.push(new LogEntry(severity, text));
-        const logElement = $("<div></div>");
-        logElement.append(this.formatLogSeverity(severity), $("<span>").text(": " + text));
-        this.logText.append(logElement);
+        const entry = new LogEntry(severity, text);
+        this.logEntries.push(entry);
+        if (this.severityEnabled[severity]) {
+            this.logText.append(entry.element);
+            this.logLabel.setLabel(this.logText);
+            this.scrollToBottom();
+        }
+    }
+
+    private refreshLogs() {
+        this.logText.empty();
+
+        this.logEntries.forEach(entry => {
+            if (this.severityEnabled[entry.severity]) {
+                this.logText.append(entry.element);
+            }
+        });
+
         this.logLabel.setLabel(this.logText);
     }
 
