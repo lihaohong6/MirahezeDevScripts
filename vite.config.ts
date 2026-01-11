@@ -150,7 +150,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
          * 
          * On compilation this will become `console.log(obj);` on debug mode, and no output on dist mode.
          */
-        'DEBUG': (serverPreviewOrigin || cdnEntrypoint).match(/^https?:\/\/localhost/) !== null ? 'true' : 'false',
+        'DEBUG': isDev || (serverPreviewOrigin || cdnEntrypoint).match(/^https?:\/\/localhost/) !== null ? 'true' : 'false',
       },
 
     },
