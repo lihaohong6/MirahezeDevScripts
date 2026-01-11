@@ -29,6 +29,7 @@ export interface UserInputOption {
     help?: string | OO.ui.HtmlSnippet;
     rows?: number;
     optional?: boolean;
+    min?: number;
 }
 
 export class InputDialog {
@@ -71,7 +72,7 @@ export class InputDialog {
 
     private static constructWidget(inputField: UserInputOption) {
         let align: "left" | "top" | "right" | "inline" = "top";
-        let widget: OO.ui.Widget;
+        let widget: OO.ui.Widget | OO.ui.NumberInputWidget;
         switch (inputField.type) {
             case InputType.BOOLEAN:
                 widget = new OO.ui.CheckboxInputWidget({selected: (inputField.defaultValue || false) as boolean});
@@ -145,6 +146,12 @@ export class InputDialog {
                     value: inputField.defaultValue as string || undefined
                 });
                 break;
+            case InputType.NUMBER:
+                widget = new OO.ui.NumberInputWidget({
+                    value: inputField.defaultValue as string,
+                    min: inputField.min,
+                }) as unknown as OO.ui.Widget;
+                break;
             default:
                 widget = new OO.ui.TextInputWidget({
                     value: inputField.defaultValue as string || ''
@@ -166,6 +173,8 @@ export class InputDialog {
                 rawValue = (widget.getValue() as unknown as string[]).join("|")
             } else if (widget instanceof OO.ui.ButtonSelectWidget) {
                 rawValue = widget.getData() as string;
+            } else if (widget instanceof OO.ui.NumberInputWidget) {
+                rawValue = (widget as unknown as OO.ui.NumberInputWidget).getNumericValue();
             } else {
                 rawValue = (widget as OO.ui.InputWidget).getValue();
             }

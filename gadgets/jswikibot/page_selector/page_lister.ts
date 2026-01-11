@@ -230,7 +230,7 @@ export class QueryPageQuery extends ApiListQuery {
         {
             key: 'limit',
             label: 'Page limit',
-            type: InputType.NUMBER,
+            type: InputType.TEXT,
             defaultValue: "Unlimited",
             help: "Maximum number of pages to fetch. Use a non-numeric value for unlimited pages. Must be a positive integer otherwise."
         }
