@@ -11,7 +11,7 @@ export type QueryArguments = Record<string, string | number | boolean>;
 export interface ApiQueryListResponse<T = PageProps> {
     continue?: Record<string, string>;
     query?: {
-        [listName: string]: T[];
+        [listName: string]: T[] | { results: T[] };
     };
     batchcomplete?: string;
 }
@@ -73,16 +73,26 @@ export abstract class ApiListQuery<T = PageProps> extends PageLister<T> {
             ...this.args
         };
 
+        let limit = parseInt(this.args.limit as string || "");
+
         do {
             const response = (await this.api.get({
                 ...requestParams,
                 ...continueParams,
             })) as ApiQueryListResponse<T>;
 
-            const results = response.query?.[this.listName];
-            if (Array.isArray(results)) {
-                for (const result of results) {
-                    yield result;
+            const r = response.query?.[this.listName];
+            const arr: T[] =
+            Array.isArray(r) ? r :
+                r?.results ?? [];
+            for (const page of arr) {
+                yield page;
+
+                if (!isNaN(limit)) {
+                    limit -= 1;
+                    if (limit <= 0) {
+                        break;
+                    }
                 }
             }
             continueParams = response.continue || {};
@@ -163,7 +173,7 @@ export class AllPagesQuery extends ApiListQuery {
     }
 
     getDescription(): string {
-        const ns = getNamespaces().toNamespace(this.args['apnamespace'] as string) as {ok: true, value: Namespace};
+        const ns = getNamespaces().toNamespace(this.args['apnamespace'] as string) as { ok: true, value: Namespace };
         return `All pages in namespace ${ns.value.toString()}`;
     }
 }
@@ -200,6 +210,40 @@ export class BacklinksQuery extends ApiListQuery {
     getDescription(): string {
         return `All pages that link to ${this.args['bltitle']}`;
     }
+}
+
+const QUERY_PAGE_OPTIONS = "Ancientpages, BrokenRedirects, Deadendpages, DisambiguationPageLinks, DisambiguationPages, DoubleRedirects, Fewestrevisions, GadgetUsage, GloballyWantedFiles, ListDuplicatedFiles, Listredirects, Lonelypages, Longpages, MediaStatistics, MostGloballyLinkedFiles, Mostcategories, Mostimages, Mostinterwikis, Mostlinked, Mostlinkedcategories, Mostlinkedtemplates, Mostrevisions, OrphanedTalkPages, Shortpages, SoftRedirectPageLinks, SoftRedirectPages, Uncategorizedcategories, Uncategorizedimages, Uncategorizedpages, Uncategorizedtemplates, Unusedcategories, Unusedimages, Unusedtemplates, Unwatchedpages, Wantedcategories, Wantedfiles, Wantedpages, Wantedtemplates, Withoutinterwiki"
+
+export class QueryPageQuery extends ApiListQuery {
+    static override readonly inputs: UserInputOption[] = [
+        {
+            key: 'qppage',
+            label: 'Special page name: (case-sensitive)',
+            type: InputType.SELECT,
+            options: QUERY_PAGE_OPTIONS
+                .split(",")
+                .map(p => p.trim())
+                .map(p => {
+                    return {data: p, label: p};
+                })
+        },
+        {
+            key: 'limit',
+            label: 'Page limit',
+            type: InputType.NUMBER,
+            defaultValue: "Unlimited",
+            help: "Maximum number of pages to fetch. Use a non-numeric value for unlimited pages. Must be a positive integer otherwise."
+        }
+    ]
+
+    constructor(args: QueryArguments) {
+        super('querypage', 'qp', args);
+    }
+
+    getDescription(): string {
+        return `All pages listed on Special:${this.args['qppage']}`;
+    }
+
 }
 
 export class PageLinksQuery extends ApiPropQuery<"links"> {
@@ -275,4 +319,5 @@ export const allQueryLister = [
     new ListerWrapper(PageLinksQuery, "All links on a page"),
     new ListerWrapper(FileUsageQuery, "All pages using a file"),
     new ListerWrapper(PageImagesQuery, "All files on a page"),
+    new ListerWrapper(QueryPageQuery, "All pages on a Special page"),
 ];

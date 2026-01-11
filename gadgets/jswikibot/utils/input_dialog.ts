@@ -84,14 +84,29 @@ export class InputDialog {
                         value: inputField.defaultValue as string || '',
                     });
                     break;
-                case InputType.SELECT:
-                    widget = new OO.ui.ButtonSelectWidget({
-                        items: inputField.options?.map((option) => new OO.ui.ButtonOptionWidget(option))
-                    });
-                    if (inputField.defaultValue) {
-                        (widget as OO.ui.ButtonSelectWidget).selectItemByData(inputField.defaultValue as string);
+                case InputType.SELECT: {
+                    const options = inputField.options!;
+                    if (options.length == 2) {
+                        widget = new OO.ui.ButtonSelectWidget({
+                            items: options.map((option) => new OO.ui.ButtonOptionWidget(option))
+                        });
+                        if (inputField.defaultValue) {
+                            (widget as OO.ui.ButtonSelectWidget).selectItemByData(inputField.defaultValue as string);
+                        }
+                    } else if (options.length > 2) {
+                        widget = new OO.ui.ComboBoxInputWidget({
+                            menu: {
+                                items: options.map((option) => new OO.ui.MenuOptionWidget(option)),
+                                filterFromInput: true,
+                                filterMode: 'substring',
+                            },
+                            autocomplete: true,
+                        });
+                    } else {
+                        throw new Error();
                     }
                     break;
+                }
                 default:
                     widget = new OO.ui.TextInputWidget({
                         value: inputField.defaultValue as string || ''
