@@ -1,5 +1,5 @@
 import {ListerWrapper, QueryArguments} from "./page_lister";
-import {FilterWrapper} from "./page_filter";
+import {FilterArguments, FilterWrapper} from "./page_filter";
 import {isDebugMode} from "../models/state";
 import {simpleAlert} from "../utils/alert_window";
 import {InputDialog} from "../utils/input_dialog";
@@ -13,7 +13,7 @@ export class ListerInputDialog extends OO.ui.ProcessDialog {
         name: 'listerInputDialog',
         title: 'Page selection arguments',
         actions: [
-            {action: 'save', label: 'Submit', flags: ['primary', 'progressive']},
+            {action: 'save', label: 'Done', flags: ['primary', 'progressive']},
             {label: 'Cancel', flags: ['safe']}
         ]
     };
@@ -49,7 +49,7 @@ export class ListerInputDialog extends OO.ui.ProcessDialog {
 
     public getActionProcess(action: string): OO.ui.Process {
         if (action === 'save' && this.wrapper) {
-            const result = InputDialog.getInputData<QueryArguments>(this.wrapper.getInputs(), this.widgets);
+            const result = InputDialog.getInputData<QueryArguments | FilterArguments>(this.wrapper.getInputs(), this.widgets);
             if (!result.ok) {
                 return new OO.ui.Process(() => {
                     simpleAlert("Invalid input", result.error);
@@ -63,8 +63,15 @@ export class ListerInputDialog extends OO.ui.ProcessDialog {
 
             const wrapper = this.wrapper;
 
+            if ((wrapper as FilterWrapper).validator) {
+                const result = (wrapper as FilterWrapper).validator!(args as FilterArguments);
+                if (!result) {
+                    return new OO.ui.Process(() => {});
+                }
+            }
+
             return new OO.ui.Process(() => {
-                this.callback(wrapper.construct(args));
+                this.callback(wrapper.construct(args as FilterArguments & QueryArguments));
                 this.close();
             });
         }

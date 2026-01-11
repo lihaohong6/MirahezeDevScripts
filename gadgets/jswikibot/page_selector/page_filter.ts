@@ -4,13 +4,12 @@ import {isDebugMode} from "../models/state";
 import {InputType, UserInputOption} from "../utils/input_dialog";
 import {PageSelector} from "./page_selector";
 import {unwrap} from "../utils/result";
+import {RegexConfigOptions, RegexHelper} from "../utils/regex_helper";
 
-export interface FilterArguments {
+export interface FilterArguments extends RegexConfigOptions{
     namespace?: string;
-    useRegex?: boolean;
     excludeMatches?: boolean;
     searchText?: string;
-    regexFlags?: string;
 }
 
 export enum RequiredPageInfo {
@@ -20,11 +19,11 @@ export enum RequiredPageInfo {
 
 export abstract class PageFilter extends PageSelector {
     readonly requiredInfo: RequiredPageInfo[] = [];
+    static readonly validator?: (args: FilterArguments) => boolean;
 
     constructor(protected readonly args: FilterArguments) {
         super();
     }
-
 
     async* filter(input: AsyncIterable<PageInfo>): AsyncGenerator<PageInfo> {
         for await (const page of input) {
@@ -68,11 +67,15 @@ export class NamespaceFilter extends PageFilter {
                 }
                 return {
                     ok: false,
-                    error: (result as {error: string}).error
+                    error: (result as { error: string }).error
                 };
             }
         },
-        {key: 'excludeMatches', label: 'Exclude this namespace instead', type: InputType.BOOLEAN}
+        {
+            key: 'excludeMatches',
+            label: 'Exclude this namespace instead',
+            type: InputType.BOOLEAN
+        }
     ];
 
     private namespaces: Namespace[];
@@ -96,10 +99,13 @@ export class NamespaceFilter extends PageFilter {
 export class TitleFilter extends PageFilter {
     static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Title matching:', type: InputType.TEXT},
-        {key: 'useRegex', label: 'Use regex', type: InputType.BOOLEAN},
-        {key: 'regexFlags', label: 'Regex flags', type: InputType.TEXT, depends: 'useRegex', defaultValue: 'm'},
+        ...RegexHelper.createRegexInputGroup('useRegex', 'regexFlags', {defaultFlags: 'm'}),
         {key: 'excludeMatches', label: 'Exclude pages with matching titles instead', type: InputType.BOOLEAN}
     ];
+
+    static override readonly validator = (args: FilterArguments) => {
+        return RegexHelper.regexValidator(args, args.searchText!);
+    }
 
     public test(page: PageProps): boolean {
         return this.matchText(page.title);
@@ -113,13 +119,16 @@ export class TitleFilter extends PageFilter {
 export class ContentFilter extends PageFilter {
     static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Content matching:', type: InputType.TEXT},
-        {key: 'useRegex', label: 'Use regex', type: InputType.BOOLEAN},
-        {key: 'regexFlags', label: 'Regex flags', type: InputType.TEXT, depends: 'useRegex', defaultValue: 'm'},
+        ...RegexHelper.createRegexInputGroup('useRegex', 'regexFlags', {defaultFlags: 'm'}),
         {key: 'excludeMatches', label: 'Exclude pages with matching content instead: ', type: InputType.BOOLEAN}
     ];
     readonly requiredInfo: RequiredPageInfo[] = [
         RequiredPageInfo.TEXT
     ]
+
+    static override readonly validator = (args: FilterArguments) => {
+        return RegexHelper.regexValidator(args, args.searchText || "");
+    }
 
     public test(page: PageInfo): boolean {
         if (page.text === undefined) {
@@ -160,7 +169,8 @@ export interface FilterConstructor {
 
 export class FilterWrapper {
     constructor(public readonly filterConstructor: FilterConstructor,
-                public readonly description: string) {
+                public readonly description: string,
+                public readonly validator?: (args: FilterArguments) => boolean) {
     }
 
     getInputs(): UserInputOption[] {
@@ -177,7 +187,7 @@ export class FilterWrapper {
 
 export const allPageFilters = [
     new FilterWrapper(NamespaceFilter, 'Namespace'),
-    new FilterWrapper(TitleFilter, 'Page title'),
-    new FilterWrapper(ContentFilter, 'Page wikitext content'),
+    new FilterWrapper(TitleFilter, 'Page title', TitleFilter.validator),
+    new FilterWrapper(ContentFilter, 'Page wikitext content', ContentFilter.validator),
     new FilterWrapper(InCategoryFilter, 'Page category'),
 ]
