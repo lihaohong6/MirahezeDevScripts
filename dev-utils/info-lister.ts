@@ -16,6 +16,7 @@ export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
   const title = doc.createElement('title');
   title.textContent = 'MirahezeDevScripts';
   doc.head.appendChild(title);
+  appendMetaTags(doc);
   appendStyles(doc);
 
   buildInfoOverview(doc);
@@ -28,6 +29,24 @@ export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
     dom.serialize(),
     { flag: 'w+', encoding: 'utf-8' }
   );
+}
+
+/**
+ * @param doc 
+ */
+function appendMetaTags(doc: HTMLDocument): void {
+  const metaTags = {
+    'name': {
+      'description': 'This is a list of scripts for use in MediaWiki wikis.',
+      'keywords': 'MediaWiki,gadgets,scripts,widgets',
+    }
+  };
+  for (const [tagName, tagContents] of Object.entries(metaTags.name)) {
+    const meta = doc.createElement('meta');
+    meta.setAttribute('name', tagName);
+    meta.setAttribute('contents', tagContents);
+    doc.head.appendChild(meta);
+  }
 }
 
 /**
@@ -254,9 +273,11 @@ function buildListOfGadgets(doc: HTMLDocument, gadgets: GadgetDefinition[]): voi
   const thead = doc.createElement('thead');
   buildGadgetListTableHeader(doc, thead);
   const tbody = doc.createElement('tbody');
-  gadgets.forEach((gadget, idx) => {
-    buildGadgetListTableRow(doc, tbody, gadget, idx+1);
-  });
+  gadgets
+    .sort(({ name: a }, { name: b }) => (a < b) ? -1 : (a > b) ? 1 : 0) // sort alphabetically
+    .forEach((gadget, idx) => {
+      buildGadgetListTableRow(doc, tbody, gadget, idx+1);
+    });
   
   table.append(thead, tbody);
   doc.body.append(table);
@@ -322,7 +343,8 @@ function buildGadgetListTableRow(doc: HTMLDocument, tbody: HTMLTableSectionEleme
  * Utility function - build gadget name table cell
  * 
  * @param doc 
- * @param param1 
+ * @param name
+ * @param version 
  * @returns 
  */
 function buildGadgetName(doc: HTMLDocument, { name, version }: GadgetDefinition): HTMLElement {
@@ -347,7 +369,7 @@ function buildGadgetName(doc: HTMLDocument, { name, version }: GadgetDefinition)
  * Utility function - build gadget name author metadata table cell
  * 
  * @param doc 
- * @param param1 
+ * @param authors 
  * @returns 
  */
 function buildGadgetAuthorsInfo(doc: HTMLDocument, { authors }: GadgetDefinition): HTMLElement {
@@ -373,7 +395,8 @@ function buildGadgetAuthorsInfo(doc: HTMLDocument, { authors }: GadgetDefinition
  * Utility function - build gadget description table cell
  * 
  * @param doc 
- * @param param1 
+ * @param description
+ * @param links 
  * @returns 
  */
 function buildGadgetDescription(doc: HTMLDocument, { description, links }: GadgetDefinition): HTMLElement {
@@ -451,7 +474,7 @@ const DICT_NAMESPACES: Map<string, string> = new Map(Object.entries({
  * Utility function - build gadget loading restrictions table cell
  * 
  * @param doc 
- * @param param1 
+ * @param resourceLoader 
  * @returns 
  */
 function buildGadgetLoadingRestrictionsOverview(doc: HTMLDocument, { resourceLoader }: GadgetDefinition): HTMLElement {
@@ -519,7 +542,7 @@ function buildGadgetLoadingRestrictionsOverview(doc: HTMLDocument, { resourceLoa
  * Utility function - build gadget table cell containing line of code to load the cell
  * 
  * @param doc 
- * @param param1 
+ * @param name 
  * @returns 
  */
 function buildGadgetLoadingCode(doc: HTMLDocument, { name }: GadgetDefinition): HTMLElement {
