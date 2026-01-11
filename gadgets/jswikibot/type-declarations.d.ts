@@ -6,8 +6,13 @@ declare namespace OO.ui {
     }
 }
 
-// Assert that mw.widgets.TitleInputWidget does exist
-// declare namespace mw.widgets {
-//     export class TitleInputWidget extends OO.ui.TextInputWidget {
-//     }
-// }
+declare namespace mw.widgets {
+    namespace datetime {
+        class DateTimeInputWidget extends OO.ui.InputWidget {
+
+        }
+    }
+    class TitleInputWidget extends OO.ui.TextInputWidget {
+        constructor(options: OO.ui.TextInputWidget.ConfigOptions & {suggestions: boolean})
+    }
+}
