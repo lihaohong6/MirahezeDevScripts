@@ -395,7 +395,9 @@ export async function createRolledUpGadgetImplementation(
     });
   }
 
-  body.push(`]}, {}, {}, null];`);
+  body.push(`]},`);
+  // body.push(` {}, {}, null`);
+  body.push(`];`);
   body.push(`});`);
 
   return (await transformWithEsbuild(
@@ -444,7 +446,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
         ...scriptsToLoad,
         `}, `,
         `{"url": {"all": [${stylesToLoad.join(',')}] }},`,
-        `{}, {}, null`,
+        // `{}, {}, null`,
       `];`,
     `});`
   ];
