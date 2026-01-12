@@ -11,16 +11,6 @@
 	overflow-y: auto;
 }
 
-#MassCatModal .oo-ui-processDialog-actions-safe {
-	display: none;
-}
-
-#MassCatModal .oo-ui-processDialog-location {
-	/* Yes. We have to. UCP modals suck. */
-	padding-left: 15px !important; /* stylelint-disable-line declaration-no-important */
-	text-align: left;
-}
-
 #MassCat-updates-container {
 	display: flex;
 }

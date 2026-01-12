@@ -681,6 +681,9 @@
       this.resetOutput();
       this.reflowModal();
 
+      this.modal.enableActionButtons('mcat-pause');
+      this.modal.disableActionButtons(['mcat-start', 'mcat-add-pages-in-category']);
+
       var updates = this.getUpdates();
       
       for (var i = 0; i < updates.length; i++) {
@@ -711,9 +714,9 @@
         var next = this.pluckNextLine();
         
         if (!next) {
-          this.running = false;
           alert(this.i18n.msg('nothing-left-to-do-prompt').plain());
           this.addStatus(this.i18n.msg('status-finished').plain(), true);
+          this.pause();
           return;
         }
         
@@ -723,6 +726,12 @@
       }.bind(this);
       
       editNext.call(this);
+    },
+
+    pause: function () {
+      this.running = false;
+      this.modal.enableActionButtons(['mcat-start', 'mcat-add-pages-in-category']);
+      this.modal.disableActionButtons('mcat-pause');
     },
     
     addCategoryContents: function() {
@@ -914,7 +923,7 @@
       this._loadedModalContent = false;
       this.modal = new dev.modal.Modal({
         id: 'MassCatModal',
-        size: 'medium',
+        size: 'large',
         title: this.i18n.msg('modal-title').plain(),
         content: this.buildModalContent(),
         // We don't want people accidentally closing it
@@ -922,22 +931,32 @@
         closeOnClickingBackdrop: false,
         events: {
           addCategoryContents: this.addCategoryContents.bind(this),
-          start: this.start.bind(this)
+          start: this.start.bind(this),
+          pause: this.pause.bind(this),
         },
         buttons: [
           {
             text: this.i18n.msg('start-button').plain(),
+            id: 'mcat-start',
             event: 'start',
             primary: true
           },
           {
             text: this.i18n.msg('cancel-button').plain(),
+            id: 'mcat-cancel',
             event: 'close',
             primary: false
           },
           {
+            text: this.i18n.msg('pause-button').plain(),
+            id: 'mcat-pause',
+            event: 'pause',
+            primary: true
+          },
+          {
             text: this.i18n.msg('add-category-contents-button').plain(),
             event: 'addCategoryContents',
+            id: 'mcat-add-pages-in-category',
             primary: false
           }
         ],
