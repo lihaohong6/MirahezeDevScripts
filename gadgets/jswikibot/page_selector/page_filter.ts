@@ -1,8 +1,7 @@
 import {PageInfo, PageProps} from "../models/page";
 import {Namespace, parseNamespaceString} from "../models/namespace";
-import {isDebugMode} from "../models/state";
 import {InputType, UserInputOption} from "../utils/input_dialog";
-import {PageSelector} from "./page_selector";
+import {PageSelector, SelectorConfig} from "./page_selector";
 import {unwrap} from "../utils/result";
 import {RegexConfigOptions, RegexHelper} from "../utils/regex_helper";
 
@@ -35,8 +34,6 @@ export abstract class PageFilter extends PageSelector {
 
     public abstract test(page: PageInfo): boolean;
 
-    public abstract getDescription(): string;
-
     protected matchText(text: string): boolean {
         let match: boolean;
         if (this.args.useRegex) {
@@ -49,27 +46,13 @@ export abstract class PageFilter extends PageSelector {
     }
 }
 
-// --- Specific Filter Implementations ---
-
 export class NamespaceFilter extends PageFilter {
+    static readonly description = "Namespace";
     static override readonly inputs: UserInputOption[] = [
         {
             key: 'namespace',
             label: 'Namespace:',
-            type: InputType.NAMESPACES,
-            validator: (value: string | number | boolean) => {
-                const result = parseNamespaceString(String(value));
-                if (result.ok) {
-                    return {
-                        ok: true,
-                        value: String(value)
-                    };
-                }
-                return {
-                    ok: false,
-                    error: (result as { error: string }).error
-                };
-            }
+            type: InputType.NAMESPACES
         },
         {
             key: 'excludeMatches',
@@ -97,6 +80,7 @@ export class NamespaceFilter extends PageFilter {
 }
 
 export class TitleFilter extends PageFilter {
+    static readonly description = "Page title";
     static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Title matching:', type: InputType.TEXT},
         ...RegexHelper.createRegexInputGroup('useRegex', 'regexFlags', {defaultFlags: 'm'}),
@@ -117,6 +101,7 @@ export class TitleFilter extends PageFilter {
 }
 
 export class ContentFilter extends PageFilter {
+    static readonly description = "Page wikitext content";
     static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Content matching:', type: InputType.TEXT},
         ...RegexHelper.createRegexInputGroup('useRegex', 'regexFlags', {defaultFlags: 'm'}),
@@ -131,9 +116,6 @@ export class ContentFilter extends PageFilter {
     }
 
     public test(page: PageInfo): boolean {
-        if (page.text === undefined) {
-            console.log(`Text is empty for page ${page.title}`);
-        }
         return this.matchText(page.text!);
     }
 
@@ -143,6 +125,7 @@ export class ContentFilter extends PageFilter {
 }
 
 export class InCategoryFilter extends PageFilter {
+    static readonly description = "Page category";
     static override readonly inputs: UserInputOption[] = [
         {key: 'searchText', label: 'Is in category:', type: InputType.PAGE, defaultValue: 'Category:'},
         {key: 'excludeMatches', label: 'Exclude pages in this category instead', type: InputType.BOOLEAN},
@@ -160,34 +143,15 @@ export class InCategoryFilter extends PageFilter {
     }
 }
 
-export interface FilterConstructor {
+export interface FilterConstructor extends SelectorConfig<FilterArguments> {
     new(args: FilterArguments): PageFilter;
 
-    inputs: UserInputOption[];
     requiredInfo?: RequiredPageInfo[];
 }
 
-export class FilterWrapper {
-    constructor(public readonly filterConstructor: FilterConstructor,
-                public readonly description: string,
-                public readonly validator?: (args: FilterArguments) => boolean) {
-    }
-
-    getInputs(): UserInputOption[] {
-        return this.filterConstructor.inputs;
-    }
-
-    construct(args: FilterArguments): PageFilter {
-        if (isDebugMode()) {
-            console.log(args);
-        }
-        return new this.filterConstructor(args);
-    }
-}
-
-export const allPageFilters = [
-    new FilterWrapper(NamespaceFilter, 'Namespace'),
-    new FilterWrapper(TitleFilter, 'Page title', TitleFilter.validator),
-    new FilterWrapper(ContentFilter, 'Page wikitext content', ContentFilter.validator),
-    new FilterWrapper(InCategoryFilter, 'Page category'),
+export const allPageFilters: FilterConstructor[] = [
+    NamespaceFilter,
+    TitleFilter,
+    ContentFilter,
+    InCategoryFilter,
 ]
