@@ -1,9 +1,8 @@
 import {PageProps} from "../models/page";
-import {isDebugMode} from "../models/state";
 import {API} from "../utils/mw_api";
 import {getNamespaces, Namespace} from "../models/namespace";
 import {InputType, UserInputOption} from "../utils/input_dialog";
-import {PageSelector} from "./page_selector";
+import {PageSelector, SelectorConfig} from "./page_selector";
 import {flatMap} from "../utils/result";
 
 export type QueryArguments = Record<string, string | number | boolean>;
@@ -50,8 +49,6 @@ export abstract class PageLister<T = PageProps> extends PageSelector {
         }
         return allResults;
     }
-
-    abstract getDescription(): string;
 }
 
 export abstract class ApiListQuery<T = PageProps> extends PageLister<T> {
@@ -141,6 +138,7 @@ export abstract class ApiPropQuery<Prop extends string, T = PageProps> extends P
 }
 
 export class CategoryMembersQuery extends ApiListQuery {
+    static readonly description = "All pages in category";
     static override readonly inputs: UserInputOption[] = [
         {key: 'cmtitle', label: 'Category:', type: InputType.PAGE, defaultValue: 'Category:'}
     ];
@@ -155,6 +153,7 @@ export class CategoryMembersQuery extends ApiListQuery {
 }
 
 export class AllPagesQuery extends ApiListQuery {
+    static readonly description = "All pages in namespace";
     static override readonly inputs: UserInputOption[] = [
         {
             key: 'apnamespace',
@@ -179,6 +178,7 @@ export class AllPagesQuery extends ApiListQuery {
 }
 
 export class EmbeddedInQuery extends ApiListQuery {
+    static readonly description = "All pages transcluding page X";
     static override readonly inputs: UserInputOption[] = [
         {
             key: 'eititle',
@@ -199,6 +199,7 @@ export class EmbeddedInQuery extends ApiListQuery {
 }
 
 export class BacklinksQuery extends ApiListQuery {
+    static readonly description = "All pages linking to page X";
     static override readonly inputs: UserInputOption[] = [
         {key: 'bltitle', label: 'Linked page name: ', type: InputType.PAGE},
     ]
@@ -215,6 +216,7 @@ export class BacklinksQuery extends ApiListQuery {
 const QUERY_PAGE_OPTIONS = "Ancientpages, BrokenRedirects, Deadendpages, DisambiguationPageLinks, DisambiguationPages, DoubleRedirects, Fewestrevisions, GadgetUsage, GloballyWantedFiles, ListDuplicatedFiles, Listredirects, Lonelypages, Longpages, MediaStatistics, MostGloballyLinkedFiles, Mostcategories, Mostimages, Mostinterwikis, Mostlinked, Mostlinkedcategories, Mostlinkedtemplates, Mostrevisions, OrphanedTalkPages, Shortpages, SoftRedirectPageLinks, SoftRedirectPages, Uncategorizedcategories, Uncategorizedimages, Uncategorizedpages, Uncategorizedtemplates, Unusedcategories, Unusedimages, Unusedtemplates, Unwatchedpages, Wantedcategories, Wantedfiles, Wantedpages, Wantedtemplates, Withoutinterwiki"
 
 export class QueryPageQuery extends ApiListQuery {
+    static readonly description = "All pages on a Special page";
     static override readonly inputs: UserInputOption[] = [
         {
             key: 'qppage',
@@ -251,6 +253,7 @@ const LOG_EVENT_TYPES = [
 ]
 
 export class LogEventsQuery extends ApiListQuery {
+    static readonly description = "Pages in log entries";
     static override readonly inputs: UserInputOption[] = [
         {
             key: "letype",
@@ -270,7 +273,7 @@ export class LogEventsQuery extends ApiListQuery {
             label: "Log action:",
             type: InputType.TEXT,
             optional: true,
-            help: new OO.ui.HtmlSnippet("Overrides log type with more specific requirements. Leave empty unless you know what you are looking for. For example, delete/delete refers to page deletions in the delete log while delete/resotre refers to page undeletions in the same log. See <a href='/w/api.php?action=help&modules=query%2Blogevents'>API help page</a> for a complete list.")
+            help: new OO.ui.HtmlSnippet("Overrides log type with more specific requirements. Leave empty unless you know what you are looking for. For example, delete/delete refers to page deletions in delete log while delete/resotre refers to page undeletions in the same log. See <a href='/w/api.php?action=help&modules=query%2Blogevents'>API help page</a> for a complete list.")
         },
         {
             key: "lestart",
@@ -306,6 +309,7 @@ export class LogEventsQuery extends ApiListQuery {
 }
 
 export class PageLinksQuery extends ApiPropQuery<"links"> {
+    static readonly description = "All links on a page";
     static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'Title: ', type: InputType.PAGE},
     ]
@@ -320,6 +324,7 @@ export class PageLinksQuery extends ApiPropQuery<"links"> {
 }
 
 export class PageImagesQuery extends ApiPropQuery<"images"> {
+    static readonly description = "All files on a page";
     static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'Page: ', type: InputType.PAGE},
     ];
@@ -334,6 +339,7 @@ export class PageImagesQuery extends ApiPropQuery<"images"> {
 }
 
 export class FileUsageQuery extends ApiPropQuery<"fileusage"> {
+    static readonly description = "All pages using a file";
     static override readonly inputs: UserInputOption[] = [
         {key: 'titles', label: 'File: ', type: InputType.PAGE, defaultValue: "File:"},
     ]
@@ -347,37 +353,18 @@ export class FileUsageQuery extends ApiPropQuery<"fileusage"> {
     }
 }
 
-export interface QueryConstructor {
+export interface QueryConstructor extends SelectorConfig<QueryArguments> {
     new(args: QueryArguments): PageLister;
-
-    inputs: UserInputOption[];
 }
 
-export class ListerWrapper {
-    constructor(public readonly listerConstructor: QueryConstructor,
-                public readonly description: string) {
-    }
-
-    getInputs(): UserInputOption[] {
-        return this.listerConstructor.inputs;
-    }
-
-    construct(args: QueryArguments): PageLister {
-        if (isDebugMode()) {
-            console.log(args);
-        }
-        return new this.listerConstructor(args);
-    }
-}
-
-export const allQueryLister = [
-    new ListerWrapper(CategoryMembersQuery, "All pages in category"),
-    new ListerWrapper(AllPagesQuery, "All pages in namespace"),
-    new ListerWrapper(EmbeddedInQuery, "All pages transcluding page X"),
-    new ListerWrapper(BacklinksQuery, "All pages linking to page X"),
-    new ListerWrapper(PageLinksQuery, "All links on a page"),
-    new ListerWrapper(FileUsageQuery, "All pages using a file"),
-    new ListerWrapper(PageImagesQuery, "All files on a page"),
-    new ListerWrapper(QueryPageQuery, "All pages on a Special page"),
-    new ListerWrapper(LogEventsQuery, "Pages in log entries"),
+export const allQueryLister: QueryConstructor[] = [
+    CategoryMembersQuery,
+    AllPagesQuery,
+    EmbeddedInQuery,
+    BacklinksQuery,
+    PageLinksQuery,
+    FileUsageQuery,
+    PageImagesQuery,
+    QueryPageQuery,
+    LogEventsQuery,
 ];

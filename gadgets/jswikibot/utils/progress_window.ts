@@ -129,7 +129,7 @@ export class ProgressWindow {
 
         this.progressDialog = new OO.ui.MessageDialog();
         openWindow(this.progressDialog, {
-            title: 'Progress',
+            title: 'Bot progress',
             message: fieldsetLayout.$element,
             actions: [
                 {

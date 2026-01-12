@@ -1,14 +1,13 @@
 import {PageInfo} from "../models/page";
 import {openWindow, simpleAlert} from "../utils/alert_window";
-import {allPageFilters, FilterWrapper, PageFilter, RequiredPageInfo} from "./page_filter";
+import {allPageFilters, PageFilter, RequiredPageInfo, FilterArguments} from "./page_filter";
 import {API} from "../utils/mw_api";
 import {fetchPageCategories, fetchPageText} from "../utils/page_info_fetcher";
-import {allQueryLister, ListerWrapper, PageLister} from "./page_lister";
-import {ListerInputDialog} from "./lister_input";
+import {allQueryLister, PageLister, QueryArguments} from "./page_lister";
 import {cachePageInfo, isDebugMode} from "../models/state";
-import {PageSelector} from "./page_selector";
+import {PageSelector, PageSelectorDialog, SelectorConfig} from "./page_selector";
 
-type WrapperItem = ListerWrapper | FilterWrapper;
+type SelectorItem = SelectorConfig<QueryArguments> | SelectorConfig<FilterArguments>;
 type CallbackFunction = (lst: PageInfo[]) => void;
 
 class PageSelectionDialog extends OO.ui.ProcessDialog {
@@ -71,7 +70,7 @@ class PageSelectionDialog extends OO.ui.ProcessDialog {
     /**
      * Helper to create the row with Label and Add button
      */
-    private createActionRows(items: WrapperItem[]): OO.ui.ActionFieldLayout[] {
+    private createActionRows(items: SelectorItem[]): OO.ui.ActionFieldLayout[] {
         return items.map(item => {
             const button = new OO.ui.ButtonWidget({
                 label: 'Add',
@@ -88,21 +87,21 @@ class PageSelectionDialog extends OO.ui.ProcessDialog {
         });
     }
 
-    private promptUserInputForLister(wrapper: WrapperItem): Promise<PageSelector> {
+    private promptUserInputForLister(item: SelectorItem): Promise<PageSelector> {
         return new Promise((resolve) => {
-            const dialog = new ListerInputDialog({
+            const dialog = new PageSelectorDialog({
                 size: 'medium'
             }, (pageGenerator: PageSelector) => {
                 resolve(pageGenerator);
             });
-            openWindow(dialog, {wrapper})
+            openWindow(dialog, { selectorClass: item });
         });
     }
 
     /**
      * Adds an item to the bottom list
      */
-    private async addItem(item: WrapperItem) {
+    private async addItem(item: SelectorItem) {
         const instance = await this.promptUserInputForLister(item);
         this.addedItems.push(instance);
 
