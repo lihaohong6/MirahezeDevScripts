@@ -71,7 +71,8 @@ mw.loader.using('mediawiki.api', function() {
       events: {
         pause: pause,
         start: start
-      }
+      },
+      closeOnClickingBackdrop: false,
     });
     undeleteModal.create();
     $form = $('#form-batch-undelete');

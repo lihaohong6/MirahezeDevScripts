@@ -349,7 +349,8 @@ maxerr: 999999, forin: false, -W082, -W084
       }],
       events: {
         start: start
-      }
+      },
+      closeOnClickingBackdrop: false,
     });
     myModal.create();
     $form = $('#batchredirect-form');

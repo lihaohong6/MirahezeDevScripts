@@ -918,7 +918,8 @@
         title: this.i18n.msg('modal-title').plain(),
         content: this.buildModalContent(),
         // We don't want people accidentally closing it
-        closeEscape: false,
+        // closeEscape: false,
+        closeOnClickingBackdrop: false,
         events: {
           addCategoryContents: this.addCategoryContents.bind(this),
           start: this.start.bind(this)

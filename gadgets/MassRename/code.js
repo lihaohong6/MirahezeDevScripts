@@ -121,7 +121,8 @@ mw.loader.using('mediawiki.api', function () {
       events: {
         pause: pause,
         start: start
-      }
+      },
+      closeOnClickingBackdrop: false,
     });
     renameModal.create();
     $form = $('#form-mass-rename');

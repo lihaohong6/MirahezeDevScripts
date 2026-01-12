@@ -305,6 +305,7 @@
       .setEvents(options.events)
       .setClass(options.class || options.classes)
       .setClose(options.close)
+      .setCloseOnClickingBackdrop(options.closeOnClickingBackdrop)
       .setCloseEscape(options.closeEscape);
     module.modals[this.id] = this;
   }
@@ -367,12 +368,27 @@
   };
   
   /**
+   * Sets whether to close the modal upon clicking on the backdrop behind 
+   * the modal (default: true)
+   * @param {Boolean} close 
+   * @returns {Modal} Current instance
+   */
+  Modal.prototype.setCloseOnClickingBackdrop = function(close) {
+    // Set as true for most cases
+    // Only set as false if explicitly set as false
+    this.closeOnClickingBackdrop = close !== false;
+    return this;
+  }
+
+  /**
   * Sets whether the modal should be closed when
   * the Escape button is pressed.
   * @param {Boolean} escape Whether the Escape button closes the modal
   * @returns {Modal} Current instance
   */
   Modal.prototype.setCloseEscape = function(escape) {
+    // Set as true for most cases
+    // Only set as false if explicitly set as false
     this.closeEscape = escape !== false;
     return this;
   };
@@ -600,6 +616,24 @@
     OOUIModal.static.name = this.id;
     OOUIModal.static.title = this.title;
     OOUIModal.static.actions = this.buttons.map(buttonComponent);
+
+    var _close = OOUIModal.prototype.close;
+    OOUIModal.prototype.close = function () {
+      // DEBUG && console.log('Modal.close() is called');
+      var shouldClose = true;
+      // this._modal is a Modal instance
+      if (this._modal.closeFunc) {
+        // Only block the modal from closing if closeFunc returns false.
+        // The modal will always close if closeFunc returns true or undefined.
+        shouldClose = this._modal.closeFunc.bind(this._modal.context)() !== false;
+      }
+      if (shouldClose) {
+        // DEBUG && console.log('Closing modal...');
+        _close.call(this);
+      }
+      // DEBUG && !shouldClose && console.log('Modal is blocked from closing');
+    }
+
     OOUIModal.prototype.initialize = function() {
       superclass.initialize.apply(this, arguments);
       if (this._modal.content instanceof Modal.prototype.deps.OO.ui.Layout) {
@@ -613,7 +647,8 @@
       this.content.$element.append(this._modal.content);
       this.$body.append(this.content.$element);
     };
-    OOUIModal.prototype.getActionProcess = function(action) {
+
+    OOUIModal.prototype.getActionProcess = function (action) {
       var handlers = this._modal.events[action];
       if (action === 'close') {
         return new Modal.prototype.deps.OO.ui.Process((function() {
@@ -629,6 +664,11 @@
       }
       return superclass.getActionProcess.call(this, action);
     };
+
+    OOUIModal.prototype.getEscapeAction = (function () {
+      return (this.closeEscape ? 'close' : null); 
+    }).bind(this);
+
     this._modal = new OOUIModal({
       classes: this.classes,
       id: this.id,
@@ -642,41 +682,13 @@
     */
     this._modal.$frame.parent().prepend($('<div>', { 'class': "oo-ui-window-backdrop" }));
     this._modal.$frame.prev().click((function(event) {
-      if ($(event.target).parent().attr('id') === this.id) {
+      if (this.closeOnClickingBackdrop && $(event.target).parent().attr('id') === this.id) {
         this._modal.close();
       }
     }).bind(this));
+
     this._loading.resolve(this);
     return this._loading;
-  };
-  
-  /**
-  * Modal closing handler.
-  * @returns {Boolean} Whether the modal should close
-  * @private
-  */
-  Modal.prototype._close = function() {
-    this._modal = null;
-    this.create();
-    if (this.closeFunc) {
-      return this.closeFunc.bind(this.context)();
-    }
-    return true;
-  };
-  
-  /**
-  * Callback after the modal has been created.
-  * @param {wikia.ui.factory.Modal} modal Created modal
-  * @private
-  */
-  Modal.prototype._created = function(modal) {
-    this._modal = modal;
-    for (var e in this.events) {
-      for (var i = 0, l = this.events[e].length; i < l; ++i) {
-        modal.bind(e, this.events[e][i]);
-      }
-    }
-    this._loading.resolve(this);
   };
   
   /**

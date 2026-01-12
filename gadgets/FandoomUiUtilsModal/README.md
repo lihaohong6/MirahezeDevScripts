@@ -40,6 +40,7 @@ Class representing the modal object.
 - <code>class</code> / <code>classes</code><br />String or an array of strings representing the classes of the modal.
 - <code>close</code><br />Function called upon closing the modal, which can return <code>false</code> if the modal should not continue closing.
 - <code>closeEscape</code><br />Whether the modal should be closed when the <code>Esc</code> button is pressed. By default enabled, set to <code>false</code> to disable.
+- <code>closeOnClickingBackdrop</code><br />Whether the modal should be closed when the backdrop behind the modal is clicked. By default enabled, set to <code>false</code> to disable.
 - <code>closeTitle</code><br />Title on the X button for closing the modal.
 
 #### Properties
@@ -48,8 +49,9 @@ Here are the available properties of a Modal instance. Most of them are based on
 - <code>context</code>
 - <code>buttons</code>
 - <code>classes</code>
-- <code>closeFunc</code> — Callback after closing the modal.
+- <code>closeFunc</code> — Function called upon closing the modal, which can return <code>false</code> if the modal should not continue closing.
 - <code>closeEscape</code>
+- <code>closeOnClickingBackdrop</code>
 - <code>closeTitle</code>
 - <code>content</code> — HTML of the modal as a string.
 - <code>events</code> — Map of event names to arrays of callback functions when these events are fired.
@@ -70,16 +72,15 @@ Here are the available methods of a Modal instance. Most of them as used as sett
 - <code>setButtons(buttons)</code>
 - <code>setClass(class)</code>
 - <code>setClasses(classes)</code>
-- <code>setClose(close)</code>
+- <code>setClose(close)</code> — Sets the callback function to execute to determine whether the modal should close (return `true`) or not (return `false`).
 - <code>setCloseEscape(closeEscape)</code>
+- <code>setCloseOnClickingBackdrop(closeOnClickingBackdrop)</code>
 - <code>setCloseTitle(title)</code>
 - <code>setContent(content)</code>
 - <code>setEvent(name, listener)</code>
 - <code>setEvents(events)</code> — <b>Note:</b> This resets all other events of the modal.
 - <code>setSize(size)</code>
 - <code>setTitle(title, isHTML)</code>
-- <code>_close()</code> — Internal callback after a close event has been triggered. Starts recreation of the modal.
-- <code>_created(modal)</code> — Internal callback after the modal component has been created.
 
 ### <code>ModalButton</code>
 Class representing a button in the modal's footer.

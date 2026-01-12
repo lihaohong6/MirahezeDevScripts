@@ -1,4 +1,4 @@
-import { By, until } from 'selenium-webdriver';
+import { By, Key, until } from 'selenium-webdriver';
 import TestSuiteClass from '../.utils/TestSuiteClass.ts';
 import type { TestSuiteDriverArgs } from '../.utils/utils.ts';
 import assert from 'node:assert';
@@ -131,6 +131,65 @@ export default async (args: TestSuiteDriverArgs) => {
         /* 200ms */ 200
       );
       
+      await driver.sleep(Math.floor(pauseUiCheckingForHumanReview / 2));
+    }
+  );
+
+  /***********************************************************************
+   * 
+   * BASIC UI TESTS
+   * 
+   ***********************************************************************/
+  /**
+   * Description of Test Case:
+   * 1) Create & show a simple modal with closeOnClickingBackdrop=false 
+   *    and closeEscape=false
+   * 2) Close the modal after a number of seconds
+   */
+  testSuite.addTestCase(
+    'loadSimpleModalWithRestrictedCloseOptions',
+    async (driver) => {
+      await driver.executeScript(`
+        const modal = new window.dev.modal.Modal({
+          content: 'Hello World!',
+          id: 'SimpleModalRestrictedClose',
+          size: 'small',
+          closeOnClickingBackdrop: false,
+          closeEscape: false
+        });
+        modal.create();
+        modal.show();
+      `);
+      const element = await driver.findElement(By.id('SimpleModalRestrictedClose'));
+      await driver.wait(
+        until.elementIsVisible(element), 
+        /* 1 minute */ 60*1000,
+        'Modal failed to load',
+        /* 200ms */ 200
+      );
+
+      const backdrop = await element.findElement(By.css('.oo-ui-window-backdrop'));
+      //@ts-ignore
+      await driver.actions().move({ x: 50, y: 50, duration: 100, origin: "viewport" }).click().perform();
+      await driver.sleep(300);
+      assert((await element.isDisplayed()), 'Modal is accidentally closed');
+
+      await driver.actions().keyDown(Key.ESCAPE).perform();
+      await driver.sleep(300);
+      assert((await element.isDisplayed()), 'Modal is accidentally closed');
+
+      const closeButton = await element
+        .findElement(By.className('oo-ui-window-head'))
+        .findElement(By.className('oo-ui-processDialog-actions-safe'))
+        .findElement(By.css('a.oo-ui-buttonElement-button'));
+      await closeButton.click();
+      await driver.wait(
+        until.elementIsNotVisible(element), 
+        /* 1 minute */ 60*1000,
+        'Modal failed to dismiss',
+        /* 200ms */ 200
+      );
+
       await driver.sleep(Math.floor(pauseUiCheckingForHumanReview / 2));
     }
   );
@@ -367,12 +426,14 @@ export default async (args: TestSuiteDriverArgs) => {
           content: 'Lorem ipsum dolor sit amet!',
           events: {
             start: function() {
-              mw.notify('STARTING!!', { type: 'success' });
+              //mw.notify('STARTING!!', { type: 'success' });
+              alert('STARTING');
               this.disableActionButtons('start-btn');
               this.enableActionButtons('stop-btn');
             },
             stop: function() {
-              mw.notify('STOPPING!!', { type: 'error' });
+              //mw.notify('STOPPING!!', { type: 'error' });
+              alert('STOPPING');
               this.disableActionButtons('stop-btn');
               this.enableActionButtons('start-btn');
             }
@@ -401,60 +462,29 @@ export default async (args: TestSuiteDriverArgs) => {
 
       await startBtn.click();
       await driver.wait(
-        async () => (await driver.executeScript("return $('#mw-notification-area').length > 0")) === true,
-        /* 1 minute */ 1*60*1000,
-        `Failed to load MediaWiki notifications`,
+        until.alertIsPresent(),
+        /* 1 min */ 1*60*1000,
+        '(AFTER CLICK START) Failed to get alert',
         /* 200 ms */ 200
       );
-      const mwNotificationCanvas = await driver.findElement(By.id('mw-notification-area'));
-      await driver.wait(
-        until.elementIsVisible(mwNotificationCanvas),
-        /* 1 minute */ 60*1000,
-        'MediaWiki notification failed to load',
-        /* 200ms */ 200
-      );
-      await driver.sleep(500);
-      const toast1 = await mwNotificationCanvas.findElement(By.className('mw-notification'));
-      const toast1Text = await toast1.getText();
-      assert(toast1Text === 'STARTING!!', `Toast message text upon starting does not match! (Got ${toast1Text})`);
-      await driver.sleep(200);
+      await driver.switchTo().alert().dismiss();
 
       assert((await webElementHasCssClass(startBtn, 'oo-ui-widget-disabled')), '(AFTER CLICK START) start-btn is not disabled!');
       assert(!(await webElementHasCssClass(stopBtn, 'oo-ui-widget-disabled')), '(AFTER CLICK START) stop-btn is disabled!');
-
-      await toast1.click();
-      await driver.wait(
-        until.stalenessOf(toast1),
-        /* 1 minute */ 60*1000,
-        'MediaWiki notification failed to hide',
-        /* 200ms */ 200
-      );
 
       await driver.sleep(pauseUiCheckingForHumanReview);
 
       await stopBtn.click();
       await driver.wait(
-        until.elementIsVisible(mwNotificationCanvas),
-        /* 1 minute */ 60*1000,
-        'MediaWiki notification failed to load',
-        /* 200ms */ 200
+        until.alertIsPresent(),
+        /* 1 min */ 1*60*1000,
+        '(AFTER CLICK STOP) Failed to get alert',
+        /* 200 ms */ 200
       );
-      await driver.sleep(500);
-      const toast2 = await mwNotificationCanvas.findElement(By.className('mw-notification'));
-      const toast2Text = await toast2.getText();
-      assert(toast2Text === 'STOPPING!!', `Toast message text upon starting does not match! (Got ${toast2Text})`);
-      await driver.sleep(200);
+      await driver.switchTo().alert().dismiss();
 
       assert(!(await webElementHasCssClass(startBtn, 'oo-ui-widget-disabled')), '(AFTER CLICK STOP) start-btn is disabled!');
-      assert((await webElementHasCssClass(stopBtn, 'oo-ui-widget-disabled')), '(AFTER CLICK STOP) stop-btn is not disabled!');
-
-      await toast2.click();
-      await driver.wait(
-        until.stalenessOf(toast2),
-        /* 1 minute */ 60*1000,
-        'MediaWiki notification failed to hide',
-        /* 200ms */ 200
-      );
+      assert((await webElementHasCssClass(stopBtn, 'oo-ui-widget-disabled')), '(AFTER CLICK STOP) stop-btn is not disabled!');      
       
       await driver.sleep(Math.floor(pauseUiCheckingForHumanReview / 2));
     }
