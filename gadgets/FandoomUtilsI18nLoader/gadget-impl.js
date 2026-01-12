@@ -1150,6 +1150,7 @@ mw.loader.impl(function () {
       // Tidy the localStorage cache of old entries
       removeOldCacheEntries();
 
-    }, [], {}, {}, null
+    }, {"css": []}, 
+    // {}, {}, null
   ];
 });
