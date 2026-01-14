@@ -56,5 +56,6 @@ export const purgeBot: Bot<PurgeOptions> = new Bot({
                 help: 'A null edit saves the page without making changes, which also refreshes the cache. Regular purge uses the purge API and is significantly faster.'
             }
         ]
-    })
+    }),
+    rights: ['purge']
 });

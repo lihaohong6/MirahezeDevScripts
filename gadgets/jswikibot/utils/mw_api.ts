@@ -1,5 +1,6 @@
 import {state} from "../models/state";
 import {newErrorResult, Result} from "./result";
+import {UserGroup} from "../models/user_group";
 
 type UnknownApiParams = Record<
     string,
@@ -204,4 +205,42 @@ export async function movePage(from: string, to: string, options: {
         console.error('Failed to move page:', from, 'to:', to, error);
         return newErrorResult(error.toString());
     }
+}
+
+export interface SiteInfoResponse {
+    batchcomplete: string;
+    query: {
+        namespaces: Record<string, {
+            id: number;
+            case: string;
+            canonical: string;
+            "*": string;
+            subpages?: string;
+            defaultcontentmodel?: string;
+        }>,
+        usergroups: UserGroup[];
+    }
+}
+
+let cachedSiteInfo: SiteInfoResponse | undefined = undefined;
+let siteInfoPromise: Promise<SiteInfoResponse> | undefined = undefined;
+
+export async function getSiteInfo() {
+
+    if (cachedSiteInfo) {
+        return cachedSiteInfo;
+    }
+
+    if (siteInfoPromise) {
+        return siteInfoPromise;
+    }
+
+    siteInfoPromise = API.get({
+        action: 'query',
+        meta: 'siteinfo',
+        siprop: 'namespaces|usergroups'
+    }) as Promise<SiteInfoResponse>;
+
+    cachedSiteInfo = await siteInfoPromise;
+    return cachedSiteInfo;
 }

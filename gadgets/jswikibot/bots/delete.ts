@@ -68,5 +68,6 @@ export const deleteBot: Bot<DeleteOptions> = new Bot({
                 type: InputType.BOOLEAN
             }
         ]
-    })
+    }),
+    rights: ['delete']
 });

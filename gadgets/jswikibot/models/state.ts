@@ -1,8 +1,12 @@
-import {Namespace} from "./namespace";
+import {NamespaceList} from "./namespace";
 import {PageInfo} from "./page";
+import {UserGroup} from "./user_group";
 
 class Cache {
-    namespaces: Namespace[] = [];
+    namespaces?: NamespaceList;
+    userRights?: string[];
+    userGroups?: UserGroup[];
+    allUserRights: Set<string> = new Set();
     cachedPageInfo: Record<string, PageInfo> = {};
 }
 

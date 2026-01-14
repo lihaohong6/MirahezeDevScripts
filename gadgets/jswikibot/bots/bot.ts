@@ -5,6 +5,8 @@ import {InputDialog, UserInputOption} from "../utils/input_dialog";
 
 import {Result} from "../utils/result";
 import {runPageSelector} from "../page_selector/run_page_selector";
+import {getUserRights} from "../models/user_right";
+import {state} from "../models/state";
 
 interface BotResult {
     severity: LogSeverity,
@@ -22,6 +24,8 @@ export interface BotSetupOptions<TConfig extends {pages: string[]}, BotState = n
     processBatch: (pages: PageInfo[], config: TConfig, state: BotState, bot: Bot<TConfig, BotState>) => Promise<BotResult | BotResult[]>;
 
     preprocessPages?: (pages: PageInfo[], config: TConfig) => AsyncGenerator<PageInfo> | PageInfo[];
+
+    rights?: string[];
 }
 
 export class Bot<T extends {pages: string[]}, State = never> {
@@ -35,7 +39,7 @@ export class Bot<T extends {pages: string[]}, State = never> {
     public readonly description: string;
     private readonly batchSize: (config: T) => number;
 
-    constructor(private readonly options: BotSetupOptions<T, State>) {
+    constructor(public readonly options: BotSetupOptions<T, State>) {
         this.name = options.name;
         this.description = options.description;
         if (typeof options.batchSize === "number") {
@@ -109,6 +113,18 @@ export class Bot<T extends {pages: string[]}, State = never> {
             }
         }
         this.progressWindow.done();
+    }
+
+    public isAvailable(): boolean {
+        const requiredRights = this.options.rights;
+        const allRights = state.cache.allUserRights!;
+        if (requiredRights && requiredRights.length > 0) {
+            const userRights = getUserRights();
+            // If a user right does not exist at all, we ignore it. This can happen when, for example, the
+            // purge right associated with the purge extension doesn't exist due to the missing extension.
+            return requiredRights.every(right => !allRights.has(right) || userRights?.includes(right));
+        }
+        return true;
     }
 }
 

@@ -45,19 +45,24 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
             label: 'Available Bots'
         });
 
-        this.botList.forEach((bot) => {
+        this.botList.forEach((bot: Bot<never>) => {
+            const isAvailable = bot.isAvailable();
             const runButton = new OO.ui.ButtonWidget({
                 label: 'Run',
-                flags: ['progressive', 'primary']
+                flags: ['progressive', 'primary'],
+                disabled: !isAvailable
             });
 
-            runButton.on('click', () => {
-                this.close({action: 'run', bot: bot});
-            });
+            if (isAvailable) {
+                runButton.on('click', () => {
+                    this.close({action: 'run', bot: bot});
+                });
+            }
 
             const botLayout = new OO.ui.FieldLayout(runButton, {
                 label: bot.description,
-                align: 'inline'
+                align: 'inline',
+                help: bot.isAvailable() ? undefined : `Requires permission(s): ${bot.options.rights?.join(", ")}`,
             });
 
             fieldsetLayout.addItems([botLayout]);
@@ -85,7 +90,7 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
 }
 
 export function runBotSelector(): void {
-    const availableBots: Bot<never>[] = [
+    const allBots = [
         replaceTextBot,
         purgeBot,
         deleteBot,
@@ -94,7 +99,7 @@ export function runBotSelector(): void {
         moveBot,
     ] as Bot<never>[];
 
-    const botSelector = new BotSelectorDialog(availableBots);
+    const botSelector = new BotSelectorDialog(allBots);
     openWindow(botSelector, {}, async (result: {action: string, bot: Bot<never>}) => {
         if (result && result.action === 'run' && result.bot) {
             // Clear leftover cache from previous bot run in case stuff changed.

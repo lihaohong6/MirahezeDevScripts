@@ -84,5 +84,6 @@ export const addTextBot: Bot<AddTextOptions> = new Bot({
             }
             return true;
         }
-    })
+    }),
+    rights: ['edit']
 });

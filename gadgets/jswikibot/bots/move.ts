@@ -4,6 +4,7 @@ import {LogSeverity} from "../utils/progress_window";
 import {InputType} from "../utils/input_dialog";
 import {RegexConfigOptions, RegexHelper} from "../utils/regex_helper";
 import {simpleAlert} from "../utils/alert_window";
+import {getUserRights} from "../models/user_right";
 
 interface MoveConfig extends RegexConfigOptions {
     pages: string[];
@@ -43,7 +44,12 @@ export const moveBot = new Bot<MoveConfig>({
                 placeholder: 'Replacement text',
                 depends: {key: "manualInput", invert: true},
             },
-            ...RegexHelper.createRegexInputGroup("useRegex", "regexFlags", {extraDepends: [{key: 'manualInput', invert: true}]}),
+            ...RegexHelper.createRegexInputGroup("useRegex", "regexFlags", {
+                extraDepends: [{
+                    key: 'manualInput',
+                    invert: true
+                }]
+            }),
             {
                 key: "targetTitles",
                 label: "Target titles",
@@ -67,7 +73,9 @@ export const moveBot = new Bot<MoveConfig>({
             },
             {
                 key: "noRedirect",
-                label: "Do not create a redirect (requires suppressredirect user right)",
+                label:
+                    `Do not create a redirect (requires suppressredirect user right), ` +
+                    `which you ${getUserRights()?.includes('suppressredirect') ? 'do' : 'do not'} have.`,
                 type: InputType.BOOLEAN,
                 help: "The required user right is usually only available to wiki admins. You can check it manually with Special:ListGroupRights."
             },

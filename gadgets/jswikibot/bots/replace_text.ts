@@ -107,5 +107,6 @@ export const replaceTextBot = new Bot<ReplacementConfig, ReplaceTextState>({
                 message: `Page ${page.title} not changed`
             };
         }
-    }
+    },
+    rights: ['edit']
 })
