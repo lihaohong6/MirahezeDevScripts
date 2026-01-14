@@ -1,6 +1,7 @@
-import {API} from "../utils/mw_api";
+import {getSiteInfo} from "../utils/mw_api";
 
 import {Result} from "../utils/result";
+import {state} from "./state";
 
 export class Namespace {
     constructor(public readonly name: string,
@@ -39,11 +40,10 @@ export class NamespaceList {
     }
 }
 
-let namespacesCache: NamespaceList | null = null;
 let namespacesPromise: Promise<NamespaceList> | null = null;
 
 export function getNamespaces(): NamespaceList {
-    return namespacesCache!;
+    return state.cache.namespaces!;
 }
 
 export function parseNamespaceString(nsString: string): Result<Namespace[]>{
@@ -71,21 +71,17 @@ export function parseNamespaceString(nsString: string): Result<Namespace[]>{
 }
 
 export async function getAllNamespacesAsync(): Promise<NamespaceList> {
-    if (namespacesCache !== null) {
-        return namespacesCache;
+    if (state.cache.namespaces) {
+        return getNamespaces();
     }
     if (namespacesPromise !== null) {
         return namespacesPromise;
     }
 
     namespacesPromise = (async () => {
-        const result = await API.get({
-            action: 'query',
-            meta: 'siteinfo',
-            siprop: 'namespaces'
-        });
+        const siteInfo = await getSiteInfo();
 
-        const response = result?.query?.namespaces;
+        const response = siteInfo.query.namespaces;
         const namespaces: Namespace[] = [];
 
         if (response && typeof response === 'object') {
@@ -96,10 +92,10 @@ export async function getAllNamespacesAsync(): Promise<NamespaceList> {
             }
         }
 
-        namespacesCache = new NamespaceList(namespaces);
+        state.cache.namespaces = new NamespaceList(namespaces);
         namespacesPromise = null;
 
-        return namespacesCache;
+        return state.cache.namespaces;
     })();
 
     return namespacesPromise;

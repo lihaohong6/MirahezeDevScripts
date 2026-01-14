@@ -1,18 +1,19 @@
 import {getAllNamespacesAsync} from "./models/namespace";
 import {runBotSelector} from "./bot_selector";
 import {loadConfig} from "./config";
+import {fetchUserRights} from "./models/user_right";
+import {fetchAllUserGroups} from "./models/user_group";
 
 (function() {
 
     async function prep() {
-        const p1 = getAllNamespacesAsync();
         loadConfig();
-        return Promise.all([p1]);
+        return Promise.all([getAllNamespacesAsync(), fetchUserRights(), fetchAllUserGroups()]);
     }
 
     async function start() {
         // Don't await for faster startup. This may cause some race conditions though.
-        prep();
+        await prep();
         runBotSelector();
     }
 
