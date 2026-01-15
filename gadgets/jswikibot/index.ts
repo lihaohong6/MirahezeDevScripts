@@ -23,7 +23,7 @@ import {fetchAllUserGroups} from "./models/user_group";
         start();
     }
     const id = 'toolbar-jswikibot';
-    mw.util.addPortletLink( 'p-tb', `/wiki/Special:${specialPageName}`, 'jswikibot', id);
+    mw.util.addPortletLink( 'p-tb', mw.util.getUrl(`Special:${specialPageName}`), 'jswikibot', id);
     document.getElementById(id)?.addEventListener("click", async (e: PointerEvent) => {
         e.preventDefault();
         await start();
