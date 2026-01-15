@@ -38,6 +38,7 @@ export class ProgressWindow {
     private readonly logPanelWidget: OO.ui.Widget;
     private isDone = false;
     private progress = 0;
+    private isCancelled = false;
 
     constructor(private readonly total: number,
                 private readonly cancelCallback: () => void = () => false) {
@@ -60,6 +61,7 @@ export class ProgressWindow {
         });
 
         this.cancelButton.on('click', () => {
+            this.isCancelled = true;
             this.cancelCallback();
             this.hideCancelButton();
             this.addLog(
@@ -140,6 +142,33 @@ export class ProgressWindow {
             ],
             size: "large"
         });
+
+        // Confirm exit when the bot is not yet done/canceled
+        const originalGetActionProcess = this.progressDialog.getActionProcess.bind(this.progressDialog);
+        this.progressDialog.getActionProcess = (action: string) => {
+            if (action === 'close') {
+                return new OO.ui.Process(() => {
+                    if (this.isDone || this.isCancelled) {
+                        this.progressDialog.close();
+                    } else {
+                        openWindow(new OO.ui.MessageDialog({size: "medium"}), {
+                            title: 'Confirm exit',
+                            size: "medium",
+                            message: "The bot will still run in the background. Are you sure you want to close this window? If you'd like to cancel the bot, click the cancel button or refresh the page instead.",
+                            actions: [
+                                {action: 'cancel', label: 'No, return to the bot progress interface', flags: ['neutral', 'safe']},
+                                {action: 'accept', label: 'Yes, close this window and let the bot keep running', flags: ['progressive', 'primary']},
+                            ]
+                        }, (data: { action: string }) => {
+                            if (data.action === 'accept') {
+                                this.progressDialog.close();
+                            }
+                        });
+                    }
+                });
+            }
+            return originalGetActionProcess(action);
+        };
     }
 
     setProgress(progress: number) {
@@ -194,12 +223,16 @@ export class ProgressWindow {
     }
 
     hideCancelButton() {
+        // Another component might notify the progress window of cancellation with this method, so
+        // we need to set isCancelled to true even though it seems redundant.
+        this.isCancelled = true;
         this.cancelButton.$element.hide();
     }
 
     done() {
         if (!this.isDone) {
             this.isDone = true;
+            this.setProgress(this.total);
             this.hideCancelButton();
         }
     }
