@@ -15,6 +15,7 @@ class PageSelectionDialog extends OO.ui.ProcessDialog {
         ...OO.ui.ProcessDialog.static,
         name: 'pageSelectionDialog',
         title: 'Page selection criteria',
+        tagName: 'div',
         actions: [
             {action: 'save', label: 'Done', flags: ['primary', 'progressive']},
             {label: 'Cancel', flags: ['safe']}

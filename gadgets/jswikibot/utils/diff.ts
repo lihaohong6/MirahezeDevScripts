@@ -39,6 +39,7 @@ class DiffDialog extends OO.ui.ProcessDialog {
         ...OO.ui.ProcessDialog.static,
         name: 'diffDialog',
         title: 'Text Replacement Preview',
+        tagName: 'div',
         actions: []
     };
 

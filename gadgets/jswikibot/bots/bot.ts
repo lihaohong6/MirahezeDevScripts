@@ -163,6 +163,7 @@ export class BotConfigurationDialog<T> extends OO.ui.ProcessDialog {
         ...OO.ui.ProcessDialog.static,
         name: 'configurebot',
         title: 'Configure bot',
+        tagName: 'div',
         actions: [
             {action: 'next', label: 'Next', flags: ['progressive', 'primary'], modes: ['step1']},
             {action: 'back', label: 'Back', modes: ['step2']},

@@ -14,6 +14,7 @@ class BotSelectorDialog extends OO.ui.ProcessDialog {
         ...OO.ui.ProcessDialog.static,
         name: 'botselector',
         title: 'JSWikiBot - Select a Bot',
+        tagName: 'div',
         actions: [
             {action: 'close', label: 'Close', flags: ['safe']},
             {action: 'settings', label: 'Settings', flags: ['progressive']},
@@ -100,7 +101,7 @@ export function runBotSelector(): void {
     ] as Bot<never>[];
 
     const botSelector = new BotSelectorDialog(allBots);
-    openWindow(botSelector, {}, async (result: {action: string, bot: Bot<never>}) => {
+    openWindow(botSelector, {}, async (result: { action: string, bot: Bot<never> }) => {
         if (result && result.action === 'run' && result.bot) {
             // Clear leftover cache from previous bot run in case stuff changed.
             clearCachedPageInfo();
