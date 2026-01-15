@@ -90,27 +90,36 @@ export class Bot<T extends {pages: string[]}, State = never> {
             simpleAlert("Error", 'No valid pages found. Please check page titles and try again.');
         }
 
-        let batch = [];
+        let batch: PageInfo[] = [];
         this.progressWindow = new ProgressWindow(pages.length, this.cancel.bind(this));
+
+        const processBatch = async () => {
+            const results = await this.options.processBatch(batch, config, this.botState, this);
+            let entries: BotResult[];
+            if (Array.isArray(results)) {
+                entries = results as BotResult[];
+            } else {
+                entries = [results as BotResult]
+            }
+            for (const entry of entries) {
+                this.progressWindow!.addLog(entry.severity, entry.message);
+                this.progressWindow!.makeProgress(batch.length);
+            }
+            batch = [];
+        }
+
         for await (const page of this.options.preprocessPages!(pages, config)) {
             if (this.checkCancelled()) {
                 return;
             }
             batch.push(page);
             if (batch.length >= this.batchSize(config)) {
-                const results = await this.options.processBatch(batch, config, this.botState, this);
-                let entries: BotResult[];
-                if (Array.isArray(results)) {
-                    entries = results as BotResult[];
-                } else {
-                    entries = [results as BotResult]
-                }
-                for (const entry of entries) {
-                    this.progressWindow.addLog(entry.severity, entry.message);
-                    this.progressWindow.makeProgress(batch.length);
-                }
-                batch = [];
+                await processBatch.call(this);
             }
+        }
+        // Final batch which may not reach threshold in loop
+        if (batch.length > 0) {
+            await processBatch.call(this);
         }
         this.progressWindow.done();
     }
