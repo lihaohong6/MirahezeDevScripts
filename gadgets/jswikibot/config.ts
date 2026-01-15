@@ -24,6 +24,7 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
         ...OO.ui.ProcessDialog.static,
         name: 'settings',
         title: 'JSWikiBot - Settings',
+        tagName: 'div',
         actions: [
             { action: 'save', label: 'Save', flags: ['primary', 'progressive'] },
             { label: 'Cancel', flags: ['safe'] }

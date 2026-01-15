@@ -24,6 +24,7 @@ export class PageSelectorDialog extends OO.ui.ProcessDialog {
         ...super.static,
         name: 'listerInputDialog',
         title: 'Page selection arguments',
+        tagName: 'div',
         actions: [
             {action: 'save', label: 'Done', flags: ['primary', 'progressive']},
             {label: 'Cancel', flags: ['safe']}
