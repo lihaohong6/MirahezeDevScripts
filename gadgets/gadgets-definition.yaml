@@ -36,8 +36,10 @@ gadgets:
       dependencies:
         - 'oojs-ui-core'
         - 'oojs-ui-windows'
-        - 'mediawiki.widgets'
         - 'mediawiki.util'
+        - 'mediawiki.api'
+        - 'mediawiki.user'
+        - 'mediawiki.widgets'
         - 'mediawiki.widgets.datetime'
 
   StatCalc:
