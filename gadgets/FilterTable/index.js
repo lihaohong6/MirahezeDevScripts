@@ -168,6 +168,7 @@ mw.hook('wikipage.content').add(function () {
                     dom: 't',
                     autoWidth: false,
                     responsive: false,
+                    order: [] // disable initial order
                 });
             } catch (e) {
                 mw.notify(`Error initializing DataTable on table with id ${tableId}.\nMessage: ${e.message}`,
