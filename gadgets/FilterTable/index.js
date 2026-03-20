@@ -15,6 +15,89 @@ mw.hook('wikipage.content').add(function () {
         EXACT: Symbol("exact")
     });
 
+    class ColumnFilterManager {
+        constructor(table) {
+            this.table = table;
+            // This is a mapping from column index to all the filter rows of that column.
+            // The filters are themselves a Map from the row number to the filter object,
+            // which tracks the filter mode (enum) and a Set of filter strings.
+            // Roughly: Map<int, Map<int, {mode: StringMatchingMode, filters: Set<string>}>>
+            this.columnFilters = new Map();
+        }
+
+        registerRow(colIndex, rowIndex, mode) {
+            if (!this.columnFilters.has(colIndex)) {
+                this.columnFilters.set(colIndex, new Map());
+            }
+            const columnMap = this.columnFilters.get(colIndex);
+            columnMap.set(rowIndex, { mode, filters: new Set() });
+        }
+
+        toggleFilter(colIndex, rowIndex, query, isActive) {
+            const rowData = this.columnFilters.get(colIndex).get(rowIndex);
+            const { filters } = rowData;
+            if (isActive) {
+                filters.add(query);
+            } else {
+                filters.delete(query);
+            }
+
+            this.applyColumnFilter(colIndex);
+        }
+
+        clearRow(colIndex, rowIndex) {
+            const rowData = this.columnFilters.get(colIndex).get(rowIndex);
+            rowData.filters.clear();
+            this.applyColumnFilter(colIndex);
+        }
+
+        rowHasFilters(colIndex, rowIndex) {
+            const rowData = this.columnFilters.get(colIndex).get(rowIndex);
+            return rowData.filters.size > 0;
+        }
+
+        applyColumnFilter(colIndex) {
+            const columnMap = this.columnFilters.get(colIndex);
+            if (!columnMap) {
+                return;
+            }
+
+            const activeFilters = Array.from(columnMap.entries())
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .map(([_, rowData]) => rowData)
+                .filter(rowData => rowData && rowData.filters && rowData.filters.size);
+
+            if (activeFilters.length === 0) {
+                this.table.column(colIndex).search('').draw();
+                return;
+            }
+
+            if (activeFilters.length === 1) {
+                const [{ mode, filters }] = activeFilters;
+                const regex = Array.from(filters).join('|');
+                const finalRegex = mode === StringMatchingMode.EXACT
+                    ? '^(' + regex + ')$'
+                    : regex;
+                this.table.column(colIndex).search(finalRegex, true, false).draw();
+                return;
+            }
+
+            const regexParts = activeFilters.map(({ mode, filters }) => {
+                if (mode !== StringMatchingMode.CONTAINS) {
+                    mw.notify(
+                        `More than one filter row specifies the same column with exact matching mode. This should not happen.`,
+                        { autoHide: false, type: 'error', title: 'FilterTable invalid matching mode.' }
+                    );
+                }
+                const groupRegex = Array.from(filters).join('|');
+                return `(?=.*(${groupRegex}))`;
+            });
+
+            const combinedRegex = regexParts.join('');
+            this.table.column(colIndex).search(combinedRegex, true, false).draw();
+        }
+    }
+
     function preprocessTable($table) {
         // DataTable relies on the existence of a thead. It may exist due to sortable, but relying on
         // that creates a race condition, so we manually promote the first row.
@@ -47,13 +130,12 @@ mw.hook('wikipage.content').add(function () {
         }
     }
 
-    function processRow($row, table) {
-        // 1-based indexing for columns
+    function processRow($row, table, filterManager, rowIndex) {
         const colIndex = parseInt($row.data('col')) - 1;
-        // Column must be defined
         if (isNaN(colIndex)) {
             return;
         }
+
         const modeString = $row.data('mode');
         let mode;
         if (modeString === "contains") {
@@ -62,50 +144,29 @@ mw.hook('wikipage.content').add(function () {
             mode = StringMatchingMode.EXACT;
         }
 
-        let activeFilters = [];
+        filterManager.registerRow(colIndex, rowIndex, mode);
 
         const $allBtn = $row.find('.filter-button.is-all');
         const $optionButtons = $row.find('.filter-button').not('.is-all');
 
         $allBtn.on('click', function () {
-            activeFilters = [];
             $row.find('.filter-button').removeClass('button-selected');
             $(this).addClass('button-selected');
-            table.column(colIndex).search('').draw();
+            filterManager.clearRow(colIndex, rowIndex);
         });
 
         $optionButtons.on('click', function () {
             const $this = $(this);
             const rawQuery = $this.attr('data-query') || $this.text().trim();
 
-            // Escape regex special characters to prevent errors with names like "A-Team (Beta)"
             const query = rawQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-            const index = activeFilters.indexOf(query);
+            const isActive = $this.hasClass('button-selected');
+            filterManager.toggleFilter(colIndex, rowIndex, query, !isActive);
+            $this.toggleClass('button-selected');
 
-            if (index > -1) {
-                // Toggle off
-                activeFilters.splice(index, 1);
-                $this.removeClass('button-selected');
-            } else {
-                // Toggle on
-                activeFilters.push(query);
-                $this.addClass('button-selected');
-            }
-
-            // Filters are updated. Now apply them.
-            if (activeFilters.length === 0) {
-                $allBtn.addClass('button-selected');
-                table.column(colIndex).search('').draw();
-            } else {
-                $allBtn.removeClass('button-selected');
-                let regex = activeFilters.join('|');
-                if (mode === StringMatchingMode.EXACT) {
-                    // Use regex ^(Option1|Option2)$ for exact matches
-                    regex = '^(' + regex + ')$';
-                }
-                table.column(colIndex).search(regex, true, false).draw();
-            }
+            const hasActiveFilters = filterManager.rowHasFilters(colIndex, rowIndex);
+            $allBtn.toggleClass('button-selected', !hasActiveFilters);
         });
 
         $allBtn.trigger('click');
@@ -176,6 +237,8 @@ mw.hook('wikipage.content').add(function () {
                 return;
             }
 
+            const filterManager = new ColumnFilterManager(table);
+
             // Double wrapper on Citizen causes issues. Remove the DataTables wrapper.
             if (mw.config.get("skin") === "citizen") {
                 $table.unwrap(".dataTables_wrapper");
@@ -186,8 +249,8 @@ mw.hook('wikipage.content').add(function () {
             const searchFields = processSearchFields($wrapper, table);
 
             // Process each row of filter buttons
-            $wrapper.find('.filter-row').each(function () {
-                processRow($(this), table);
+            $wrapper.find('.filter-row').each(function (index) {
+                processRow($(this), table, filterManager, index);
             });
 
             processResetAllButton($wrapper, searchFields);
