@@ -1,8 +1,8 @@
 /* stylelint-disable */
 html {
     --gadget-bg-color: 255, 255, 255;
-    --gadget-bg-opacity: 0.6;
-    --gadget-bg-overlay-opacity: 0.6;
+    --gadget-bg-opacity: 0.7;
+    --gadget-bg-overlay-opacity: 0.5;
     --gadget-bg-opacity-low: 0.4;
     --gadget-bg-filter: none;
 }
@@ -52,7 +52,9 @@ body.skin-vector-2022.has-bg {
     #vector-page-tools-pinned-container,
     #vector-main-menu-pinned-container,
     #vector-toc-pinned-container,
-    #vector-appearance-pinned-container {
+    #vector-appearance-pinned-container,
+    #footer-info,
+    #footer-places li {
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
         backdrop-filter: var(--gadget-bg-filter);
     }
@@ -96,9 +98,23 @@ body.skin-vector-2022 {
         margin-right: -1.5%;
     }
 
+    .mw-footer-container {
+        margin-left: -1.5%;
+        margin-right: -1.5%;
+    }
+
     .vector-pinned-container {
         padding-top: 10px;
         padding-bottom: 10px;
+    }
+
+    #footer-info {
+        padding: 0 8px;
+    }
+
+    #footer-places li {
+        padding: 0px 8px;
+        margin-top: 8px;
     }
 }
 
