@@ -163,10 +163,14 @@ $(function () {
             titles: value
         };
 
-        return new Promise((resolve) => {
-            api.get(pageimagesparams).done(function (data) {
-                resolve(Object.values(data.query.pages));
-            });
+        return new Promise((resolve, reject) => {
+            api.get(pageimagesparams)
+                .done(function (data) {
+                    resolve(data.query?.pages ? Object.values(data.query.pages) : []);
+                })
+                .fail(function (err) {
+                    reject(err);
+                });
         });
     }))
         .then(function (values) {
@@ -177,26 +181,28 @@ $(function () {
                 const $a = $(this);
                 $a.wrapInner('<div class="catgallery-text"><span></span></div>');
                 insertWbr($a.find('span'));
-                try {
+                const src = imageslist[index]?.thumbnail?.source;
+                if (src) {
                     $('<img>').addClass('catgallery-thumb catgallery-img')
-                        .attr('src', imageslist[index].thumbnail.source)
+                        .attr({ src: src, alt: imageslist[index].title })
                         .prependTo(this);
-                } catch {
+                } else {
                     $a.addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
                 }
             });
 
             $mwPages.find('.dynamic-catlist li a').each(function (index) {
                 const $a = $(this);
-                try {
+                const src = imageslist[index]?.thumbnail?.source;
+                if (src) {
                     $('<a>').attr({title: $a.attr('title'), href: $a.attr('href')})
                         .append(
                             $('<img>')
                                 .addClass('catlink-thumb')
-                                .attr('src', imageslist[index].thumbnail.source)
+                                .attr({ src: src, alt: imageslist[index].title })
                         )
                         .insertBefore(this);
-                } catch {
+                } else {
                     $a.before(`<div class="catlink-thumb">${iconEmpty}</div>`);
                 }
             });
