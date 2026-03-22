@@ -1,9 +1,10 @@
 /* stylelint-disable */
 html {
     --gadget-bg-color: 255, 255, 255;
-    --gadget-bg-opacity: 0.5;
-    --gadget-bg-overlay-opacity: 0.5;
+    --gadget-bg-opacity: 0.6;
+    --gadget-bg-overlay-opacity: 0.6;
     --gadget-bg-opacity-low: 0.4;
+    --gadget-bg-filter: none;
 }
 
 html.skin-theme-clientpref-night:not(.client-darkmode) {
@@ -53,7 +54,7 @@ body.skin-vector-2022.has-bg {
     #vector-toc-pinned-container,
     #vector-appearance-pinned-container {
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
     }
 
     /* Otherwise, the tools/TOC popup will not appear in front of the body content */
@@ -110,7 +111,7 @@ body.skin-vector-legacy.has-bg {
         padding: 2px 5px 0 0;
         box-shadow: #666 0 1px 5px;
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
     }
 
     #p-personal .vector-menu-content-list {
@@ -119,7 +120,7 @@ body.skin-vector-legacy.has-bg {
 
     #mw-panel nav {
         background: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
         box-shadow: #666 0 1px 5px;
     }
 
@@ -134,7 +135,7 @@ body.skin-vector-legacy.has-bg {
 
     #content {
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
     }
 
     #toc {
@@ -177,7 +178,7 @@ body.skin-timeless.has-bg {
 
     #mw-content {
         background-color: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
         border: none;
     }
 
@@ -193,7 +194,7 @@ body.skin-citizen.has-bg {
     .citizen-body-container,
     .citizen-footer {
         background: rgba(var(--gadget-bg-color), var(--gadget-bg-opacity));
-        backdrop-filter: blur(2px);
+        backdrop-filter: var(--gadget-bg-filter);
     }
 
     .citizen-body-container {
