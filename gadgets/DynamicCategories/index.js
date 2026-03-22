@@ -68,8 +68,8 @@ $(function () {
 		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
 			alphabetlist = $mwPages.find('.catlist-alphabet');
 
-		for (var x in alphabet) {
-			alphabetlist.append($('<a>').addClass('catbtn').attr('href', '?pagefrom=' + alphabet[x]).text(alphabet[x]));
+		for (const x of alphabet) {
+			alphabetlist.append($('<a>').addClass('catbtn').attr('href', '?pagefrom=' + x).text(x));
 		}
 
 		alphabetlist.prepend($('<a>').addClass('catbtn').attr('href', '?').text('#'));
@@ -85,8 +85,9 @@ $(function () {
 				.append($('<span>').addClass('catbtn catlist-next').text(labels.next))
 		);
 
-		const firstExtraLink = $('#mw-pages-extra > a').eq(0);
-		const secondExtraLink = $('#mw-pages-extra > a').eq(1);
+		const $extraLinks = $('#mw-pages-extra > a');
+		const firstExtraLink = $extraLinks.eq(0);
+		const secondExtraLink = $extraLinks.eq(1);
 
 		if (firstExtraLink.text().toLowerCase() === i18n.previouspage.toLowerCase()) {
 			$mwPages.find('.catlist-prev').replaceWith(
@@ -160,26 +161,28 @@ $(function () {
 			imageslist.sort((a, b) => pages.indexOf(a.title) - pages.indexOf(b.title));
 
 			$mwPages.find('.gallery-catlist li a').each(function (index) {
-				$(this).wrapInner('<div class="catgallery-text"><span></span></div>');
-				insertWbr($(this).find('span'));
+				const $a = $(this);
+				$a.wrapInner('<div class="catgallery-text"><span></span></div>');
+				insertWbr($a.find('span'));
 				try {
 					$('<img>').addClass('catgallery-thumb catgallery-img')
 						.attr('src', imageslist[index].thumbnail.source)
 						.prependTo(this);
 				} catch {
-					$(this).addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
+					$a.addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
 				}
 			});
 
 			$mwPages.find('.dynamic-catlist li a').each(function (index) {
+				const $a = $(this);
 				try {
-					$('<a>').attr({ title: $(this).attr('title'), href: $(this).attr('href') })
+					$('<a>').attr({ title: $a.attr('title'), href: $a.attr('href') })
 						.append(
 							$('<img>').addClass('catlink-thumb').attr('src', imageslist[index].thumbnail.source)
 						)
 						.insertBefore(this);
 				} catch {
-					$(this).before(`<div class="catlink-thumb">${iconEmpty}</div>`);
+					$a.before(`<div class="catlink-thumb">${iconEmpty}</div>`);
 				}
 			});
 		});
@@ -190,14 +193,17 @@ $(function () {
 });
 
 function catSelect() {
-	$(this).addClass('active').siblings().removeClass('active');
-	localStorage.categoryView = $(this).attr('title');
-	$('#mw-pages').attr('class', 'catview-' + $(this).attr('title'));
+	const $btn = $(this);
+	$btn.addClass('active').siblings().removeClass('active');
+	localStorage.categoryView = $btn.attr('title');
+	$('#mw-pages').attr('class', 'catview-' + $btn.attr('title'));
 }
 
 function catMagicWords(magicword, addclass) {
-	if ($('.mw-parser-output').html().search(magicword) > -1) {
-		$('.mw-parser-output').html($('.mw-parser-output').html().replace(magicword, ''));
+	const $parserOutput = $('.mw-parser-output');
+	const html = $parserOutput.html();
+	if (html.search(magicword) > -1) {
+		$parserOutput.html(html.replace(magicword, ''));
 		$('#mw-pages').attr('class', addclass);
 	}
 }
