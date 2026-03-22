@@ -16,8 +16,8 @@
 		style.innerHTML = `
 body.has-bg::before {
 	background-image: linear-gradient(
-		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5)), 
-		rgba(var(--gadget-bg-color), var(--gadget-bg-opacity, 0.5))), url(${mw.html.escape(url.toString())});
+		rgba(var(--gadget-bg-color), var(--gadget-bg-overlay-opacity, 0.5)),
+		rgba(var(--gadget-bg-color), var(--gadget-bg-overlay-opacity, 0.5))), url(${mw.html.escape(url.toString())});
 }
 			`;
 		document.head.appendChild(style);
