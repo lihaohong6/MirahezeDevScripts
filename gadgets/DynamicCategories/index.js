@@ -15,12 +15,6 @@ const labels = {
     next: 'Next'
 };
 
-const i18n = {
-    // Change "previous page" to your wiki's language if not English.
-    // Check by going to a category page and adding "?pagefrom=A" to the URL.
-    previouspage: 'previous page'
-};
-
 function insertWbr($span) {
     const text = $span.text();
     $span.empty();
@@ -36,9 +30,6 @@ $(function () {
     if (!$('body').is('.ns-14')) {
         return;
     }
-
-    $('#mw-pages > :not(a)').appendTo($('#mw-pages').clone().empty().insertBefore('#mw-pages'));
-    $('[id=mw-pages]').eq(1).attr('id', 'mw-pages-extra');
 
     const $mwPages = $('#mw-pages');
 
@@ -75,42 +66,27 @@ $(function () {
         alphabetlist.prepend($('<a>').addClass('catbtn').attr('href', '?').text('#'));
     }
 
-    if ($('#mw-pages-extra > a').length > 0) {
-        $mwPages.find('.catlist-nav')
-            .prepend($('<span>').addClass('catbtn catlist-prev').text(labels.prev))
-            .append($('<span>').addClass('catbtn catlist-next').text(labels.next));
-        $mwPages.append(
-            $('<div>').addClass('catlist-nav')
-                .append($('<span>').addClass('catbtn catlist-prev').text(labels.prev))
-                .append($('<span>').addClass('catbtn catlist-next').text(labels.next))
-        );
+    const prevHref = $('#mw-pages > a[href*="pageuntil"]').attr('href') ?? null;
+    const nextHref = $('#mw-pages > a[href*="pagefrom"]').attr('href') ?? null;
 
-        const $extraLinks = $('#mw-pages-extra > a');
-        const firstExtraLink = $extraLinks.eq(0);
-        const secondExtraLink = $extraLinks.eq(1);
+    // Remove existing navigational text
+    $mwPages.contents().filter(function () {
+        return this.nodeType === Node.TEXT_NODE || this.nodeName === 'A';
+    }).remove();
 
-        if (firstExtraLink.text().toLowerCase() === i18n.previouspage.toLowerCase()) {
-            $mwPages.find('.catlist-prev').replaceWith(
-                $('<a>')
-                    .addClass('catbtn catlist-prev')
-                    .attr('href', firstExtraLink.attr('href'))
-                    .text(labels.prev)
-            );
-        } else {
-            $mwPages.find('.catlist-next').replaceWith(
-                $('<a>')
-                    .addClass('catbtn catlist-next')
-                    .attr('href', firstExtraLink.attr('href'))
-                    .text(labels.next)
-            );
-        }
+    if (prevHref || nextHref) {
+        const $navTop = $mwPages.find('.catlist-nav');
+        const $navBottom = $('<div>').addClass('catlist-nav').appendTo($mwPages);
 
-        if (secondExtraLink.text() !== firstExtraLink.text()) {
-            $mwPages.find('.catlist-next').replaceWith(
-                $('<a>')
-                    .addClass('catbtn catlist-next')
-                    .attr('href', secondExtraLink.attr('href'))
-                    .text(labels.next)
+        for (const $nav of [$navTop, $navBottom]) {
+            $nav.prepend(
+                prevHref
+                    ? $('<a>').addClass('catbtn catlist-prev').attr('href', prevHref).text(labels.prev)
+                    : $('<span>').addClass('catbtn catlist-prev').text(labels.prev)
+            ).append(
+                nextHref
+                    ? $('<a>').addClass('catbtn catlist-next').attr('href', nextHref).text(labels.next)
+                    : $('<span>').addClass('catbtn catlist-next').text(labels.next)
             );
         }
     }
@@ -120,7 +96,6 @@ $(function () {
 
     $mwPages.find('.catlist-prev').prepend(iconPrev);
     $mwPages.find('.catlist-next').append(iconNext);
-    $('#mw-pages-extra').remove();
 
     $mwPages.find('.catlist-selector .catbtn[title="' + $mwPages.attr('class').slice(8) + '"]').addClass('active');
 
