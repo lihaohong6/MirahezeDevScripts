@@ -18,6 +18,16 @@ gadgets:
     scripts:
       - index.js
 
+  DynamicCategories:
+    description: "Dynamic, gallery, and classic view switcher for category pages"
+    scripts:
+      - index.js
+    styles:
+      - style.less
+    resourceLoader:
+      dependencies:
+        - 'mediawiki.api'
+
   FilterTable:
     description: "Add filter buttons to a table"
     scripts:
