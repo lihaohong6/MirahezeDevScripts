@@ -21,6 +21,17 @@ const i18n = {
 	previouspage: 'previous page'
 };
 
+function insertWbr($span) {
+	const text = $span.text();
+	$span.empty();
+	text.split(/([:/])/).forEach(function (part) {
+		$span.append(document.createTextNode(part));
+		if (/[:/]/.test(part)) {
+			$span.append(document.createElement('wbr'));
+		}
+	});
+}
+
 $(function () {
 	if (!$('body').is('.ns-14')) {
 		return;
@@ -29,13 +40,13 @@ $(function () {
 	$('#mw-pages > :not(a)').appendTo($('#mw-pages').clone().empty().insertBefore('#mw-pages'));
 	$('[id=mw-pages]').eq(1).attr('id', 'mw-pages-extra');
 
-	const mwPages = $('#mw-pages');
+	const $mwPages = $('#mw-pages');
 
 	if (!localStorage.categoryView) {
 		localStorage.categoryView = defaultCategoryView;
 	}
 
-	mwPages.attr('class', 'catview-' + localStorage.categoryView);
+	$mwPages.attr('class', 'catview-' + localStorage.categoryView);
 
 	catMagicWords('__CLASSICCAT__', 'catview-Classic');
 	catMagicWords('__DYNAMICCAT__', 'catview-Dynamic');
@@ -49,64 +60,79 @@ $(function () {
 
 	$('#mw-pages > p:first-of-type').after(`<div class="catlist-menu"><div class="catlist-selector"><span class="catbtn" data-label="${labels.classic}" title="Classic">${iconClassic}</span><span class="catbtn" data-label="${labels.dynamic}" title="Dynamic">${iconDynamic}</span><span class="catbtn" data-label="${labels.gallery}" title="Gallery">${iconGallery}</span></div></div>`);
 
-	$('.catlist-menu').prepend('<div class="catlist-nav"></div>');
+	$mwPages.find('.catlist-menu').prepend('<div class="catlist-nav"></div>');
 
 	if (catlistAlphabets) {
-		$('.catlist-nav').prepend('<div class="catlist-alphabet"></div>');
+		$mwPages.find('.catlist-nav').prepend('<div class="catlist-alphabet"></div>');
 
 		const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-			alphabetlist = $('.catlist-alphabet');
+			alphabetlist = $mwPages.find('.catlist-alphabet');
 
 		for (var x in alphabet) {
-			alphabetlist.append(`<a class="catbtn" href="?pagefrom=${alphabet[x]}">${alphabet[x]}</a>`);
+			alphabetlist.append($('<a>').addClass('catbtn').attr('href', '?pagefrom=' + alphabet[x]).text(alphabet[x]));
 		}
 
-		alphabetlist.prepend('<a class="catbtn" href="?">#</a>');
+		alphabetlist.prepend($('<a>').addClass('catbtn').attr('href', '?').text('#'));
 	}
 
 	if ($('#mw-pages-extra > a').length > 0) {
-		$('.catlist-nav').prepend(`<span class="catbtn catlist-prev">${labels.prev}</span>`).append(`<span class="catbtn catlist-next">${labels.next}</span>`);
-		$('#mw-pages').append(`<div class="catlist-nav"><span class="catbtn catlist-prev">${labels.prev}</span><span class="catbtn catlist-next">${labels.next}</span></div>`);
+		$mwPages.find('.catlist-nav')
+			.prepend($('<span>').addClass('catbtn catlist-prev').text(labels.prev))
+			.append($('<span>').addClass('catbtn catlist-next').text(labels.next));
+		$mwPages.append(
+			$('<div>').addClass('catlist-nav')
+				.append($('<span>').addClass('catbtn catlist-prev').text(labels.prev))
+				.append($('<span>').addClass('catbtn catlist-next').text(labels.next))
+		);
 
-		if ($('#mw-pages-extra > a').eq(0).text().toLowerCase() === i18n.previouspage.toLowerCase()) {
-			$('.catlist-prev').replaceWith(`<a class="catbtn catlist-prev" href="${$('#mw-pages-extra > a').eq(0).attr('href')}">${labels.prev}</a>`);
+		const firstExtraLink = $('#mw-pages-extra > a').eq(0);
+		const secondExtraLink = $('#mw-pages-extra > a').eq(1);
+
+		if (firstExtraLink.text().toLowerCase() === i18n.previouspage.toLowerCase()) {
+			$mwPages.find('.catlist-prev').replaceWith(
+				$('<a>').addClass('catbtn catlist-prev').attr('href', firstExtraLink.attr('href')).text(labels.prev)
+			);
 		} else {
-			$('.catlist-next').replaceWith(`<a class="catbtn catlist-next" href="${$('#mw-pages-extra > a').eq(0).attr('href')}">${labels.next}</a>`);
+			$mwPages.find('.catlist-next').replaceWith(
+				$('<a>').addClass('catbtn catlist-next').attr('href', firstExtraLink.attr('href')).text(labels.next)
+			);
 		}
 
-		if ($('#mw-pages-extra > a').eq(1).text() !== $('#mw-pages-extra > a').eq(0).text()) {
-			$('.catlist-next').replaceWith(`<a class="catbtn catlist-next" href="${$('#mw-pages-extra > a').eq(1).attr('href')}">${labels.next}</a>`);
+		if (secondExtraLink.text() !== firstExtraLink.text()) {
+			$mwPages.find('.catlist-next').replaceWith(
+				$('<a>').addClass('catbtn catlist-next').attr('href', secondExtraLink.attr('href')).text(labels.next)
+			);
 		}
 	}
 
 	const iconPrev = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/></svg>',
 		iconNext = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/></svg>';
 
-	$('.catlist-prev').prepend(iconPrev);
-	$('.catlist-next').append(iconNext);
+	$mwPages.find('.catlist-prev').prepend(iconPrev);
+	$mwPages.find('.catlist-next').append(iconNext);
 	$('#mw-pages-extra').remove();
 
-	$('.catlist-selector .catbtn[title="' + mwPages.attr('class').slice(8) + '"]').addClass('active');
+	$mwPages.find('.catlist-selector .catbtn[title="' + $mwPages.attr('class').slice(8) + '"]').addClass('active');
 
-	$('.catlist-selector .catbtn').click($.proxy(catSelect, null));
+	$mwPages.find('.catlist-selector .catbtn').click($.proxy(catSelect, null));
 
-	$('#mw-pages .mw-category').after('<div class="gallery-catlist"><ul></ul></div>');
-	$('#mw-pages .mw-category li').clone().appendTo('.gallery-catlist ul');
-	$('#mw-pages .mw-category').clone().removeClass().addClass('dynamic-catlist').insertAfter('#mw-pages .mw-category');
+	$mwPages.find('.mw-category').after('<div class="gallery-catlist"><ul></ul></div>');
+	$mwPages.find('.mw-category li').clone().appendTo($mwPages.find('.gallery-catlist ul'));
+	$mwPages.find('.mw-category').clone().removeClass().addClass('dynamic-catlist').insertAfter($mwPages.find('.mw-category'));
 
 	switch (galleryCatStyle) {
 		case 'Compact':
-			$('.gallery-catlist').addClass('gallery-compact');
+			$mwPages.find('.gallery-catlist').addClass('gallery-compact');
 			break;
 		case 'Compacter':
-			$('.gallery-catlist').addClass('gallery-compacter');
+			$mwPages.find('.gallery-catlist').addClass('gallery-compacter');
 	}
 
 	const api = new mw.Api();
 	const pages = [];
 	const pageslice = [];
 
-	$('#mw-pages .mw-category li a').each(function () {
+	$mwPages.find('.mw-category li a').each(function () {
 		pages.push($(this).attr('title'));
 	});
 
@@ -133,27 +159,33 @@ $(function () {
 			const imageslist = values.flatMap((a) => a);
 			imageslist.sort((a, b) => pages.indexOf(a.title) - pages.indexOf(b.title));
 
-			$('.gallery-catlist li a').each(function (index) {
+			$mwPages.find('.gallery-catlist li a').each(function (index) {
 				$(this).wrapInner('<div class="catgallery-text"><span></span></div>');
-				$(this).find('span').html($(this).find('span').text().replaceAll(/(:|\/)/g, '$1<wbr>'));
+				insertWbr($(this).find('span'));
 				try {
-					$(this).prepend(`<img class="catgallery-thumb catgallery-img" src="${imageslist[index].thumbnail.source}">`);
-				} catch (err) {
+					$('<img>').addClass('catgallery-thumb catgallery-img')
+						.attr('src', imageslist[index].thumbnail.source)
+						.prependTo(this);
+				} catch {
 					$(this).addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
 				}
 			});
 
-			$('.dynamic-catlist li a').each(function (index) {
+			$mwPages.find('.dynamic-catlist li a').each(function (index) {
 				try {
-					$(this).before(`<a title="${$(this).attr('title')}" href="${$(this).attr('href')}"><img class="catlink-thumb" src="${imageslist[index].thumbnail.source}"></a>`);
-				} catch (err) {
+					$('<a>').attr({ title: $(this).attr('title'), href: $(this).attr('href') })
+						.append(
+							$('<img>').addClass('catlink-thumb').attr('src', imageslist[index].thumbnail.source)
+						)
+						.insertBefore(this);
+				} catch {
 					$(this).before(`<div class="catlink-thumb">${iconEmpty}</div>`);
 				}
 			});
 		});
 
 	if ($('.ext-darkmode-link').length > 0) {
-		$('#mw-pages > div').addClass('mw-no-invert');
+		$mwPages.find('> div').addClass('mw-no-invert');
 	}
 });
 
