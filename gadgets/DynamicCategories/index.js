@@ -143,32 +143,36 @@ $(function () {
                 });
         });
     })).then(function (values) {
-        const imageslist = values.flatMap((a) => a);
-        imageslist.sort((a, b) => pages.indexOf(a.title) - pages.indexOf(b.title));
+        const imageMap = new Map();
+        for (const page of values.flatMap((a) => a)) {
+            imageMap.set(page.title, page);
+        }
 
-        $mwPages.find('.gallery-catlist li a').each(function (index) {
+        $mwPages.find('.gallery-catlist li a').each(function () {
             const $a = $(this);
             $a.wrapInner('<div class="catgallery-text"><span></span></div>');
             insertWbr($a.find('span'));
-            const src = imageslist[index]?.thumbnail?.source;
+            const pageData = imageMap.get($a.attr('title'));
+            const src = pageData?.thumbnail?.source;
             if (src) {
                 $('<img>').addClass('catgallery-thumb catgallery-img')
-                    .attr({src: src, alt: imageslist[index].title})
+                    .attr({src: src, alt: pageData.title})
                     .prependTo(this);
             } else {
                 $a.addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
             }
         });
 
-        $mwPages.find('.dynamic-catlist li a').each(function (index) {
+        $mwPages.find('.dynamic-catlist li a').each(function () {
             const $a = $(this);
-            const src = imageslist[index]?.thumbnail?.source;
+            const pageData = imageMap.get($a.attr('title'));
+            const src = pageData?.thumbnail?.source;
             if (src) {
                 $('<a>').attr({title: $a.attr('title'), href: $a.attr('href')})
                     .append(
                         $('<img>')
                             .addClass('catlink-thumb')
-                            .attr({src: src, alt: imageslist[index].title})
+                            .attr({src: src, alt: pageData.title})
                     )
                     .insertBefore(this);
             } else {
