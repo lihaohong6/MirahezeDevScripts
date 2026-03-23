@@ -36,9 +36,7 @@ $(function () {
 
     $mwPages.attr('class', 'catview-' + localStorage.categoryView);
 
-    catMagicWords('__CLASSICCAT__', 'catview-Classic');
-    catMagicWords('__DYNAMICCAT__', 'catview-Dynamic');
-    catMagicWords('__GALLERYCAT__', 'catview-Gallery');
+    catMagicWords();
 
     const
         iconClassic = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"/></svg>',
@@ -201,12 +199,21 @@ $(function () {
         $('#mw-pages').attr('class', 'catview-' + $btn.attr('title'));
     }
 
-    function catMagicWords(magicword, addclass) {
+    function catMagicWords() {
         const $parserOutput = $('.mw-parser-output');
         const html = $parserOutput.html();
-        if (html.search(magicword) > -1) {
-            $parserOutput.html(html.replace(magicword, ''));
-            $('#mw-pages').attr('class', addclass);
+        const magicWords = [
+            ['__CLASSICCAT__', 'catview-Classic'],
+            ['__DYNAMICCAT__', 'catview-Dynamic'],
+            ['__GALLERYCAT__', 'catview-Gallery']
+        ];
+        for (const [magicword, addclass] of magicWords) {
+            const idx = html.indexOf(magicword);
+            if (idx > -1) {
+                $parserOutput.html(html.slice(0, idx) + html.slice(idx + magicword.length));
+                $mwPages.attr('class', addclass);
+                break;
+            }
         }
     }
 });
