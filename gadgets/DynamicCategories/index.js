@@ -3,30 +3,27 @@
  * Original URL: https://dev.miraheze.org/wiki/Dynamic_Categories/MediaWiki:Gadget-dynamiccategories.js
  * License: CC BY-SA 4.0
  */
-const defaultCategoryView = 'Dynamic'; // Choose from 'Classic', 'Dynamic' or 'Gallery' — first letter capital
-const galleryCatStyle = 'Compacter'; // 'Normal', 'Compact' or 'Compacter'
-const catlistAlphabets = false; // Whether to show navigation alphabet menu above category list
-
-const labels = {
-    classic: 'Classic',
-    dynamic: 'Dynamic',
-    gallery: 'Gallery',
-    prev: 'Previous',
-    next: 'Next'
-};
-
-function insertWbr($span) {
-    const text = $span.text();
-    $span.empty();
-    text.split(/([:/])/).forEach(function (part) {
-        $span.append(document.createTextNode(part));
-        if (/[:/]/.test(part)) {
-            $span.append(document.createElement('wbr'));
-        }
-    });
-}
 
 $(function () {
+    const defaults = {
+        defaultCategoryView: 'Dynamic', // Choose from 'Classic', 'Dynamic' or 'Gallery' — first letter capital
+        galleryCatStyle: 'Compacter', // 'Normal', 'Compact' or 'Compacter'
+        catlistAlphabets: false, // Whether to show navigation alphabet menu above category list
+        labels: {
+            classic: 'Classic',
+            dynamic: 'Dynamic',
+            gallery: 'Gallery',
+            prev: 'Previous',
+            next: 'Next'
+        }
+    };
+
+    const userConfig = window.dynamicCategoriesConfig || {};
+    const config = Object.assign({}, defaults, userConfig, {
+        labels: Object.assign({}, defaults.labels, userConfig.labels)
+    });
+    const {defaultCategoryView, galleryCatStyle, catlistAlphabets, labels} = config;
+
     if (!$('body').is('.ns-14')) {
         return;
     }
@@ -147,59 +144,69 @@ $(function () {
                     reject(err);
                 });
         });
-    }))
-        .then(function (values) {
-            const imageslist = values.flatMap((a) => a);
-            imageslist.sort((a, b) => pages.indexOf(a.title) - pages.indexOf(b.title));
+    })).then(function (values) {
+        const imageslist = values.flatMap((a) => a);
+        imageslist.sort((a, b) => pages.indexOf(a.title) - pages.indexOf(b.title));
 
-            $mwPages.find('.gallery-catlist li a').each(function (index) {
-                const $a = $(this);
-                $a.wrapInner('<div class="catgallery-text"><span></span></div>');
-                insertWbr($a.find('span'));
-                const src = imageslist[index]?.thumbnail?.source;
-                if (src) {
-                    $('<img>').addClass('catgallery-thumb catgallery-img')
-                        .attr({ src: src, alt: imageslist[index].title })
-                        .prependTo(this);
-                } else {
-                    $a.addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
-                }
-            });
-
-            $mwPages.find('.dynamic-catlist li a').each(function (index) {
-                const $a = $(this);
-                const src = imageslist[index]?.thumbnail?.source;
-                if (src) {
-                    $('<a>').attr({title: $a.attr('title'), href: $a.attr('href')})
-                        .append(
-                            $('<img>')
-                                .addClass('catlink-thumb')
-                                .attr({ src: src, alt: imageslist[index].title })
-                        )
-                        .insertBefore(this);
-                } else {
-                    $a.before(`<div class="catlink-thumb">${iconEmpty}</div>`);
-                }
-            });
+        $mwPages.find('.gallery-catlist li a').each(function (index) {
+            const $a = $(this);
+            $a.wrapInner('<div class="catgallery-text"><span></span></div>');
+            insertWbr($a.find('span'));
+            const src = imageslist[index]?.thumbnail?.source;
+            if (src) {
+                $('<img>').addClass('catgallery-thumb catgallery-img')
+                    .attr({src: src, alt: imageslist[index].title})
+                    .prependTo(this);
+            } else {
+                $a.addClass('catgallery-noimg').prepend(`<div class="catgallery-thumb">${iconEmpty}</div>`);
+            }
         });
+
+        $mwPages.find('.dynamic-catlist li a').each(function (index) {
+            const $a = $(this);
+            const src = imageslist[index]?.thumbnail?.source;
+            if (src) {
+                $('<a>').attr({title: $a.attr('title'), href: $a.attr('href')})
+                    .append(
+                        $('<img>')
+                            .addClass('catlink-thumb')
+                            .attr({src: src, alt: imageslist[index].title})
+                    )
+                    .insertBefore(this);
+            } else {
+                $a.before(`<div class="catlink-thumb">${iconEmpty}</div>`);
+            }
+        });
+    });
 
     if ($('.ext-darkmode-link').length > 0) {
         $mwPages.find('> div').addClass('mw-no-invert');
     }
-});
 
-function catSelect() {
-    const $btn = $(this);
-    $btn.addClass('active').siblings().removeClass('active');
-    localStorage.categoryView = $btn.attr('title');
-    $('#mw-pages').attr('class', 'catview-' + $btn.attr('title'));
-}
-
-function catMagicWords(magicword, addclass) {
-    const $parserOutput = $('.mw-parser-output');
-    const html = $parserOutput.html();
-    if (html.search(magicword) > -1) {
-        $parserOutput.html(html.replace(magicword, ''));
-        $('#mw-pages').attr('class', addclass);
+    function insertWbr($span) {
+        const text = $span.text();
+        $span.empty();
+        text.split(/([:/])/).forEach(function (part) {
+            $span.append(document.createTextNode(part));
+            if (/[:/]/.test(part)) {
+                $span.append(document.createElement('wbr'));
+            }
+        });
     }
-}
+
+    function catSelect() {
+        const $btn = $(this);
+        $btn.addClass('active').siblings().removeClass('active');
+        localStorage.categoryView = $btn.attr('title');
+        $('#mw-pages').attr('class', 'catview-' + $btn.attr('title'));
+    }
+
+    function catMagicWords(magicword, addclass) {
+        const $parserOutput = $('.mw-parser-output');
+        const html = $parserOutput.html();
+        if (html.search(magicword) > -1) {
+            $parserOutput.html(html.replace(magicword, ''));
+            $('#mw-pages').attr('class', addclass);
+        }
+    }
+});
