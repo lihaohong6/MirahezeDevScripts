@@ -6,8 +6,8 @@
 
 $(function () {
     const defaults = {
-        defaultCategoryView: 'Dynamic', // Choose from 'Classic', 'Dynamic' or 'Gallery' — first letter capital
-        galleryCatStyle: 'Compacter', // 'Normal', 'Compact' or 'Compacter'
+        defaultCategoryView: 'dynamic', // Choose from 'classic', 'dynamic' or 'gallery'
+        galleryCatStyle: 'compacter', // 'normal', 'compact' or 'compacter'
         catlistAlphabets: false, // Whether to show navigation alphabet menu above category list
         labels: {
             classic: 'Classic',
@@ -22,9 +22,11 @@ $(function () {
     const config = Object.assign({}, defaults, userConfig, {
         labels: Object.assign({}, defaults.labels, userConfig.labels)
     });
-    const {defaultCategoryView, galleryCatStyle, catlistAlphabets, labels} = config;
+    const {catlistAlphabets, labels} = config;
+    const defaultCategoryView = config.defaultCategoryView.toLowerCase();
+    const galleryCatStyle = config.galleryCatStyle.toLowerCase();
 
-    if (!$('body').is('.ns-14')) {
+    if (mw.config.get('wgNamespaceNumber') !== 14) {
         return;
     }
 
@@ -44,7 +46,12 @@ $(function () {
         iconGallery = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M384 96l0 128-128 0 0-128 128 0zm0 192l0 128-128 0 0-128 128 0zM192 224L64 224 64 96l128 0 0 128zM64 288l128 0 0 128L64 416l0-128zM64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l320 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32z"/></svg>',
         iconEmpty = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path d="M384 336l-192 0c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l140.1 0L400 115.9 400 320c0 8.8-7.2 16-16 16zM192 384l192 0c35.3 0 64-28.7 64-64l0-204.1c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1L192 0c-35.3 0-64 28.7-64 64l0 256c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64L0 448c0 35.3 28.7 64 64 64l192 0c35.3 0 64-28.7 64-64l0-32-48 0 0 32c0 8.8-7.2 16-16 16L64 464c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l32 0 0-48-32 0z"/></svg>';
 
-    $('#mw-pages > p:first-of-type').after(`<div class="catlist-menu"><div class="catlist-selector"><span class="catbtn" data-label="${labels.classic}" title="Classic">${iconClassic}</span><span class="catbtn" data-label="${labels.dynamic}" title="Dynamic">${iconDynamic}</span><span class="catbtn" data-label="${labels.gallery}" title="Gallery">${iconGallery}</span></div></div>`);
+    const catListSelector = `<div class="catlist-menu"><div class="catlist-selector">
+        <span class="catbtn" data-label="${labels.classic}" title="classic">${iconClassic}</span>
+        <span class="catbtn" data-label="${labels.dynamic}" title="dynamic">${iconDynamic}</span>
+        <span class="catbtn" data-label="${labels.gallery}" title="gallery">${iconGallery}</span>
+    </div></div>`;
+    $('#mw-pages > p:first-of-type').after(catListSelector);
 
     $mwPages.find('.catlist-menu').prepend('<div class="catlist-nav"></div>');
 
@@ -105,10 +112,10 @@ $(function () {
         .insertAfter($mwPages.find('.mw-category'));
 
     switch (galleryCatStyle) {
-        case 'Compact':
+        case 'compact':
             $mwPages.find('.gallery-catlist').addClass('gallery-compact');
             break;
-        case 'Compacter':
+        case 'compacter':
             $mwPages.find('.gallery-catlist').addClass('gallery-compacter');
     }
 
@@ -207,9 +214,9 @@ $(function () {
         const $parserOutput = $('.mw-parser-output');
         const html = $parserOutput.html();
         const magicWords = [
-            ['__CLASSICCAT__', 'catview-Classic'],
-            ['__DYNAMICCAT__', 'catview-Dynamic'],
-            ['__GALLERYCAT__', 'catview-Gallery']
+            ['__CLASSICCAT__', 'catview-classic'],
+            ['__DYNAMICCAT__', 'catview-dynamic'],
+            ['__GALLERYCAT__', 'catview-gallery']
         ];
         for (const [magicword, addclass] of magicWords) {
             const idx = html.indexOf(magicword);
