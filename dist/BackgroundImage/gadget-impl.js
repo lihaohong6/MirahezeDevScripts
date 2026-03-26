@@ -1,4 +1,4 @@
-(function(a){a.loader.impl(function(){return["ext.gadget.store.BackgroundImage@a766a81f",function(s,l,p,v){(function(){const d=document.querySelectorAll(".background-image-hint"),b=window.innerWidth<window.innerHeight;function n(o){let r=o.image,c=!!o.portrait;return!(!r||r==="")&&!(b^c)&&((function(e){e.startsWith("//")&&(e="https:"+e);const g=new URL(e);if(g.protocol!=="http:"&&g.protocol!=="https:")return void a.log.error("Invalid image URL:",e);const i=document.createElement("style");i.innerHTML=`
+(function(a){a.loader.impl(function(){return["ext.gadget.store.BackgroundImage@41c476db",function(s,l,p,v){(function(){const d=document.querySelectorAll(".background-image-hint"),b=window.innerWidth<window.innerHeight;function n(o){let r=o.image,c=!!o.portrait;return!(!r||r==="")&&!(b^c)&&((function(e){e.startsWith("//")&&(e="https:"+e);const g=new URL(e);if(g.protocol!=="http:"&&g.protocol!=="https:")return void a.log.error("Invalid image URL:",e);const i=document.createElement("style");i.innerHTML=`
 body.has-bg::before {
 	background-image: linear-gradient(
 		rgba(var(--gadget-bg-color), var(--gadget-bg-overlay-opacity, 0.5)),
