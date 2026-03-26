@@ -30,6 +30,7 @@
         const panels = allPanels[ group ] || [];
         for ( const { el, option: panelOption } of panels ) {
             el.classList.toggle( 'tab-panel-hidden', panelOption !== option );
+            el.hidden = panelOption !== option;
         }
     }
 
