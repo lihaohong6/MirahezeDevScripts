@@ -186,7 +186,7 @@ export class InputDialog {
             } else if (widget instanceof OO.ui.MenuTagMultiselectWidget) {
                 rawValue = (widget.getValue() as unknown as string[]).join("|")
             } else if (widget instanceof OO.ui.ButtonSelectWidget) {
-                rawValue = widget.getData() as string;
+                rawValue = (widget.findSelectedItem() as OO.ui.OptionWidget).getData() as string;
             } else if (widget instanceof OO.ui.NumberInputWidget) {
                 rawValue = (widget as unknown as OO.ui.NumberInputWidget).getNumericValue();
             } else {

@@ -8,7 +8,7 @@ import {runPageSelector} from "../page_selector/run_page_selector";
 import {getUserRights} from "../models/user_right";
 import {state} from "../models/state";
 
-interface BotResult {
+export interface BotResult {
     severity: LogSeverity,
     message: string,
 }
@@ -24,6 +24,8 @@ export interface BotSetupOptions<TConfig extends {pages: string[]}, BotState = n
     processBatch: (pages: PageInfo[], config: TConfig, state: BotState, bot: Bot<TConfig, BotState>) => Promise<BotResult | BotResult[]>;
 
     preprocessPages?: (pages: PageInfo[], config: TConfig) => AsyncGenerator<PageInfo> | PageInfo[];
+
+    finalizePages?: (config: TConfig, state: BotState) => Promise<void>;
 
     rights?: string[];
 }
@@ -120,6 +122,9 @@ export class Bot<T extends {pages: string[]}, State = never> {
         // Final batch which may not reach threshold in loop
         if (batch.length > 0) {
             await processBatch.call(this);
+        }
+        if (this.options.finalizePages !== undefined) {
+            await this.options.finalizePages(config, this.botState);
         }
         this.progressWindow.done();
     }
