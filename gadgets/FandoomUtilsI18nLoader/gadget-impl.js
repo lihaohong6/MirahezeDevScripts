@@ -30,7 +30,7 @@ mw.loader.impl(function () {
       if (window.dev.i18nLoader.loadMessages !== undefined) {
         return;
       }
-      
+
       /**
        * Cache of mw config variables.
        *
@@ -680,6 +680,7 @@ mw.loader.impl(function () {
             var lang = this._tempLang || this._defaultLang;
             if (!lang) {
               console.error('[FandoomUtilsI18nLoader] Language is not set!');
+              return new mw.Map();
             }
             function fetch (lang) {
               if (this._tempLang) {
