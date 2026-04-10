@@ -265,7 +265,6 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/PageRenameAuto-update
     requires:
-      - FandoomUiUtilsDorui
       - PowertoolsPlacement
     scripts:
       - code.js
