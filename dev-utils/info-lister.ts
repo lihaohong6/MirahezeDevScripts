@@ -88,6 +88,12 @@ function appendStyles(doc: HTMLDocument): void {
     th:nth-child(5) {
       min-width: 200px;
     }
+    tr {
+      background-color: initial !important;
+    }
+    tr:nth-child(4n-1), tr:nth-child(4n) {
+      background-color: var(--accent-bg) !important;
+    }
     @media (min-width:768px) and (max-width:1200px) {
       body {
         margin: 0 5em;
@@ -136,20 +142,20 @@ function appendStyles(doc: HTMLDocument): void {
       td:nth-child(5)::before {
         content: 'Restrictions';
       }
-      td:nth-child(6)::before {
-        content: 'Load';
-      }
     }
 
     .code-block {
       position: relative;
       margin: 1.5rem 0;
     }
+    .code-block:hover {
+      background-color: #897d8540;
+      cursor:pointer;
+    }
     .code-block pre {
       padding: 1rem;
       padding-top: 2.5rem;
-      background: #1e1e1e;
-      color: #d4d4d4;
+      background: #897d851c;
       border-radius: 6px;
       overflow-x: auto;
       font-family: monospace;
@@ -189,9 +195,10 @@ function appendStyles(doc: HTMLDocument): void {
 function appendScript(doc: HTMLDocument): void {
   const script = doc.createElement('script');
   script.textContent = `
-  document.querySelectorAll(".copy-btn").forEach(button => {
-    button.addEventListener("click", () => {
-      const code = button.nextElementSibling.innerText;
+  document.querySelectorAll(".code-block").forEach(block => {
+    block.addEventListener("click", (event) => {
+      const button = block.getElementsByTagName("button")[0];
+      const code = block.getElementsByTagName("pre")[0].textContent;
 
       navigator.clipboard.writeText(code).then(() => {
         const originalText = button.textContent;
@@ -203,6 +210,7 @@ function appendScript(doc: HTMLDocument): void {
           button.classList.remove("copied");
         }, 1500);
       });
+      event.stopPropagate();
     });
   });
   `.trim()
@@ -306,7 +314,7 @@ function buildTableCell(doc: HTMLDocument, tagName: 'th' | 'td', contents: Text 
 function buildGadgetListTableHeader(doc: HTMLDocument, thead: HTMLTableSectionElement): void {
   const theadRow = doc.createElement('tr');
   const tableHeaderColumnLabels = [
-    'No', 'Name', 'Authors', 'Description', 'Restrictions', 'Load Script'
+    'No', 'Name', 'Authors', 'Description', 'Restrictions'
   ];
   const thCells = tableHeaderColumnLabels.map((label) => {
     const textNode = doc.createTextNode(label);
@@ -325,17 +333,23 @@ function buildGadgetListTableHeader(doc: HTMLDocument, thead: HTMLTableSectionEl
  * @param rowIdx 
  */
 function buildGadgetListTableRow(doc: HTMLDocument, tbody: HTMLTableSectionElement, gadget: GadgetDefinition, rowIdx: number): void {
-  const tRow = doc.createElement('tr');
+  let tRow = doc.createElement('tr');
   const _buildTableCell: (contents: Text | HTMLElement) => HTMLTableSectionElement = buildTableCell.bind(null, doc, 'td');
-  const tCells = [
-    _buildTableCell(doc.createTextNode(''+rowIdx)),
+  let tRowNumberCell = _buildTableCell(doc.createTextNode(''+rowIdx));
+  tRowNumberCell.setAttribute("rowspan", "2");
+  tRow.append(tRowNumberCell);
+  let tCells = [
     _buildTableCell(buildGadgetName(doc, gadget)),
     _buildTableCell(buildGadgetAuthorsInfo(doc, gadget)),
     _buildTableCell(buildGadgetDescription(doc, gadget)),
     _buildTableCell(buildGadgetLoadingRestrictionsOverview(doc, gadget)),
-    _buildTableCell(buildGadgetLoadingCode(doc, gadget)),
   ];
   tRow.append(...tCells);
+  tbody.append(tRow);
+  tRow = doc.createElement('tr');
+  let tLinkCell = _buildTableCell(buildGadgetLoadingCode(doc, gadget));
+  tLinkCell.setAttribute("colspan", "4");
+  tRow.append(tLinkCell);
   tbody.append(tRow);
 }
 
@@ -350,9 +364,8 @@ function buildGadgetListTableRow(doc: HTMLDocument, tbody: HTMLTableSectionEleme
 function buildGadgetName(doc: HTMLDocument, { name, version }: GadgetDefinition): HTMLElement {
   const div = doc.createElement('div');
 
-  const spanName = doc.createElement('div');
-  spanName.textContent = name;
-  div.appendChild(spanName);
+  const textContent = doc.createTextNode(name);
+  div.appendChild(textContent);
 
   if (version) {
     const spanVersion = doc.createElement('div');
@@ -518,14 +531,16 @@ function buildGadgetLoadingRestrictionsOverview(doc: HTMLDocument, { resourceLoa
   
   const conditionsRendered = conditions.map(({ key, values }) => {
     const d = doc.createElement('div');
-    const h = doc.createElement('p');
+    const h = doc.createElement('div');
     const ul = doc.createElement('ul');
     // Capital case
     h.textContent = key[0].toUpperCase() + key.slice(1, key.length);
     ul.append(
       ...values!.map((value) => {
         const li = doc.createElement('li');
-        li.textContent = value;
+        const co = doc.createElement('code');
+        co.textContent = value;
+        li.appendChild(co);
         return li;
       })
     );
