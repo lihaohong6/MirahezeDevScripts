@@ -1,6 +1,7 @@
 (function ($, mw) {
   var POWER_EDITOR_TOOLBOX_PORTLET_ID = 'p-power-editor-tools';
   var POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT;
+  var LOCAL_STORAGE_KEY_NAME = 'powertools-placement-offset';
   var versionString = '20250821';
   
   if (mw.libs.PowertoolsPlacement !== undefined && mw.libs.PowertoolsPlacement.versionString >= versionString) {
@@ -162,14 +163,14 @@
   var lang = mw.config.get('wgUserLanguage');
   POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT = i18n[lang] || i18n[lang.split('-')[0]] || i18n.en;
   
-  /*
-  * Utility function.
-  * 
-  * @param {jQuery.Element} insert
-  * @param {jQuery.Element} atNode
-  * 
-  * @return {jQuery.Element | null}
-  */
+  /**
+   * Utility function.
+   * 
+   * @param {jQuery.Element} insert
+   * @param {jQuery.Element} atNode
+   * 
+   * @return {jQuery.Element|null}
+   */
   function placeAfterNode(insert, atNode) {
     if (atNode.length === 0) {
       return null;
@@ -178,13 +179,13 @@
     return insert;
   }
   
-  /*
-  * Creates a toolbox for power editing of wikis.
-  *
-  * @param {string} skin The name of the wiki skin, taken from mw.config
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * Creates a toolbox for power editing of wikis.
+   *
+   * @param {string} skin The name of the wiki skin, taken from mw.config
+   *
+   * @return {jQuery.Element}
+   */
   function addPowerEditorToolboxPortlet(skin) {
     if ($('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID).length) {
       return $('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID).first();
@@ -211,23 +212,25 @@
         portlet = createPowerEditorToolboxPortletForCitizen();
         break;
       case 'cosmos':
-        // In the case of Cosmos, use the manually-created floating portlet that is also used for unsupported skins 
         portlet = createFloatingMenuPowerEditorToolboxPortlet();
-        mw.loader.addStyleTag("#"+POWER_EDITOR_TOOLBOX_PORTLET_ID + ".floating{--powertools-portlet-position-bottom:60px !important}");
+        portlet.css({ bottom: '100px', right: '20px' });  // Fallback if interact.js fails to load
+        makePortletDraggable(portlet);
         break;
       default:
         portlet = createFloatingMenuPowerEditorToolboxPortlet();
+        portlet.css({ bottom: '20px', right: '20px' });   // Fallback if interact.js fails to load
+        makePortletDraggable(portlet);
         break;
     }
     return portlet;
   }
   
-  /*
-  * A modular function used to create a portlet for MinervaNeue
-  * This should only be called by addPowerEditorToolboxPortlet()
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * A modular function used to create a portlet for MinervaNeue
+   * This should only be called by addPowerEditorToolboxPortlet()
+   *
+   * @return {jQuery.Element}
+   */
   function createPowerEditorToolboxPortletForMinerva() {
     var portlet = $('<ul>', { 
       'id': POWER_EDITOR_TOOLBOX_PORTLET_ID,
@@ -237,12 +240,12 @@
     return portlet;
   }
   
-  /*
-  * A modular function used to create a portlet for Gamepress
-  * This should only be called by addPowerEditorToolboxPortlet()
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * A modular function used to create a portlet for Gamepress
+   * This should only be called by addPowerEditorToolboxPortlet()
+   *
+   * @return {jQuery.Element}
+   */
   function createPowerEditorToolboxPortletForGamepress() {
     var portlet = $('<div>', {
       'class': 'portlet widget',
@@ -257,12 +260,12 @@
     return portlet;
   }
 
-  /*
-  * A modular function used to create a portlet for Medik
-  * This should only be called by addPowerEditorToolboxPortlet()
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * A modular function used to create a portlet for Medik
+   * This should only be called by addPowerEditorToolboxPortlet()
+   *
+   * @return {jQuery.Element}
+   */
   function createPowerEditorToolboxPortletForMedik() {
     var newMenu = $('<div>', { 'class': 'dropdown' })
       .append(
@@ -302,12 +305,12 @@
     return newMenu.find('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID);
   }
       
-  /*
-  * A modular function used to create a portlet for Citizen
-  * This should only be called by addPowerEditorToolboxPortlet()
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * A modular function used to create a portlet for Citizen
+   * This should only be called by addPowerEditorToolboxPortlet()
+   *
+   * @return {jQuery.Element}
+   */
   function createPowerEditorToolboxPortletForCitizen() {
     var newMenu = $('<div>', { 'class': 'citizen-header__item citizen-dropdown' })
       .append(
@@ -356,54 +359,64 @@
     return newMenu.find('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID);
   }
       
-  /*
-  * A modular function used to create a floating menu that acts as a portlet
-  * This should only be called by addPowerEditorToolboxPortlet()
-  *
-  * @return {jQuery.Element}
-  */
+  /**
+   * A modular function used to create a floating menu that acts as a portlet
+   * This should only be called by addPowerEditorToolboxPortlet()
+   *
+   * @return {jQuery.Element}
+   */
   function createFloatingMenuPowerEditorToolboxPortlet() {
     var portlet = $('<div>', { id: POWER_EDITOR_TOOLBOX_PORTLET_ID, 'class': 'floating' })
       .append(
-        $('<div>', { 'class': 'powertools-portlet-menu-label' })
-        .append(
-          $('<img>', { src: 'https://upload.wikimedia.org/wikipedia/commons/1/14/Codex_icon_edit_color-placeholder.svg' }),
-          $('<span>').text(POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT),
-          $('<span>', { 'class': 'powertools-portlet-arrow-icon' })
-            .append(
-              $('<svg width="14" height="14" viewBox="0 0 14 14"><path d="M 2 5 L 12 5 L 7 10 Z"></path></svg>')
-            )
+        $('<div>').append(
+          $('<div>', { 'class': 'powertools-portlet-menu-label' })
+          .append(
+            $('<img>', { src: 'https://upload.wikimedia.org/wikipedia/commons/1/14/Codex_icon_edit_color-placeholder.svg' }),
+            $('<span>')
+              .text(POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT)
+              .append(
+                $('<span>', { 'class': 'powertools-portlet-arrow-icon' })
+                  .append(
+                    $('<svg width="14" height="14" viewBox="0 0 14 14"><path d="M 2 5 L 12 5 L 7 10 Z"></path></svg>')
+                  )
+              ),
+            $('<div>', { 'class': 'crosshair' })
+              .append($('<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M12 5L12 19" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 17L12 20L15 17" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M15 7L12 4L9 7" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M5 12L19 12" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M17 15L20 12L17 9" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M7 9L4 12L7 15" stroke="#200E32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>'))
+          ),
+          $('<div>', { 'class': 'powertools-portlet-body' })
+            .append($('<ul>'))
         )
-      )
-      .append(
-        $('<div>', { 'class': 'powertools-portlet-body' })
-        .append($('<ul>'))
       );
-    portlet.click(function () { $(this).toggleClass('show'); });
+    portlet.click(function () {
+      if ($(this).hasClass('dragging')) {
+        return;
+      }
+      $(this).toggleClass('show'); 
+    });
     $('body').append(portlet);
     return portlet;
   }
       
-  /*
-  * Adds a portlet link to the Power Editors toolbox.
-  *
-  * @param {string} skin The name of the wiki skin, taken from mw.config
-  * @param {string} config.id The HTML identifier of the link
-  * @param {string} config.href The URL of the link. Defaults to '#'.
-  * @param {string} config.label
-  * @param {string} config.tooltip
-  * @param {string} config.cssClasses
-  * @param {object} config.styles e.g. {'background-color': 'red', 'color': 'yellow'}
-  * @param {callback} config.onClick
-  *
-  * @return {jQuery.Element}
+  /**
+   * Adds a portlet link to the Power Editors toolbox.
+   *
+   * @param {string} skin The name of the wiki skin, taken from mw.config
+   * @param {string} config.id The HTML identifier of the link
+   * @param {string} config.href The URL of the link. Defaults to '#'.
+   * @param {string} config.label
+   * @param {string} config.tooltip
+   * @param {string} config.cssClasses
+   * @param {object} config.styles e.g. {'background-color': 'red', 'color': 'yellow'}
+   * @param {callback} config.onClick
+   *
+   * @return {jQuery.Element}
   */
-  function addPortletLinkToPowerEditorToolbox(skin, config) {
+   function addPortletLinkToPowerEditorToolbox(skin, config) {
     // Get or create portlet
     var portlet = $('#'+POWER_EDITOR_TOOLBOX_PORTLET_ID);
     if (portlet.length === 0) { portlet = this.addPortlet(skin); }
     if (!portlet || portlet.length === 0) {
-      console.error('[Powertools Placement] Skin ' + skin + ' is not supported');
+      console.error('[PowertoolsPlacement] Skin ' + skin + ' is not supported');
       return;
     }
 
@@ -427,12 +440,129 @@
       if (typeof onClick === 'function') {
         portletLink.on('click', onClick);
       } else {
-        console.error('[Powertools Placement] onClick is not a function');
+        console.error('[PowertoolsPlacement] onClick is not a function');
       }
     }
     if (cssClasses) { portletLink.addClass(cssClasses); }
     if (styles) { portletLink.css(styles); }
     return portletLink;
+  }
+
+  /**
+   * Loads the module needed to create draggable portlets
+   * 
+   * @returns {Promise}
+   */
+  function loadDraggableModule() {
+    return $.ajax({ 
+      url: 'https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js', 
+      dataType: 'script',
+      cache: true,
+    }).promise();
+  }
+
+  /**
+   * Loads user options to get the last saved offset position.
+   * 
+   * @returns {Object}
+   */
+  function getDraggablePortletOffsetPosition() {
+    try {
+      var r = mw.cookie.get(LOCAL_STORAGE_KEY_NAME);
+      if (r === null) {
+        return null;
+      }
+      var p = JSON.parse(r);
+      return { 
+        tx: (p.px || 0) * window.innerWidth, 
+        ty: (p.py || 0) * window.innerHeight, 
+      };
+    } catch (err) {
+      return null;
+    }
+  }
+
+  /**
+   * Saves the draggable position onto the user's cookie. 
+   * 
+   * @param {number} tx
+   * @param {number} ty  
+   */
+  function saveDraggablePortletOffsetPosition(tx, ty) {
+    var px = tx / window.innerWidth;
+    var py = ty / window.innerHeight;
+    mw.cookie.set(LOCAL_STORAGE_KEY_NAME, JSON.stringify({
+      px: px,
+      py: py,
+    }));
+  }
+
+  /**
+   * @param {HTMLElement} element 
+   * @param {number} tx 
+   * @param {number} ty 
+   */
+  function setPositionOfDraggableModule(element, tx, ty) {
+    element.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+    element.setAttribute('data-tx', tx);
+    element.setAttribute('data-ty', ty);
+  }
+
+  /**
+   * Uses interact.js to make portlets draggable
+   * 
+   * @param {JQuery.Element} portlet
+   */
+  function makePortletDraggable(portlet) {
+    loadDraggableModule().then(function () {
+      var initialOffsetPosition = getDraggablePortletOffsetPosition();
+      if (initialOffsetPosition) {
+        portlet.data(initialOffsetPosition);
+        portlet.css('transform', 'translate(' + initialOffsetPosition.tx + 'px, ' + initialOffsetPosition.ty + 'px)');
+      }
+      var el = interact(portlet[0]);
+      el.draggable({
+        inertia: true,
+        modifiers: [
+          interact.modifiers.restrict({
+            restriction: 'parent',
+          })
+        ],
+        listeners: {
+          move: function (event) {
+            var target = event.target;
+            target.classList.add('dragging');
+            var x = (parseFloat(target.getAttribute('data-tx')) || 0) + event.dx;
+            var y = (parseFloat(target.getAttribute('data-ty')) || 0) + event.dy;
+            setPositionOfDraggableModule(target, x, y);
+          },
+          end: function (event) {
+            var target = event.target;
+            target.classList.remove('dragging');
+            saveDraggablePortletOffsetPosition( 
+              +target.getAttribute('data-tx'),
+              +target.getAttribute('data-ty'),
+            );
+            event.stopPropagation();
+          }
+        }
+      });
+      window.addEventListener('resize', mw.util.debounce(function () {
+        var offsetPosition = getDraggablePortletOffsetPosition();
+        if (!offsetPosition) {
+          // Reset position
+          setPositionOfDraggableModule(portlet[0], 0, 0);  
+          return;
+        }
+        setPositionOfDraggableModule(portlet[0], offsetPosition.tx, offsetPosition.ty);
+        saveDraggablePortletOffsetPosition( 
+          offsetPosition.tx,
+          offsetPosition.ty,
+        );
+      }, 250));
+    }).catch(function (err) {
+      console.error('[PowertoolsPlacement] Failed to load the lib dependency from the CDN', err);
+    });
   }
       
   mw.loader.using( [ 'mediawiki.util' ], function() {

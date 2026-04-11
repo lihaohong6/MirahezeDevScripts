@@ -4,19 +4,31 @@
 	--powertools-portlet-text-color: #031f19;
 	--powertools-portlet-border-color: #404007;
 	--powertools-portlet-shadow-color: #fff;
-	--powertools-portlet-position-bottom: 20px;
-	--powertools-portlet-position-right: 20px;
 	--powertools-portlet-width: 50px;
+	--powertools-portlet-width-maximized: 200px;
 	--powertools-portlet-border-radius: 25px;
+
 	position: fixed;
-	top: var( --powertools-portlet-position-top );
-	right: var( --powertools-portlet-position-right );
-	bottom: var( --powertools-portlet-position-bottom );
-	left: var( --powertools-portlet-position-left );
 	width: var( --powertools-portlet-width );
-	z-index: 100;
+	z-index: var( --powertools-z-index, 100 );
 	cursor: pointer;
-	transition: width 300ms;
+
+	// grows left
+	direction: rtl;
+	& > * {
+		direction: ltr;
+	}
+	.powertools-portlet-body {
+		right: 0;
+		left: auto;
+	}
+
+	> div {
+		width: var( --powertools-portlet-width );
+		transition: width 300ms;
+		
+		position: absolute;
+	}
 
 	.powertools-portlet-menu-label {
 		border-radius: var( --powertools-portlet-border-radius );
@@ -33,12 +45,13 @@
 		flex-flow: row nowrap;
 		justify-content: flex-start;
 		align-items: center;
+		position: relative;
 
 		img {
 			margin-right: 5px;
 		}
 
-		span {
+		span, div.crosshair {
 			visibility: hidden;
 			opacity: 0;
 			transition: visibility 500ms, opacity 500ms ease-out;
@@ -48,7 +61,8 @@
 
 	.powertools-portlet-body {
 		display: none;
-		width: 100%;
+		width: var( --powertools-portlet-width );
+		transition: width 300ms;
 		border-bottom: solid 1px var( --powertools-portlet-border-color );
 		border-radius: 8px 8px 0 0;
 		border: solid 1px var( --powertools-portlet-border-color );
@@ -68,13 +82,16 @@
 	}
 
 	&:hover,
-	&.show {
-		--powertools-portlet-border-radius: 25px;
-		--powertools-portlet-width: 200px;
-
-		.powertools-portlet-menu-label span {
-			visibility: visible;
-			opacity: 1;
+	&.show,
+	&.ui-draggable-dragging {
+		> div {
+			width: var( --powertools-portlet-width-maximized );
+		}
+		.powertools-portlet-menu-label {
+			span, div.crosshair {
+				visibility: visible;
+				opacity: 1;
+			}
 		}
 	}
 
@@ -94,6 +111,7 @@
 			position: absolute;
 			bottom: 100%;
 			left: 0;
+			width: var( --powertools-portlet-width-maximized );
 			color: var( --powertools-portlet-text-color );
 			background-color: var( --powertools-portlet-background-color );
 			box-shadow: 0 0 8px 0 var( --powertools-portlet-shadow-color );
@@ -107,6 +125,13 @@
 				}
 			}
 		}
+	}
+
+	.crosshair {
+    position: absolute;
+    right: 15px;
+    width: 20px;
+    height: 20px;
 	}
 }
 
