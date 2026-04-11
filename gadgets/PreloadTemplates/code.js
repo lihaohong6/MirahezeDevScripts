@@ -38,29 +38,23 @@
 		
 		// Maximum cache age of response from server (when fetching list of preload templates)
 		serverCacheAge: 15 * 60,	// 15 minutes
-		
+
+		// Default namespace of preload templates: Template:
+		preloadNamespace: '10',
 	};
 	
 	/* Individual user can choose to override */
-	var userConfig = window.PreloadTemplates || {};
-
-	var config = {
-		/* we do this to get JS to take care of falsy values in userConfig (e.g. empty string (''), undefined ) */
-		primary: userConfig.primary || defaultConfig.primary,
-		secondary: userConfig.secondary || defaultConfig.secondary,
-		subpage: userConfig.subpage || defaultConfig.subpage,
-		/* we do this so only numbers are set, including 0 (no cache) */
-		storageCacheAge: (
-			(typeof userConfig.storageCacheAge === 'number' || !isNaN(userConfig.storageCacheAge)) ? 
-			userConfig.storageCacheAge : 
-			defaultConfig.storageCacheAge
-		),
-		serverCacheAge: (
-			(typeof userConfig.serverCacheAge === 'number' || !isNaN(userConfig.storageCacheAge)) ? 
-			userConfig.serverCacheAge : 
-			defaultConfig.serverCacheAge
-		),
-	};
+	var config = $.extend(
+		window.PreloadTemplates || {},
+		defaultConfig,
+	);
+	// Enforce numeric
+	if (!isNaN(config.storageCacheAge)) {
+		config.storageCacheAge = defaultConfig.storageCacheAge;
+	}
+	if (!isNaN(config.serverCacheAge)) {
+		config.serverCacheAge = defaultConfig.serverCacheAge;
+	}
 	DEBUG && console.table(config);
 	
 	// =================
@@ -168,10 +162,13 @@
 	function getPreloadPage(title) {
 		// check if subpage is standard or is case by case
 		var namespace = (function() {
-			if (typeof window.preloadTemplates_namespace == 'undefined') return mwc.wgFormattedNamespaces['10'];
-			if (typeof mwc.wgFormattedNamespaces[window.preloadTemplates_namespace] != 'undefined') return mwc.wgFormattedNamespaces[window.preloadTemplates_namespace];
+			if (typeof mwc.wgFormattedNamespaces[config.preloadNamespace] != 'undefined') {
+				return mwc.wgFormattedNamespaces[config.preloadNamespace];
+			}
 			for (var key in mwc.wgFormattedNamespaces) {
-				if (mwc.wgFormattedNamespaces[key] == window.preloadTemplates_namespace) return mwc.wgFormattedNamespaces[key];
+				if (mwc.wgFormattedNamespaces[key] == config.preloadNamespace) {
+					return mwc.wgFormattedNamespaces[key];
+				}
 			}
 			return mwc.wgFormattedNamespaces['10'];
 		})();
@@ -203,46 +200,79 @@
 				textbox = document.getElementById('wpTextbox1'),
 				cm5 = $('.CodeMirror').get(0),
 				cm6 = $('.cm-editor').get(0);
+
 			if (window.ve && ve.init && ve.init.target && ve.init.target.active) {
 				// UCP Visual Editor (Source mode)
 				ve.init.target
 					.getSurface()
-					.getModel().
-					getFragment()
+					.getModel()
+					.getFragment()
 					.insertContent(preloadDataParsed);
 			} else if (cke.length) {
 				// Visual editor
 				insertAtCursor(cke[0], preloadDataParsed);
-			} else if (cm5){
-				// CodeMirrorV5 [legacy]: text editor with syntax highlight
-				var cmEditor = cm5.CodeMirror;
-				var cmdDoc = cmEditor.getDoc();
-				cmdDoc.replaceRange(preloadDataParsed, cmdDoc.getCursor());
-			} else if (cm6){
-				// CodeMirrorV6: text editor with syntax highlight (only way to interact with editor is through a hook return)
-				var cm6Edit = function(_, cmEditor) {
-					var cmCursor = (cmEditor.view.state && cmEditor.view.state.selection && cmEditor.view.state.selection.ranges && cmEditor.view.state.selection.ranges[0]) || {from:0, to:0};
-					cmEditor.view.dispatch({
-						changes: {
-							from: cmCursor.from,
-							to: cmCursor.to,
-							insert: preloadDataParsed
-						},
-						selection: {anchor: cmCursor.from}
-					});
-					cmEditor.view.focus();
-					mw.hook('ext.CodeMirror.ready').remove(cm6Edit);
-				};
-				mw.hook('ext.CodeMirror.ready').add(cm6Edit);
-			}
-			else if(textbox) {
-				insertAtCursor(textbox, preloadDataParsed);
+			} else if (cm5) {
+				insertAtCursorCodeMirror5(cm5, preloadDataParsed);
+			} else if (cm6) {
+				insertAtCursorCodeMirror6(cm6, textbox, preloadDataParsed);
+			} else if (textbox) {
+				insertAtCursorVanillaTextbox(textbox, preloadDataParsed);
 			} else {
 				console.warn('[PreloadTemplates] Could not find textbox to bind to');
 			}
 		}).fail(function() {
 			notFound(page);
 		});
+	}
+
+	function insertAtCursorCodeMirror5(cm5, preloadDataParsed) {
+		/**
+		 * CodeMirrorV5 [legacy]: text editor with syntax highlight
+		 **/ 
+		var cmEditor = cm5.CodeMirror;
+		var cmdDoc = cmEditor.getDoc();
+		cmdDoc.replaceRange(preloadDataParsed, cmdDoc.getCursor());
+	}
+
+	function insertAtCursorCodeMirror6(cm6, textbox, preloadDataParsed) {
+		/**
+		 * CodeMirrorV6: text editor with syntax highlight 
+		 * (only way to interact with editor is through a hook return)
+		 **/ 
+		var cm6Edit = function(a, b) {
+			// Wikis using earlier versions of CodeMirror v6 will have to use the 
+			// second argument in this hook handle rather than the first argument
+			// Relevant change: https://phabricator.wikimedia.org/rECMI7f6c03984a6fe8d2e48e527ded7325b04bb13b28
+			var cmEditor = typeof b === 'undefined' ? a : b;
+
+			// The CodeMirror6 wrapper does not unload from the DOM once it is 
+			// initialized
+			if (!cmEditor.isActive) {
+				if (textbox) {
+					insertAtCursorVanillaTextbox(textbox, preloadDataParsed);
+				} else {
+					console.warn('[PreloadTemplates] Could not find textbox to bind to');
+				}
+			}
+
+			var cmCursor = (cmEditor.view.state && cmEditor.view.state.selection && cmEditor.view.state.selection.ranges && cmEditor.view.state.selection.ranges[0]) || {from:0, to:0};
+			cmEditor.view.dispatch({
+				changes: {
+					from: cmCursor.from,
+					to: cmCursor.to,
+					insert: preloadDataParsed
+				},
+				selection: {anchor: cmCursor.from}
+			});
+			cmEditor.view.focus();
+			mw.hook('ext.CodeMirror.ready').remove(cm6Edit);
+
+		};
+		mw.hook('ext.CodeMirror.ready').add(cm6Edit);
+	}
+
+	function insertAtCursorVanillaTextbox(textbox, preloadDataParsed) {
+		insertAtCursor(textbox, preloadDataParsed);
 	}
 
 	function appendModule(vsEditor) {
