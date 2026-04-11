@@ -387,12 +387,15 @@
             .append($('<ul>'))
         )
       );
-    portlet.click(function () {
+    portlet.on('pointerup', function () {
       if ($(this).hasClass('dragging')) {
         return;
       }
       $(this).toggleClass('show'); 
     });
+    portlet.on('mousedown mousemove', function (e) {
+      e.preventDefault();
+    })
     $('body').append(portlet);
     return portlet;
   }
@@ -518,7 +521,7 @@
       var initialOffsetPosition = getDraggablePortletOffsetPosition();
       if (initialOffsetPosition) {
         portlet.data(initialOffsetPosition);
-        portlet.css('transform', 'translate(' + initialOffsetPosition.tx + 'px, ' + initialOffsetPosition.ty + 'px)');
+        setPositionOfDraggableModule(portlet[0], initialOffsetPosition.tx, initialOffsetPosition.ty);
       }
       var el = interact(portlet[0]);
       el.draggable({
