@@ -180,6 +180,11 @@ function appendStyles(doc: HTMLDocument): void {
     .copy-btn.copied {
       background: #2ea043;
     }
+
+    button:enabled:hover, .button:not([aria-disabled=true]):hover, input[type=submit]:enabled:hover, input[type=reset]:enabled:hover, input[type=button]:enabled:hover {
+      background-color: initial;
+      border-color: initial;
+    }
   `
   .trim()
   .replaceAll(/(?<=\}|\{|;)\s*/g, '')
