@@ -103,7 +103,19 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
             'mediawiki': 'mw',
           },
         },
-        external: ['jquery', 'mediawiki']
+        external: [
+          'jquery', 
+          'mediawiki', 
+          /**
+           * Exposed global methods
+           * https://doc.wikimedia.org/mediawiki-core/master/js/window.html
+           */
+          'addOnloadHook',
+          'importScript',
+          'importScriptURI',
+          'importStylesheet',
+          'importStylesheetURI', 
+        ]
       },
       outDir: 'dist',
       emptyOutDir: true

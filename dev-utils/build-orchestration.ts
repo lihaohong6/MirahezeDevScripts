@@ -200,8 +200,8 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
  * @param gadget 
  * @returns 
  */
-function createScriptLoadingStatement(gadgetName: string) {
-  return `mw.loader.load("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
+export function createScriptLoadingStatement(gadgetName: string, asSharedDep: boolean = false) {
+  return `${asSharedDep ? 'importScriptURI' : 'mw.loader.load'}("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
 }
 
 /**
@@ -319,7 +319,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
 
   requires.forEach((gadgetName) => {
     head.push(`if (mw.loader.getState('${namespace}.${gadgetName}') === null) { ${
-      createScriptLoadingStatement(gadgetName)
+      createScriptLoadingStatement(gadgetName, true)
     } }`);
   });
     
