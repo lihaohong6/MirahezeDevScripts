@@ -454,14 +454,12 @@
   /**
    * Loads the module needed to create draggable portlets
    * 
-   * @returns {Promise}
+   * @returns {jQuery.Promise}
    */
   function loadDraggableModule() {
-    return $.ajax({ 
-      url: 'https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js', 
-      dataType: 'script',
-      cache: true,
-    }).promise();
+    return mw.loader.getScript(
+      'https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js'
+    );
   }
 
   /**
@@ -517,7 +515,7 @@
    * @param {JQuery.Element} portlet
    */
   function makePortletDraggable(portlet) {
-    loadDraggableModule().then(function () {
+    loadDraggableModule().done(function () {
       var initialOffsetPosition = getDraggablePortletOffsetPosition();
       if (initialOffsetPosition) {
         portlet.data(initialOffsetPosition);
@@ -563,7 +561,7 @@
           offsetPosition.ty,
         );
       }, 250));
-    }).catch(function (err) {
+    }).fail(function (err) {
       console.error('[PowertoolsPlacement] Failed to load the lib dependency from the CDN', err);
     });
   }
