@@ -314,7 +314,7 @@ gadgets:
     i18n:
       - i18n.json
     resourceLoader:
-      actions: "edit"
+      actions: ["edit", "submit"]
 
   ViewSource:
     description: "Adds a \"View source\" link to the \"Edit\" menu"

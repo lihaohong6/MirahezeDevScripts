@@ -14,7 +14,7 @@ Stuff that should not be preloaded.
     'Template:PreloadTemplates B/preload': `{{Template 2|foo|bar|baz}}`,
     'Template:PreloadTemplates C/preload': `<noinc<includeonly>lude>
 Lorem ipsum dolor sit amet
-</noinc<includeonly/>lude>`,
+</noinc</includeonly>lude>`,
     'MediaWiki:PreloadTemplates/primary': `Generic templates:
 * PreloadTemplates A | Template A (an infobox)
 * PreloadTemplates B

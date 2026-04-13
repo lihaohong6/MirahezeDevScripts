@@ -62,7 +62,6 @@
 	// =================
 	var i18n, $main, $help;
 	var mwc = mw.config.get([
-			'wgAction',
 			'wgFormattedNamespaces',
 	]),
 	$module = $('div#wpSummaryLabel'), // UCP source editors
@@ -74,10 +73,6 @@
 		LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_PRIMARY = 'wiki_preload_templates_list-pagename_primary',
 		LC_PREFIX_PLTEMPLATES_LIST_PAGENAME_SECONDARY = 'wiki_preload_templates_list-pagename_secondary',
 		LC_PREFIX_PLTEMPLATES_EXPIRATION = 'wiki_preload_templates_expiration';
-
-	if (mwc.wgAction !== 'edit') {
-		return;
-	}
 
 	// =============
 	//   Functions  
@@ -469,8 +464,6 @@
 		//mw.hook('ve.activationComplete').add(function () { // Visual Editor
 		//appendModule(true);
 		//});
-		if (mwc.wgAction === 'edit') {
-			mw.hook( 'wikipage.content' ).add(init);
-		}
+		mw.hook( 'wikipage.content' ).add(init);
 	});
 })();
