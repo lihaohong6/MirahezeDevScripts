@@ -7,6 +7,7 @@ import { resolve } from "node:path";
 const changeProtectionSetting = (protectionLevel: string) => (
   async (bot: Mwn, pageTitle: string, defaultEditSummary: string) => {
     try {
+      await bot.sleep(500);
       const res = await bot.request({
         action: 'protect',
         title: pageTitle,

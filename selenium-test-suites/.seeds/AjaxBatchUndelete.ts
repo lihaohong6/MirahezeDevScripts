@@ -10,6 +10,7 @@ export function seedAjaxBatchUndelete(operations: SeedingWikipageOperations) {
         callback: 
           /* Delete the page it just created */
           async (bot, pageTitle, defaultEditSummary) => {
+            await bot.sleep(500);
             await bot.delete(pageTitle, defaultEditSummary);
             console.log(`Deleted page ${pageTitle}`);
           }
