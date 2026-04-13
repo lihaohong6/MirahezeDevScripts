@@ -328,8 +328,14 @@ export default async (args: TestSuiteDriverArgs) => {
 
         modal = await driver.findElement(By.id('MassCatModal'));
         
-        const addCategoryContentsButton = await modal.findElement(By.css('.oo-ui-processDialog-actions-other > .oo-ui-actionWidget:nth-child(2)'));
+        const addCategoryContentsButton = await modal.findElement(By.css('.oo-ui-processDialog-actions-other > .oo-ui-actionWidget:nth-child(3)'));
         await addCategoryContentsButton.click();
+        await driver.wait(
+          until.alertIsPresent(),
+          /* 3 minutes */ 1*60*1000,
+          'Prompt failed to load',
+          /* 250 ms */ 100
+        );
         const promptAlert = await driver.switchTo().alert();
         await promptAlert.sendKeys(`MassCategorization Remove${withI18nJs ? ' with-i18n' : ''}`);
         await promptAlert.accept();
@@ -423,8 +429,14 @@ export default async (args: TestSuiteDriverArgs) => {
 
         modal = await driver.findElement(By.id('MassCatModal'));
         
-        const addCategoryContentsButton = await modal.findElement(By.css('.oo-ui-processDialog-actions-other > .oo-ui-actionWidget:nth-child(2)'));
+        const addCategoryContentsButton = await modal.findElement(By.css('.oo-ui-processDialog-actions-other > .oo-ui-actionWidget:nth-child(3)'));
         await addCategoryContentsButton.click();
+        await driver.wait(
+          until.alertIsPresent(),
+          /* 3 minutes */ 1*60*1000,
+          'Prompt failed to load',
+          /* 250 ms */ 100
+        );
         const promptAlert = await driver.switchTo().alert();
         await promptAlert.sendKeys(`MassCategorization Replace${withI18nJs ? ' with-i18n' : ''}`);
         await promptAlert.accept();

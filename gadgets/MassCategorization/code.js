@@ -16,6 +16,8 @@
     
     // Config options and defaults
     delay: null,
+
+    stopAddMore: null,
     
     // Globals
     wg: mw.config.get([
@@ -74,21 +76,10 @@
       
       this.init();
     },
-    shouldRun: function() {
-      return this.hasRights([
-        'autoconfirmed',
-        'bot',
-        'sysop',
-        'bureaucrat',
-      ]);
-    },
     hasRights: function(rights) {
-      var len = rights.length;
-      while (len--) {
-        if (this.wg.wgUserGroups.indexOf(rights[len]) !== -1) return true;
-      }
-      
-      return false;
+      return rights.some(function (right) {
+        return this.wg.wgUserGroups.indexOf(right) > -1;
+      }.bind(this));
     },
     getPrefixedModule: function(name) {
       var modules = mw.loader.getModuleNames();
@@ -742,7 +733,64 @@
       this.resetOutput();
       this.reflowModal();
       
-      this.streamCategoryMembers(category, function(members) {
+      this.streamCategoryMembers(category);
+    },
+
+    query: function (promise, params, cbOnFetch, cbOnAllFinished, cbOnError, fetched) {
+      var d = $.Deferred();
+      this.api.get(params)
+        .done(function (data) {
+          var hasMore = false;
+          cbOnFetch(data);
+          if (this.threshold === null || fetched.n < this.threshold) {
+            if (data['continue'] !== undefined) {
+              hasMore = true;
+              Object.assign(params, data['continue']);
+            }
+            if (data['query-continue']) {
+              hasMore = true;
+              // Deep-merge
+              var args = [params].concat(Object.values(data['query-continue']));
+              params = Object.assign.apply(null, args);
+            }
+          }
+          if (stopAddPages === null && hasMore) {
+            stopAddPages = !confirm(i18n('confirm-big-request', (data.limits || {}).categorymembers || 500).parse());
+          }
+          if (!stopAddPages && hasMore) {
+            promise.then(this.query.bind(this, promise, params, cbOnFetch, cbOnAllFinished, cbOnError, fetched));
+          } else {
+            cbOnAllFinished();
+          }
+          d.resolve();
+        }.bind(this))
+        .fail(function (err) {
+          cbOnError(err);
+          cbOnAllFinished();
+          d.resolve();
+        });
+      return d;
+    },
+    
+    streamCategoryMembers: function(category) {
+      var params = {
+        action: 'query',
+        list: 'categorymembers',
+        // Hardcoded Category: namespace, namespace redirect will always be there
+        cmtitle: 'Category:' + category,
+        cmprop: 'title',
+        cmlimit: 'max',
+        cachebuster: Date.now()
+      };
+
+      var fetched = { n: 0 };
+      
+      function cbOnFetch(data) {
+        var members = data.query.categorymembers.map(function(page) {
+          return page.title;
+        });
+        fetched.n += members.length;
+
         if (members.length === 0) {
           this.logError(this.i18n.msg('error-category-does-not-exist', category).plain());
           return;
@@ -755,62 +803,26 @@
         toAdd += members.join('\n');
         
         textarea.value += toAdd;
-      }.bind(this), function () {
-        alert(this.i18n.msg('status-finished-fetch').plain());
-      }.bind(this));
-    },
-    
-    streamCategoryMembers: function(category, callback, alertOnFinished) {
-      var params = {
-        action: 'query',
-        list: 'categorymembers',
-        // Hardcoded Category: namespace, namespace redirect will always be there
-        cmtitle: 'Category:' + category,
-        cmprop: 'title',
-        cmlimit: 'max',
-        cachebuster: Date.now()
-      };
-
-      var curPromise = $.when();
-      curPromise.catch(function() {
-        this.logError(this.i18n.msg('error-failed-to-get-contents', category).plain());
-      }.bind(this));
-
-      function continueQuery() {
-        var d = $.Deferred();
-        this.api.get(params)
-          .done((function(data) {
-            if (data['continue'] !== undefined) {
-              Object.assign(params, data['continue']);
-              curPromise.then(continueQuery.bind(this));
-            }
-          
-            if (data['query-continue'] !== undefined) {
-              // Deep merge, query-continue is just whack
-              var args = [
-                params
-              ].concat(Object.values(data['query-continue']));
-              
-              Object.assign.apply(undefined, args);
-              curPromise.then(continueQuery.bind(this));
-            }
-            
-            var titles = data.query.categorymembers.map(function(page) {
-              return page.title;
-            });
-          
-            callback(titles);
-            d.resolve();
-
-            if (data['continue'] === undefined && data['query-continue'] === undefined) {
-              alertOnFinished();
-            }
-          }).bind(this))
-          .fail(d.reject);
-        return d;
       }
-      
-      curPromise.then(continueQuery.bind(this));
+      function cbOnError(err) {
+        this.logError(this.i18n.msg('error-failed-to-get-contents', category).plain());
+      }
+      function cbOnAllFinished() {
+        alert(this.i18n.msg('status-finished-fetch').plain());
+      }
+
+      this.stopAddMore = null;
+      var promise = $.when();
+      promise.then(
+        this.query.bind(this, 
+          promise, 
+          params, 
+          cbOnFetch.bind(this), 
+          cbOnAllFinished.bind(this), 
+          cbOnError.bind(this), 
+          fetched
+        )
+      );
       
     },
     
@@ -905,6 +917,18 @@
         once: true
       });
     },
+
+    setPageEditThreshold: function() {
+      if (this.hasRights(['bureaucrat', 'sysop', 'bot'])) {
+        if (window.MassCategorization && window.MassCategorization.threshold !== undefined) {
+          this.threshold = window.MassCategorization.threshold;
+        } else {
+          this.threshold = 20000;
+        }
+      } else {
+        this.threshold = 10000;
+      }
+    },
     
     // Sets the [this.delay] property to a reasonable default if it's not set
     // Called on init
@@ -998,7 +1022,8 @@
           return this.wg.wgNamespaceIds[key] === 14
         }.bind(this))
         .map(this.escapeIdentifier.bind(this));
-      
+
+      this.setPageEditThreshold();
       this.setDefaultDelay();
       
       this.createModal();
@@ -1009,8 +1034,6 @@
   
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
-  
-  if (!window.MassCategorization.shouldRun()) return;
   
   window.MassCategorization.preload();
 })();
