@@ -8,7 +8,7 @@
 *              Jr Mime
 *              KockaAdmiralac
 */
-/* globals MH_DEVSCRIPTS_GADGET_NAMESPACE */
+/* globals MH_DEVSCRIPTS_CDN_ENTRYPOINT, MH_DEVSCRIPTS_GADGET_NAMESPACE */
 (function() {
   'use strict';
   if (window.PRA || !/sysop|bureaucrat|global-admin/g.test(mw.config.get('wgUserGroups').join('|'))) {
@@ -236,6 +236,8 @@
           if (PRA.pageData[l].changed === true) {
             PRA.submitChangedPages(l, callback);
           } else {
+            // Increment progress even if the page contents were not changed
+            PRA.updateQueueProgress();
             PRA.requestCompleted[l] = true;
           }
           l++;
@@ -269,7 +271,7 @@
       }).then(function() {
         PRA.requestCompleted[pageKey] = true;
         console.log('Posted page', data.title);
-        $('#PRAProgressInd').css('width', ++PRA.queueProgress / PRA.pageData.length * 100 + '%');
+        PRA.updateQueueProgress();
         if (PRA.requestCompleted.indexOf(false) === -1) {
           PRA.started = false;
           $('#PRAQueueProgress').remove();
@@ -349,6 +351,9 @@
       }));
       $('#PRAQueueLengthBox').text(PRA.queueData.length);
     },
+    updateQueueProgress: function () {
+      $('#PRAProgressInd').css('width', ++PRA.queueProgress / PRA.pageData.length * 100 + '%');
+    },
     labelAndInput: function(ui, labelMsg, input) {
       return ui.tr({
         children: [
@@ -380,175 +385,182 @@
       actionButton.on('click', event);
       return actionButton[0];
     },
-    initialize: function(i18nLoader) {
+    setupForm: function() {
       var ui = window.dev.dorui;
       PRA.api = new mw.Api();
-      PRA.i18n = prepareI18n(i18nLoader);
       var i18n = PRA.i18n;
       
+      var page = mw.util.getParamValue('pagename');
+      $('#firstHeading').text(i18n.msg('header', page).plain());
+      $('#bodyContent').html(
+        ui.frag([
+          ui.p({
+            html: i18n.msg('infoText').parse()
+          }),
+          ui.p({
+            html: i18n.msg('notMovedNote').parse()
+          }),
+          ui.p({
+            html: i18n.msg('warning').parse()
+          }),
+          ui.fieldset({
+            children: [
+              ui.legend({
+                text: i18n.msg('fieldTitle').plain()
+              }),
+              ui.table({
+                attrs: {
+                  id: 'mw-renamepage-table'
+                },
+                children: [
+                  PRA.labelAndInput(ui, 'currentName', ui.a({
+                    attrs: {
+                      href: mw.util.getUrl(page)
+                    },
+                    text: page
+                  })),
+                  PRA.labelAndInput(ui, 'newNameField', ui.input({
+                    attrs: {
+                      name: 'wpNewTitleMain',
+                      value: page,
+                      type: 'text',
+                      id: 'wpNewTitleMain',
+                      maxlength: 255
+                    }
+                  })),
+                  PRA.labelAndInput(ui, 'reason', ui.textarea({
+                    attrs: {
+                      name: 'wpReason',
+                      id: 'wpReason',
+                      cols: 60,
+                      rows: 2,
+                      maxlength: 255
+                    }
+                  })),
+                  ui.tr({
+                    children: [
+                      ui.td({
+                        html: '&#160;'
+                      }),
+                      ui.td({
+                        classes: ['mw-submit'],
+                        children: [
+                          this.createActionButton(
+                            'PRAstart',
+                            PRA.start,
+                            {
+                              label: i18n.msg('populateListButton').plain(),
+                              flags: [
+                                'progressive',
+                                'primary'
+                              ]
+                            }
+                          ),
+                          this.createActionButton(
+                            'PRAprocess',
+                            PRA.processQueue,
+                            {
+                              label: i18n.msg('processQueueButton').plain(),
+                              flags: [
+                                'progressive',
+                                'primary'
+                              ],
+                              style: {
+                                display: 'none'
+                              }
+                            }
+                          ),
+                          ui.span({
+                            attrs: {
+                              id: 'liveLoader'
+                            },
+                            style: {
+                              display: 'none'
+                            }
+                          }),
+                          ui.span({
+                            attrs: {
+                              id: 'PRAStatus'
+                            }
+                          })
+                        ]
+                      })
+                    ]
+                  }),
+                  PRA.labelAndInput(ui, 'queuedItems', ui.div({
+                    attrs: {
+                      id: 'PRAQueue'
+                    }
+                  })),
+                  ui.tr({
+                    children: [
+                      ui.td({
+                        classes: ['mw-label'],
+                        html: '&#160;'
+                      }),
+                      ui.td({
+                        classes: [
+                          'mw-input',
+                          'PRAinfo'
+                        ],
+                        child: ui.div({
+                          attrs: {
+                            id: 'PRAQueueLength'
+                          },
+                          // TODO: Hack?
+                          html: i18n.msg('pagesInQueue').escape().replace('$1', ui.span({
+                            attrs: {
+                              id: 'PRAQueueLengthBox'
+                            }
+                          }).outerHTML)
+                        })
+                      })
+                    ]
+                  }),
+                  PRA.labelAndInput(ui, 'failedItems', ui.div({
+                    attrs: {
+                      id: 'PRAFailedLog'
+                    },
+                    text: i18n.msg('failedItemsInfo').plain()
+                  }))
+                ]
+              })
+            ]
+          })
+        ])
+      );
+      $('#liveLoader').append($.createSpinner({ size: 'small', type: 'inline' }));
+      document.title = i18n.msg('title').plain();
+      PRA.updateQueueListing();
+    },
+    initialize: function(i18nLoader) {
+      PRA.i18n = prepareI18n(i18nLoader);   
       if (
         PRA.wg.wgCanonicalSpecialPageName === 'Blankpage' &&
         mw.util.getParamValue('blankspecial') === 'pageusageupdate'
       ) {
-        var page = mw.util.getParamValue('pagename');
-        $('#firstHeading').text(i18n.msg('header', page).plain());
-        $('#bodyContent').html(
-          ui.frag([
-            ui.p({
-              html: i18n.msg('infoText').parse()
-            }),
-            ui.p({
-              html: i18n.msg('notMovedNote').parse()
-            }),
-            ui.p({
-              html: i18n.msg('warning').parse()
-            }),
-            ui.fieldset({
-              children: [
-                ui.legend({
-                  text: i18n.msg('fieldTitle').plain()
-                }),
-                ui.table({
-                  attrs: {
-                    id: 'mw-renamepage-table'
-                  },
-                  children: [
-                    PRA.labelAndInput(ui, 'currentName', ui.a({
-                      attrs: {
-                        href: mw.util.getUrl(page)
-                      },
-                      text: page
-                    })),
-                    PRA.labelAndInput(ui, 'newNameField', ui.input({
-                      attrs: {
-                        name: 'wpNewTitleMain',
-                        value: page,
-                        type: 'text',
-                        id: 'wpNewTitleMain',
-                        maxlength: 255
-                      }
-                    })),
-                    PRA.labelAndInput(ui, 'reason', ui.textarea({
-                      attrs: {
-                        name: 'wpReason',
-                        id: 'wpReason',
-                        cols: 60,
-                        rows: 2,
-                        maxlength: 255
-                      }
-                    })),
-                    ui.tr({
-                      children: [
-                        ui.td({
-                          html: '&#160;'
-                        }),
-                        ui.td({
-                          classes: ['mw-submit'],
-                          children: [
-                            this.createActionButton(
-                              'PRAstart',
-                              PRA.start,
-                              {
-                                label: i18n.msg('populateListButton').plain(),
-                                flags: [
-                                  'progressive',
-                                  'primary'
-                                ]
-                              }
-                            ),
-                            this.createActionButton(
-                              'PRAprocess',
-                              PRA.processQueue,
-                              {
-                                label: i18n.msg('processQueueButton').plain(),
-                                flags: [
-                                  'progressive',
-                                  'primary'
-                                ],
-                                style: {
-                                  display: 'none'
-                                }
-                              }
-                            ),
-                            ui.span({
-                              attrs: {
-                                id: 'liveLoader'
-                              },
-                              style: {
-                                display: 'none'
-                              }
-                            }),
-                            ui.span({
-                              attrs: {
-                                id: 'PRAStatus'
-                              }
-                            })
-                          ]
-                        })
-                      ]
-                    }),
-                    PRA.labelAndInput(ui, 'queuedItems', ui.div({
-                      attrs: {
-                        id: 'PRAQueue'
-                      }
-                    })),
-                    ui.tr({
-                      children: [
-                        ui.td({
-                          classes: ['mw-label'],
-                          html: '&#160;'
-                        }),
-                        ui.td({
-                          classes: [
-                            'mw-input',
-                            'PRAinfo'
-                          ],
-                          child: ui.div({
-                            attrs: {
-                              id: 'PRAQueueLength'
-                            },
-                            // TODO: Hack?
-                            html: i18n.msg('pagesInQueue').escape().replace('$1', ui.span({
-                              attrs: {
-                                id: 'PRAQueueLengthBox'
-                              }
-                            }).outerHTML)
-                          })
-                        })
-                      ]
-                    }),
-                    PRA.labelAndInput(ui, 'failedItems', ui.div({
-                      attrs: {
-                        id: 'PRAFailedLog'
-                      },
-                      text: i18n.msg('failedItemsInfo').plain()
-                    }))
-                  ]
-                })
-              ]
-            })
-          ])
-        );
-        $('#liveLoader').append($.createSpinner({ size: 'small', type: 'inline' }));
-        document.title = i18n.msg('title').plain();
-        PRA.updateQueueListing();
-      } else {
-        /* Add a link to the special page running PageRenameAuto-update using the gadget PowertoolsPlacement */
-        var placementModuleName = MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement';
-        if (mw.loader.getState(placementModuleName) !== null) {
-          mw.hook('dev.powertools.placement').add(function (placement) {
-            placement.addPortletLink(mw.config.values.skin, {
-              id: 't-page-rename-auto-update',
-              href: mw.util.getUrl('Special:BlankPage', {
-                blankspecial: 'pageusageupdate',
-                pagename: PRA.wg.wgPageName,
-                namespace: PRA.wg.wgNamespaceNumber
-              }),
-              label: i18n.msg('buttonText').plain(),
-              tooltip: 'PageRenameAuto-update'
-            });
-          });
+        if (mw.loader.getState('.FandoomUiUtilsDorui') === null) {
+          importScriptURI(MH_DEVSCRIPTS_CDN_ENTRYPOINT+'/FandoomUiUtilsDorui/gadget-impl.js');
         }
+        mw.hook('dev.doru.ui').add(this.setupForm.bind(this));
+        return;
+      }
+
+      /* Add a link to the special page running PageRenameAuto-update using the gadget PowertoolsPlacement */
+      var placementModuleName = MH_DEVSCRIPTS_GADGET_NAMESPACE+'.PowertoolsPlacement';
+      if (mw.loader.getState(placementModuleName) !== null) {
+        mw.hook('dev.powertools.placement').add(function (placement) {
+          placement.addPortletLink(mw.config.values.skin, {
+            id: 't-page-rename-auto-update',
+            href: mw.util.getUrl('Special:BlankPage', {
+              blankspecial: 'pageusageupdate',
+              pagename: PRA.wg.wgPageName,
+              namespace: PRA.wg.wgNamespaceNumber
+            }),
+            label: PRA.i18n.msg('buttonText').plain(),
+            tooltip: 'PageRenameAuto-update'
+          });
+        });
       }
     },
     preload: function() {
