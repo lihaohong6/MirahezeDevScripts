@@ -78,18 +78,14 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
      * @returns An i18n utility object sharing the same API as Fandoom Dev's i18n-js 
      */
     `function prepareI18n(i18nLoader) {`,
-      `var _mwMsg = mw.Message;`,
-      `_mwMsg.prototype.constructor = mw.Message.prototype.constructor;`,
-
       `i18nLoader.msg = function () {`,
         `var args = Array.prototype.slice.call(arguments);`,
         `if (args.length === 0) {`,
           `return;`,
         `}`,
         `var key = args.shift();`,
-        `return new _mwMsg(this.getMessages(), key, args);`,
+        `return new mw.Message(this.getMessages(), key, args);`,
       `}`,
-      
       `return i18nLoader;`,
     `}`,
 
@@ -110,22 +106,8 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
       `var waitTask = new $.Deferred();`,
 
       /**
-       * After loading the gadget from CDN, wait for the module to be loaded using mw.loader
-       * @returns {jQuery.Deferred}
-       */
-      `function onLoadedGadget() {`,
-        `var module = $.Deferred();`,
-        `mw.loader.using( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' )`,
-          `.done(function (require) {`,
-            `module.resolve( require( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' ) );`,
-          `})`,
-          `.fail(module.reject);`,
-        `return module;`,
-      `}`,
-
-      /**
-       * After loading the module using mw.loader, call loadMessages
-       * @param   module  Resolved output from onLoadedGadget()
+       * Call i18n.loadMessages
+       * @param   module      window.dev.i18nLoader
        * @returns {jQuery.Deferred}
        */
       `function onLoadedModule(module) {`,
@@ -150,30 +132,40 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
        * Promise chaining
        */
       `waitTask`,
-        `.then(onLoadedGadget)`,
         `.then(onLoadedModule)`,
         `.then(onLoadedMessages)`,
         `.catch(function (err) {`,
           `console.error(err);`,
           (
             loadOptions?.doNotLoadGadgetOnError ? 
-            'deferred.reject()' : 
+            'deferred.reject();' : 
             'deferred.resolve(getFallbackMessages());'
           ),
         `});`,
 
-      /* Load and execute the FandoomUtilsI18nLoader gadget from CDN if not yet loaded */
-      `if (!mw.loader.getState( MH_DEVSCRIPTS_GADGET_NAMESPACE+'.${i18nLoaderGadgetName}' )) {`,
-        `$.ajax({`,
-          `dataType: 'script',`,
-          `cache: true,`,
-          `url: MH_DEVSCRIPTS_CDN_ENTRYPOINT + "/${i18nLoaderGadgetName}/gadget-impl.js"`,
-        `}).done(function () {`,
-          `waitTask.resolve();`,
-        `}).fail(waitTask.reject);`,
-      `} else {`,
-        `waitTask.resolve();`,
+      /**
+       * Waits for the 'dev.fandoom.i18n' event to be fired upon execution 
+       * of the FandoomUtilsI18nLoader script
+       */
+      `var _h = function (loader) {`,
+	      `DEBUG && console.log('[${name}] Handling ${i18nLoaderGadgetName} hook...');`,
+	      `waitTask.resolve(loader);`,
+	      `mw.hook('dev.fandoom.i18n').remove(_h);`,
       `}`,
+      `mw.hook('dev.fandoom.i18n').add(_h);`,
+
+      /**
+       * Fallback if the FandoomUtilsI18nLoader script fails to load
+       */
+      `var _f = function () {`,
+	      `if (deferred.state() !== 'pending') {`,
+		      `return;`,
+	      `}`,
+        `DEBUG && console.log('[${name}] Running ${i18nLoaderGadgetName} fallback...');`,
+        `waitTask.reject('Failed to load ${i18nLoaderGadgetName} after 10 seconds');`,
+	      `mw.hook('dev.fandoom.i18n').remove(_h);`,
+      `};`,
+      `setTimeout(_f, 10000);`,  /* Waits for 10 seconds */
 
       `return deferred;`,
     `}`,
@@ -186,7 +178,7 @@ export async function createI18nLoadingLogic(gadget: GadgetDefinition, loadOptio
      * FandoomUtilsI18nLoader.loadMessages 
      * */
     `function getFallbackMessages() {`,
-      `console.warn('[FandoomUtilsI18nLoader] Failed to load messages. Using fallback messages instead.');`,
+      `console.warn('[${i18nLoaderGadgetName}] Failed to load messages. Using fallback messages instead.');`,
       /* We inject the English i18n messages into the script/bundle as fallback messages */
       `var msgMap = new mw.Map();`,
       `msgMap.set(${JSON.stringify(fallbackMessages!)});`,

@@ -7,8 +7,6 @@
  *    that it is ONLY responsible for language lookup and the loading & caching of messages 
  *    from the respective i18n.json files. This module is NOT responsible for the actual 
  *    parsing of the messages from string to DOM.
- *  - You cannot use `mw.hook('dev.i18n')` to signal the readiness of FandoomUtilsI18nLoader
- *    to dependent userscripts. 
  *  - Parsing of messages is instead handled by `mediawiki.message` for each respective gadget
  *    that calls upon FandoomUtilsI18nLoader.
  *  - Messages are loaded by making a GET request to the latest version of the gadgets CDN.
@@ -1147,6 +1145,7 @@ mw.loader.impl(function () {
         module.exports = loader;
       }
       window.dev.i18nLoader = $.extend(window.dev.i18nLoader, loader);
+      mw.hook('dev.fandoom.i18n').fire(window.dev.i18nLoader);
       
       // Tidy the localStorage cache of old entries
       removeOldCacheEntries();

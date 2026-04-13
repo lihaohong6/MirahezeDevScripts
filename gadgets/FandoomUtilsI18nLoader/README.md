@@ -5,7 +5,7 @@
 ## Differences with I18n-js
  - Unlike I18n-js, FandoomUtilsI18nLoader does not expose an interface for parsing the messages into the DOM.
  - Parsing of messages is instead done using `mediawiki.message` which is shipped with every MediaWiki installation.
- - The original I18n-js uses a hook event to signal its readiness to other scripts that may depend on it. This is changed in FandoomUtilsI18nLoader, such that you can no longer use `mw.hook('dev.i18n')` to respond to FandoomUtilsI18nLoader's readiness on the MediaWiki environment. Instead, you must call upon the module using `mw.loader.using`.
+ - You register a hook handler to `mw.hook('dev.fandoom.i18n')` to load the messages as soon as FandoomUtilsI18nLoader is loaded and ready.
 
 ## Usage
 ### Importing the script
@@ -80,9 +80,7 @@ These three functions will be located within the same scope as the original line
 ### Invoking the module without boilerplate logic
 Besides the above method of injecting boilerplate logic, you can also manually call upon the module:
 ```js
-mw.loader.using(['ext.gadget.store.FandoomUiUtilsI18nLoader'], function (require) {
-    // Call upon FandoomUiUtilsI18nLoader using require:
-    var i18nModule = require('ext.gadget.store.FandoomUiUtilsI18nLoader');
+mw.hook().add(function (i18nModule) {
     // Load messages
     i18nModule.loadMessages('<NAME OF GADGET>', options)
         .done(function (i18nLoader) {

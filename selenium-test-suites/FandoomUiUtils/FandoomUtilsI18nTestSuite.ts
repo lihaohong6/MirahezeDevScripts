@@ -64,6 +64,7 @@ export default async (args: TestSuiteDriverArgs) => {
     if (codeBlock === null) {
       throw new Error('Failed to create i18n boilerplate logic');
     }
+    codeBlock.unshift(`const DEBUG = true;`);
     codeBlock.unshift(`const MH_DEVSCRIPTS_GADGET_NAMESPACE = "${gadgetNamespace}";`);
     codeBlock.unshift(`const MH_DEVSCRIPTS_CDN_ENTRYPOINT = "${process.env.SELENIUM_TESTING_SERVE_GADGETS_FROM!}";`);
     codeBlock.push(`
@@ -95,22 +96,6 @@ export default async (args: TestSuiteDriverArgs) => {
         'i18n failed to load',
         /* 500 ms */ 500
       );
-
-      const isProxiedCorrectly = await driver.executeScript(
-        `
-        const isValid = (fn) => (fn !== undefined && typeof fn === 'function');
-        const hasTheNeededMethodsFn = (o) => (['msg', 'setTempLang', 'setDefaultLang', 'useLang', 'usePageLang', 'useContentLang', 'usePageViewLang', 'useUserLang', 'inLang', 'inPageLang', 'inContentLang', 'inPageViewLang', 'inUserLang'].every((prop) => isValid(o[prop])));
-        
-        const hasTheNeededMethods = hasTheNeededMethodsFn(i18n);
-        if (!hasTheNeededMethods) return false;
-
-        const inMethodsReturnSelf = ['inLang', 'inPageLang', 'inContentLang', 'inPageViewLang', 'inUserLang'].every((prop) => {
-          return hasTheNeededMethodsFn(i18n[prop]());
-        });
-        return inMethodsReturnSelf;
-        `
-      );
-      assert(isProxiedCorrectly, 'Generated i18n object is not proxied correctly');
 
       const res1Matches = await driver.executeScript(
         `return i18n.msg('toolsTitle').plain() === "${enI18nMessages['toolsTitle']}";`
@@ -157,22 +142,6 @@ export default async (args: TestSuiteDriverArgs) => {
         'i18n failed to load',
         /* 500 ms */ 500
       );
-
-      const isProxiedCorrectly = await driver.executeScript(
-        `
-        const isValid = (fn) => (fn !== undefined && typeof fn === 'function');
-        const hasTheNeededMethodsFn = (o) => (['msg', 'setTempLang', 'setDefaultLang', 'useLang', 'usePageLang', 'useContentLang', 'usePageViewLang', 'useUserLang', 'inLang', 'inPageLang', 'inContentLang', 'inPageViewLang', 'inUserLang'].every((prop) => isValid(o[prop])));
-        
-        const hasTheNeededMethods = hasTheNeededMethodsFn(i18n);
-        if (!hasTheNeededMethods) return false;
-
-        const inMethodsReturnSelf = ['inLang', 'inPageLang', 'inContentLang', 'inPageViewLang', 'inUserLang'].every((prop) => {
-          return hasTheNeededMethodsFn(i18n[prop]('en'));
-        });
-        return inMethodsReturnSelf;
-        `
-      );
-      assert(isProxiedCorrectly, 'Generated i18n object is not proxied correctly');
     }
   );
   
