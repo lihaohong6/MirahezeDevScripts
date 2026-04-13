@@ -45,7 +45,9 @@
       value: 'apnamespace'
     }
   };
+  var threshold = 5000;
   var config = mw.config.get([
+    'wgUserGroups',
     'wgCanonicalNamespace',
     'wgCanonicalSpecialPageName',
     'wgFormattedNamespaces',
@@ -203,45 +205,63 @@
       modalAddPages.hide();
     }
     
-    function collect(more) {
+    function collect(promise, more, fetched) {
+      var d = $.Deferred();
       var queryReq = queryApi.get(more);
       queryReq.always(function (result, resultIfRejected) {
         if (queryReq.state() === 'rejected') {
           result = resultIfRejected;
         }
         
-        var error = (result.error && result.error.code) || 'unknown';
+        var error = result.error && result.error.code;
         var data = result.query && result.query[query.list];
-        var continueData = result['query-continue'];
-        
-        if (data) {
-          data.forEach(function (entry) {
-            pages.push(entry.title);
-          });
-        } else {
-          complete(error);
+        if (error || !data) {
+          complete(error || 'unknown error');
+          d.resolve();
           return;
         }
-        
-        if (continueData && stopAddPages === null) {
+        var hasMore = false;
+        pages = pages.concat(data.map(function (entry) {
+          return entry.title;
+        }));
+        fetched.n += data.length;
+
+        if (threshold === null || fetched.n < threshold) {
+          if (result['continue'] !== undefined) {
+            hasMore = true;
+            Object.assign(more, result['continue']);
+          }
+          if (result['query-continue']) {
+            hasMore = true;
+            // Deep-merge
+            var args = [more].concat(Object.values(result['query-continue']));
+            more = Object.assign.apply(null, args);
+          }
+        }
+        if (stopAddPages === null && hasMore) {
           stopAddPages = !confirm(i18n('confirm-big-request', result.limits[query.list]).parse());
         }
-        
-        if (continueData && !stopAddPages) {
-          collect(continueData[query.list]);
+        if (!stopAddPages && hasMore) {
+          promise.then(collect(promise, more, fetched));
         } else {
           complete();
         }
+        d.resolve();
       });
+      return d;
     }
     
     modalAddPages.$element.addClass("processing");
-    collect();
+
+    var promise = $.when();
+    promise.then(
+      collect.bind(this, promise, {}, { n: 0 })
+    );
   }
   
   function addPagesProcess(mode, value) {
     var modeData = apiModeData[mode];
-    var query = {rawcontinue: ''};
+    var query = {};
     
     // cancel if unknown mode or empty/undefined value
     if (!modeData || !value) {
@@ -257,8 +277,8 @@
       case 'namespace':
         // use namespace name for displaying namespace requests
         displayValue = value === '0'
-        ? i18n('namespace-main').escape()
-        : config.wgFormattedNamespaces[value];
+          ? i18n('namespace-main').escape()
+          : config.wgFormattedNamespaces[value];
         break;
       case 'category':
         // add namespace to category value if not included,
@@ -470,6 +490,12 @@
       autoFillPages();
     });
   }
+
+  function hasRights(rights) {
+    return rights.some(function (right) {
+      return config.wgUserGroups.indexOf(right) > -1;
+    }.bind(this));
+  }
   
   function main() {
     modalMain = new mw.libs.QDmodal('mne-main');
@@ -477,6 +503,16 @@
     
     modalMain.$element.addClass("mne-modal");
     modalAddPages.$element.addClass("mne-modal");
+
+    if (hasRights(['bureaucrat', 'sysop', 'bot'])) {
+      if (window.MassNullEdit && window.MassNullEdit.threshold !== undefined) {
+        threshold = window.MassNullEdit.threshold;
+      } else {
+        threshold = 20000;
+      }
+    } else if (hasRights(['autoconfirmed'])) {
+      threshold = 10000;
+    }
     
     mw.hook('dev.powertools.placement').add(function (module) {
       module.addPortletLink(mw.config.values.skin, {
