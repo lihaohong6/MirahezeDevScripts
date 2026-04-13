@@ -237,6 +237,8 @@
             var args = [more].concat(Object.values(result['query-continue']));
             more = Object.assign.apply(null, args);
           }
+        } else if (threshold) {
+          alert(i18n('reached-threshold', threshold));
         }
         if (stopAddPages === null && hasMore) {
           stopAddPages = !confirm(i18n('confirm-big-request', result.limits[query.list]).parse());

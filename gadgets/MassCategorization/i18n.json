@@ -111,7 +111,8 @@
 			"error-missing-category",
 			"error-missing-replacement",
 			"error-publishing",
-			"confirm-big-request"
+			"confirm-big-request",
+			"reached-threshold"
 		]
 	},
 	"en": {
@@ -157,7 +158,8 @@
 		"error-missing-category": "Missing category in update number $1",
 		"error-missing-replacement": "Missing replacement category in update number $1",
 		"error-publishing": "Could not publish an edit to $1",
-		"confirm-big-request": "This request will be big (more than $1 pages) and may be slow. Do you want to continue?"
+		"confirm-big-request": "This request will be big (more than $1 pages) and may be slow. Do you want to continue?",
+		"reached-threshold": "A maximum of $1 pages can only be loaded at a time to prevent abuse and performance issues."
 	},
 	"qqq": {
 		"modal-title": "Script's modal title.",
@@ -202,7 +204,8 @@
 		"error-missing-category": "An error message about missing category. $1 is the number.",
 		"error-missing-replacement": "An error message about missing replacement. $1 is the number.",
 		"error-publishing": "An error message about publishing. $1 is the number.",
-		"confirm-big-request": "Message shown when number of results for a request is larger than the API result limit. $1 is numeric API limit."
+		"confirm-big-request": "Message shown when number of results for a request is larger than the API result limit. $1 is numeric API limit.",
+		"reached-threshold": "Alert shown when a user tries to edit too many pages at a time. $1 is the maximum limit imposed."
 	},
 	"ar": {
 		"modal-title": "MassCategorization",

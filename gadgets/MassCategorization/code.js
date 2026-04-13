@@ -17,7 +17,7 @@
     // Config options and defaults
     delay: null,
 
-    stopAddMore: null,
+    stopAddPages: null,
     
     // Globals
     wg: mw.config.get([
@@ -753,11 +753,13 @@
               var args = [params].concat(Object.values(data['query-continue']));
               params = Object.assign.apply(null, args);
             }
+          } else if (this.threshold) {
+            alert(this.i18n.msg('reached-threshold', this.threshold));
           }
-          if (stopAddPages === null && hasMore) {
-            stopAddPages = !confirm(i18n('confirm-big-request', (data.limits || {}).categorymembers || 500).parse());
+          if (this.stopAddPages === null && hasMore) {
+            this.stopAddPages = !confirm(this.i18n.msg('confirm-big-request', (data.limits || {}).categorymembers || 500).parse());
           }
-          if (!stopAddPages && hasMore) {
+          if (!this.stopAddPages && hasMore) {
             promise.then(this.query.bind(this, promise, params, cbOnFetch, cbOnAllFinished, cbOnError, fetched));
           } else {
             cbOnAllFinished();
@@ -811,7 +813,7 @@
         alert(this.i18n.msg('status-finished-fetch').plain());
       }
 
-      this.stopAddMore = null;
+      this.stopAddPages = null;
       var promise = $.when();
       promise.then(
         this.query.bind(this, 
