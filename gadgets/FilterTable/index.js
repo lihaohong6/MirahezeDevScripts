@@ -1,12 +1,25 @@
 mw.hook('wikipage.content').add(function () {
 
-    const DEBUG_MODE = ['localhost:', 'safemode=', 'action=submit']
+    const DEBUG_MODE = ['localhost:', 'safemode=', 'debug=filtertable']
         .some((str) => window.location.href.includes(str));
 
     const scriptUrl = 'https://cdn.jsdelivr.net/npm/datatables@1.10.18/media/js/jquery.dataTables.min.js';
     const filterWrappers = $('.filter-wrapper');
     if (!filterWrappers.length) {
+        if (DEBUG_MODE) {
+            mw.notify('FilterTable: No filter wrappers found, skipping initialization.', {
+                autoHide: true,
+                type: 'info'
+            });
+        }
         return;
+    }
+
+    if (DEBUG_MODE) {
+        mw.notify('FilterTable: Found ' + filterWrappers.length + ' filter wrapper(s). Loading DataTables...', {
+            autoHide: true,
+            type: 'info'
+        });
     }
 
     /* Two search modes. Use enums in case we need to add more. */
@@ -30,12 +43,12 @@ mw.hook('wikipage.content').add(function () {
                 this.columnFilters.set(colIndex, new Map());
             }
             const columnMap = this.columnFilters.get(colIndex);
-            columnMap.set(rowIndex, { mode, filters: new Set() });
+            columnMap.set(rowIndex, {mode, filters: new Set()});
         }
 
         toggleFilter(colIndex, rowIndex, query, isActive) {
             const rowData = this.columnFilters.get(colIndex).get(rowIndex);
-            const { filters } = rowData;
+            const {filters} = rowData;
             if (isActive) {
                 filters.add(query);
             } else {
@@ -73,7 +86,7 @@ mw.hook('wikipage.content').add(function () {
             }
 
             if (activeFilters.length === 1) {
-                const [{ mode, filters }] = activeFilters;
+                const [{mode, filters}] = activeFilters;
                 const regex = Array.from(filters).join('|');
                 const finalRegex = mode === StringMatchingMode.EXACT
                     ? '^(' + regex + ')$'
@@ -82,11 +95,11 @@ mw.hook('wikipage.content').add(function () {
                 return;
             }
 
-            const regexParts = activeFilters.map(({ mode, filters }) => {
+            const regexParts = activeFilters.map(({mode, filters}) => {
                 if (mode !== StringMatchingMode.CONTAINS) {
                     mw.notify(
                         `More than one filter row specifies the same column with exact matching mode. This should not happen.`,
-                        { autoHide: false, type: 'error', title: 'FilterTable invalid matching mode.' }
+                        {autoHide: false, type: 'error', title: 'FilterTable invalid matching mode.'}
                     );
                 }
                 const groupRegex = Array.from(filters).join('|');
@@ -207,7 +220,14 @@ mw.hook('wikipage.content').add(function () {
         });
     }
 
-    $.getScript(scriptUrl, function () {
+    $.getScript(scriptUrl).done(function () {
+        if (DEBUG_MODE) {
+            mw.notify('FilterTable: DataTables library loaded successfully from ' + scriptUrl, {
+                autoHide: true,
+                type: 'success'
+            });
+        }
+
         $('.filter-wrapper').each((_, element) => {
             const $wrapper = $(element);
             // Don't use jQuery's # to query since data-table-id can contain an arbitrary string
@@ -215,7 +235,20 @@ mw.hook('wikipage.content').add(function () {
             const $table = $(document.getElementById(tableId));
 
             if (!$table.length) {
+                if (DEBUG_MODE) {
+                    mw.notify('FilterTable: Could not find table with id "' + tableId + '"', {
+                        autoHide: true,
+                        type: 'warn'
+                    });
+                }
                 return;
+            }
+
+            if (DEBUG_MODE) {
+                mw.notify('FilterTable: Initializing DataTable on "' + tableId + '"...', {
+                    autoHide: true,
+                    type: 'info'
+                });
             }
 
             preprocessTable($table);
@@ -233,7 +266,7 @@ mw.hook('wikipage.content').add(function () {
                 });
             } catch (e) {
                 mw.notify(`Error initializing DataTable on table with id ${tableId}.\nMessage: ${e.message}`,
-                    { autoHide: false, type: 'error', title: 'FilterTable initialization failed.' } )
+                    {autoHide: false, type: 'error', title: 'FilterTable initialization failed.'})
                 return;
             }
 
@@ -255,6 +288,16 @@ mw.hook('wikipage.content').add(function () {
 
             processResetAllButton($wrapper, searchFields);
 
+            if (DEBUG_MODE) {
+                mw.notify('FilterTable: Successfully initialized table "' + tableId + '" with ' +
+                    $wrapper.find('.filter-row').length + ' filter row(s).', {autoHide: true, type: 'success'});
+            }
         });
+    }).fail(function (jqXHR, textStatus, errorThrown) {
+        const errorMessage = 'FilterTable: Failed to load DataTables library from ' + scriptUrl +
+            '. Error: ' + textStatus + (errorThrown ? ' (' + errorThrown + ')' : '');
+
+        mw.notify(errorMessage, {autoHide: false, type: 'error', title: 'FilterTable Error'});
+        console.error('FilterTable $.getScript error:', jqXHR, textStatus, errorThrown);
     });
 });
