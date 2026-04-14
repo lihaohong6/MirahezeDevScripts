@@ -82,14 +82,6 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
             }
             return 'assets/[name][extname]';
           },
-          // generatedCode: {
-          //   /**
-          //    * Turn these settings off if you want to enforce ES5 compliance
-          //    */
-          //   arrowFunctions: true,
-          //   constBindings: true,
-          //   objectShorthand: true,
-          // },
           globals: {
             'jquery': '$',
             'mediawiki': 'mw',
@@ -107,19 +99,6 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
           ".yaml": "text",
           ".yml": "text"
         },
-        external: [
-          'jquery', 
-          'mediawiki', 
-          /**
-           * Exposed global methods
-           * https://doc.wikimedia.org/mediawiki-core/master/js/window.html
-           */
-          'addOnloadHook',
-          'importScript',
-          'importScriptURI',
-          'importStylesheet',
-          'importStylesheetURI', 
-        ]
       },
       outDir: 'dist',
       emptyOutDir: true
