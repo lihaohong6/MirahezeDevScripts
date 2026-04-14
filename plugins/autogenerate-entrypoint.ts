@@ -16,7 +16,6 @@ export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: Gadg
     name: 'autogenerate-entrypoint',
     enforce: 'post', // Enforce after Vite build plugins
 
-    // Build Mode
     buildEnd() {
       const startTime = Date.now();
       this.info('Creating dist/load.js...');
