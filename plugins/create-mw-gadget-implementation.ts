@@ -9,10 +9,9 @@ import type { GadgetDefinition } from '../dev-utils/types.js';
  * built, and placed in the dist/ directory. 
  * 
  * @param gadgetsToBuild
- * @param minify
  * @returns
  */
-export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefinition[], minify: boolean = true): PluginOption {
+export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefinition[]): PluginOption {
   
   return {
     name: 'create-mw-gadget-implementation',
@@ -23,7 +22,12 @@ export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefin
       for (const gadget of gadgetsToBuild) {
         const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
         this.emitFile({
-          code: await createRolledUpGadgetImplementation(gadgetImplementationFilePath, bundle, gadget, minify),
+          code: await createRolledUpGadgetImplementation(
+            gadgetImplementationFilePath, 
+            bundle, 
+            gadget, 
+            this.environment.getTopLevelConfig()
+          ),
           fileName: `${gadget.name}/gadget-impl.js`,
           type: 'prebuilt-chunk'
         });
