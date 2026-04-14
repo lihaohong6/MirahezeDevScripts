@@ -11,24 +11,28 @@ import { writeFileSync } from "node:fs";
  * @returns 
  */
 export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
-  const dom = new JSDOM(`<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>`);
-  const doc = dom.window.document;
-  const title = doc.createElement('title');
-  title.textContent = 'MirahezeDevScripts';
-  doc.head.appendChild(title);
-  appendMetaTags(doc);
-  appendStyles(doc);
+  try {
+    const dom = new JSDOM(`<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>`);
+    const doc = dom.window.document;
+    const title = doc.createElement('title');
+    title.textContent = 'MirahezeDevScripts';
+    doc.head.appendChild(title);
+    appendMetaTags(doc);
+    appendStyles(doc);
 
-  buildInfoOverview(doc);
-  buildListOfGadgets(doc, gadgets);
+    buildInfoOverview(doc);
+    buildListOfGadgets(doc, gadgets);
 
-  appendScript(doc);
+    appendScript(doc);
 
-  writeFileSync(
-    resolveDistPath('index.html', true),
-    dom.serialize(),
-    { flag: 'w+', encoding: 'utf-8' }
-  );
+    writeFileSync(
+      resolveDistPath('index.html', true),
+      dom.serialize(),
+      { flag: 'w+', encoding: 'utf-8' }
+    );
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 /**

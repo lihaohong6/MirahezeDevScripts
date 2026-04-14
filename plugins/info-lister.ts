@@ -15,8 +15,8 @@ export default function buildOverviewPage(gadgetsToBuildAtIntialState: GadgetDef
     name: 'build-overview-page',
     enforce: 'post', // Enforce after Vite build plugins
 
-    // Build Mode
     writeBundle() {
+      this.info('Generating dist/index.html...');
       try {
         buildOverviewPageHtml(gadgetsToBuildAtIntialState);
       } catch (err) {
