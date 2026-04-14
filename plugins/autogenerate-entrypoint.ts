@@ -1,5 +1,6 @@
 import { serveGadgets } from '../dev-utils/build-orchestration.js';
 import { PluginOption } from 'vite';
+import type { PluginContext } from 'rolldown';
 import type { GadgetDefinition } from '../dev-utils/types.js';
 
 /**
@@ -16,11 +17,12 @@ export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: Gadg
     name: 'autogenerate-entrypoint',
     enforce: 'post', // Enforce after Vite build plugins
 
-    buildEnd() {
+    buildEnd(this: PluginContext) {
       const startTime = Date.now();
       this.info('Creating dist/load.js...');
-      serveGadgets(gadgetsToBuildAtIntialState, rollup)
-        .then(() => this.info(`Created dist/load.js in ${(Date.now() - startTime) / 1000} s`));
+      serveGadgets(this, gadgetsToBuildAtIntialState, rollup)
+        .then(() => this.info(`Created dist/load.js in ${(Date.now() - startTime) / 1000} s`))
+        .catch(console.error);
     },
   }
 }
