@@ -807,6 +807,7 @@
         textarea.value += toAdd;
       }
       function cbOnError(err) {
+        console.error(err);
         this.logError(this.i18n.msg('error-failed-to-get-contents', category).plain());
       }
       function cbOnAllFinished() {

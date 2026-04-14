@@ -7,7 +7,6 @@
 	--powertools-portlet-width: 50px;
 	--powertools-portlet-width-maximized: 200px;
 	--powertools-portlet-border-radius: 25px;
-
 	position: fixed;
 	width: var( --powertools-portlet-width );
 	z-index: var( --powertools-z-index, 100 );
@@ -15,18 +14,14 @@
 
 	// grows left
 	direction: rtl;
+
 	& > * {
 		direction: ltr;
-	}
-	.powertools-portlet-body {
-		right: 0;
-		left: auto;
 	}
 
 	> div {
 		width: var( --powertools-portlet-width );
 		transition: width 300ms;
-		
 		position: absolute;
 	}
 
@@ -51,7 +46,8 @@
 			margin-right: 5px;
 		}
 
-		span, div.crosshair {
+		span,
+		div.crosshair {
 			visibility: hidden;
 			opacity: 0;
 			transition: visibility 500ms, opacity 500ms ease-out;
@@ -69,6 +65,8 @@
 		padding: 8px 4px 15px 4px;
 		box-sizing: border-box;
 		text-align: left;
+		right: 0;
+		left: auto;
 
 		ul {
 			font-size: 0.95rem;
@@ -87,8 +85,10 @@
 		> div {
 			width: var( --powertools-portlet-width-maximized );
 		}
+
 		.powertools-portlet-menu-label {
-			span, div.crosshair {
+			span,
+			div.crosshair {
 				visibility: visible;
 				opacity: 1;
 			}
@@ -128,10 +128,10 @@
 	}
 
 	.crosshair {
-    position: absolute;
-    right: 15px;
-    width: 20px;
-    height: 20px;
+		position: absolute;
+		right: 15px;
+		width: 20px;
+		height: 20px;
 	}
 }
 

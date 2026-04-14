@@ -13,7 +13,16 @@
     "mediaWiki": "readonly",
     "OO": "readonly",
     // identifier injected by esbuild, useful for debugging
-    "DEBUG": "readonly"
+    "DEBUG": "readonly",
+    /**
+     * methods exposed in the global window:
+     * https://doc.wikimedia.org/mediawiki-core/master/js/window.html 
+     */
+    "addOnloadHook": "readonly",
+    "importScript": "readonly",
+    "importScriptURI": "readonly",
+    "importStylesheet": "readonly",
+    "importStylesheetURI": "readonly"
   },
   "rules": {
     "@typescript-eslint/no-unused-expressions": [

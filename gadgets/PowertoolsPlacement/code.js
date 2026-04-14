@@ -1,3 +1,4 @@
+/* globals interact */
 (function ($, mw) {
   var POWER_EDITOR_TOOLBOX_PORTLET_ID = 'p-power-editor-tools';
   var POWER_EDITOR_TOOLBOX_PORTLET_HEADING_TEXT;
@@ -478,7 +479,7 @@
         tx: (p.px || 0) * window.innerWidth, 
         ty: (p.py || 0) * window.innerHeight, 
       };
-    } catch (err) {
+    } catch {
       return null;
     }
   }
