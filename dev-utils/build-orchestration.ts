@@ -1,10 +1,10 @@
 import { readFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
-import { OutputBundle } from 'rollup';
+import type { OutputBundle } from 'rolldown';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
-import { Target } from 'vite-plugin-static-copy';
-import { transformWithEsbuild } from 'vite';
+import type { Target } from 'vite-plugin-static-copy';
+import { transformWithOxc } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -218,22 +218,36 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
   const writeStream = createWriteStream(entrypointFile, { flags: 'w', encoding: 'utf-8'});
   try {
     if (useRolledUpImplementation) {
+      /*
+       * The `dist` pipeline (i.e. the default workflow that is run when 
+       * `npm run build` is run) generates a load.js that lists (and loads) each 
+       * gadget that is built.
+       */
       const writeScriptLoadingStatement = (gadget: GadgetDefinition) => {
         return writeStream.write(createScriptLoadingStatement(gadget.name)+'\n');
       }
       gadgetsToBuild.forEach(writeScriptLoadingStatement);
     } else {
+      /*
+       * This block is only called when `npm run build -- -- --no-rollup` is called.
+       * 
+       * This block is run when you want to make a load.js file that invokes each 
+       * part of the gadget separately, e.g. call code.js and apply style.css 
+       * separately. 
+       * 
+       * The `dist` pipeline does not execute this block.
+       */
       // Async generator implementation
       async function* createGadgetImplementations() {
         for (const gadget of gadgetsToBuild) {
           yield await createRolledUpGadgetImplementationByLazyLoading(gadget);
         }
       }
-      // should be ES5-compliant
-      writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(function (res) { return res.text(); })\n\t\t.then(function (contents) { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
+      // We use $.globalEval to prevent each script from polluting the global scope
+      writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(res => res.text())\n\t\t.then(contents => { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
       for await (const gadgetImplementation of createGadgetImplementations()) {
         writeStream.write(gadgetImplementation);
-        writeStream.write('\n\n');
+        writeStream.write('\n');
       }
       writeStream.write(`}`);
     }
@@ -277,13 +291,13 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   }
   const generateCodeConditionForComparingValues = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
     const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
-    // should be ES5-compliant
-    return `${arr}.some(function (a) { return mw.config.get('${configKey}') === a; })`;
+    // not ES5-compliant
+    return `${arr}.some(a => mw.config.get('${configKey}') === a)`;
   };
   const generateCodeConditionForComparingLists = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
     const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
-    // should be ES5-compliant
-    return `${arr}.some(function (a) { return (mw.config.get('${configKey}') || []).indexOf(a) > -1; })`
+    // not ES5-compliant
+    return `${arr}.some(a => (mw.config.get('${configKey}') || []).indexOf(a) > -1)`
   };
 
   const checkForConditions = [
@@ -318,7 +332,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   }
 
   requires.forEach((gadgetName) => {
-    head.push(`if (mw.loader.getState('${namespace}.${gadgetName}') === null) { ${
+    head.push(`if (!mw.loader.getState('${namespace}.${gadgetName}')) { ${
       createScriptLoadingStatement(gadgetName, true)
     } }`);
   });
@@ -400,7 +414,7 @@ export async function createRolledUpGadgetImplementation(
   body.push(`];`);
   body.push(`});`);
 
-  return (await transformWithEsbuild(
+  return (await transformWithOxc(
     [
       `(function (mw) {`,
       ...rsCondHead,
@@ -408,8 +422,7 @@ export async function createRolledUpGadgetImplementation(
       ...rsCondTail,
       `})(mediaWiki);`,
     ].join(''), 
-    gadgetImplementationFilePath, 
-    { minify }
+    gadgetImplementationFilePath
   )).code;
 }
 
@@ -452,7 +465,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
   ];
 
   const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget);
-  return (await transformWithEsbuild(
+  return (await transformWithOxc(
     [
       `(function (mw) {`,
       ...rsCondHead,
@@ -460,8 +473,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
       ...rsCondTail,
       `})(mediaWiki);`
     ].join(''),
-    resolveEntrypointFilepath(),
-    { minify: false }
+    resolveEntrypointFilepath()
   )).code;
 }
 

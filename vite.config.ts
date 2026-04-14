@@ -67,7 +67,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         }
       },
       cssMinify: minify,
-      rollupOptions: {
+      rolldownOptions: {
         input: bundleInputs,
         output: {
           // Preserve the directory structure
@@ -97,6 +97,10 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
             'jquery': '$',
             'mediawiki': 'mw',
           },
+        },
+        moduleTypes: {
+          ".yaml": "text",
+          ".yml": "text"
         },
         external: [
           'jquery', 
