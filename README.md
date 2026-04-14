@@ -37,6 +37,14 @@ Serve individual minified JS & CSS files, along with the minified <code>gadget-i
 </tr>
 <tr>
 <td>
+<code>npm run build -- -- --oxc-minifier</code>
+</td>
+<td>
+Use Oxc to minify Javascript code instead of Terser (default).  
+</td>
+</tr>
+<tr>
+<td>
 <code>npm run build -- -- --no-minify</code>
 </td>
 <td>
@@ -144,8 +152,7 @@ gadgets:
 
     # The "requires" property is optional
     # This property tells the repository to load the gadgets only after 
-    # the userscripts listed under it have been registered first
-    # Only used in development mode
+    # the gadgets listed under this item have been registered first
     requires:
       - Dependency1
       - Dependency2
