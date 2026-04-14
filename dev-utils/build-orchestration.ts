@@ -1,11 +1,10 @@
 import { readFile } from 'fs/promises';
-import { createWriteStream } from 'fs';
-import type { MinifyOptions, OutputBundle, OutputOptions } from 'rolldown';
+import { transformWithOxc, minifySync as minifyFnOxc, ResolvedConfig } from 'vite';
 import { minify as minifyFnTerser } from 'terser';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
+import type { MinifyOptions, OutputBundle, OutputOptions, PluginContext } from 'rolldown';
 import type { Target } from 'vite-plugin-static-copy';
-import { transformWithOxc, minifySync as minifyFnOxc, ResolvedConfig } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -209,14 +208,15 @@ export function createScriptLoadingStatement(gadgetName: string, asSharedDep: bo
  * Builds the entrypoint file (`load.js`) to be served by the Vite server and to be 
  * loaded on the MediaWiki client.
  * 
+ * @param pluginContext
  * @param gadgetsToBuild
- * @param useRolledUpImplementation If set to true, then `load.js` will load the gadget-impl.js files. 
- *                                  Otherwise, it will lazily load and execute the individual scripts and stylesheets.
+ * @param useRolledUpImplementation 
+ * If set to true, then `load.js` will load the gadget-impl.js files. 
+ * Otherwise, it will lazily load and execute the individual scripts and stylesheets.
  * @returns
  */
-export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
-  const entrypointFile = resolveEntrypointFilepath();
-  const writeStream = createWriteStream(entrypointFile, { flags: 'w', encoding: 'utf-8'});
+export async function serveGadgets(pluginContext: PluginContext, gadgetsToBuild: GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
+  const sb: string[] = [];
   try {
     if (useRolledUpImplementation) {
       /*
@@ -225,7 +225,7 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
        * gadget that is built.
        */
       const writeScriptLoadingStatement = (gadget: GadgetDefinition) => {
-        return writeStream.write(createScriptLoadingStatement(gadget.name)+'\n');
+        return sb.push(createScriptLoadingStatement(gadget.name));
       }
       gadgetsToBuild.forEach(writeScriptLoadingStatement);
     } else {
@@ -245,17 +245,20 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
         }
       }
       // We use $.globalEval to prevent each script from polluting the global scope
-      writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(res => res.text())\n\t\t.then(contents => { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
+      sb.push(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(res => res.text())\n\t\t.then(contents => { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n`);
       for await (const gadgetImplementation of createGadgetImplementations()) {
-        writeStream.write(gadgetImplementation);
-        writeStream.write('\n');
+        sb.push(gadgetImplementation);
       }
-      writeStream.write(`}`);
+      sb.push(`}`);
     }
+
+    pluginContext.emitFile({
+      code: sb.join("\n"),
+      fileName: 'load.js',
+      type: 'prebuilt-chunk',
+    });
   } catch (err) {
     console.error(err);
-  } finally {
-    writeStream.close();
   }
 }
 
