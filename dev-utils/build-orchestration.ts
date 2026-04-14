@@ -1,10 +1,11 @@
 import { readFile } from 'fs/promises';
 import { createWriteStream } from 'fs';
-import type { OutputBundle } from 'rolldown';
+import type { MinifyOptions, OutputBundle, OutputOptions } from 'rolldown';
+import { minify as minifyFnTerser } from 'terser';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import type { Target } from 'vite-plugin-static-copy';
-import { transformWithOxc, minifySync as minifyFn } from 'vite';
+import { transformWithOxc, minifySync as minifyFnOxc, ResolvedConfig } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -352,14 +353,14 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * @param gadgetImplementationFilePath
  * @param writeBundle
  * @param gadget
- * @param minify
+ * @param buildConfig
  * @returns
  */
 export async function createRolledUpGadgetImplementation(
   gadgetImplementationFilePath: string, 
   writeBundle: OutputBundle,
   gadget: GadgetDefinition, 
-  minify: boolean
+  buildConfig: ResolvedConfig
 ): Promise<string> {
   const { name } = gadget;
   
@@ -391,19 +392,16 @@ export async function createRolledUpGadgetImplementation(
     gadget.styles.forEach((style) => {
       const assetInfo = writeBundle[`${name}/${resolveFileExtension(style)}`];
       if (assetInfo.type === 'asset') {
-        body.push(minify ? `"` : `\``);
+        body.push("`");
         (() => {
           let src = assetInfo.source;
           if (src instanceof Uint8Array) {
             src = new TextDecoder().decode(src);
           }
-          src = src.trim().replaceAll(
-            minify ? /(")/g : /(`)/g,
-            '\\$1'
-          );
+          src = src.trim().replaceAll(/(`)/g, '\\$1');
           body.push(src);
         })();
-        body.push(minify ? `"` : `\``);
+        body.push("`");
         body.push(', ');
       }
     });
@@ -424,8 +422,15 @@ export async function createRolledUpGadgetImplementation(
     ].join(''), 
     gadgetImplementationFilePath,
   )).code;
-  if (minify) {
-    trf = minifyFn(gadgetImplementationFilePath, trf).code;
+  switch (buildConfig.build.minify) {
+    case 'oxc':
+      trf = minifyFnOxc(gadgetImplementationFilePath, trf, 
+        ((buildConfig.build.rolldownOptions.output as OutputOptions).minify as MinifyOptions)
+      ).code;
+      break;
+    case 'terser':
+      trf = (await minifyFnTerser(trf, buildConfig.build.terserOptions)).code || trf;
+      break;
   }
   return trf;
 }

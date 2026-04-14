@@ -43,6 +43,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
 
   const minify = !customArgs['no-minify'];
   const rollup = !customArgs['no-rollup'];
+  const useOxcMinifier = customArgs['oxc-minifier'];
 
   return {
     plugins: [
@@ -57,10 +58,10 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
       rollup &&
-        createMwGadgetImplementation(gadgetsToBuild, minify),
+        createMwGadgetImplementation(gadgetsToBuild),
     ],
     build: {
-      minify: minify ? 'terser' : false,
+      minify: minify ? (useOxcMinifier ? 'oxc' : 'terser') : false,
       terserOptions: {
         mangle: {
           reserved: ['$', 'mw']
@@ -90,13 +91,17 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
           //   objectShorthand: true,
           // },
           globals: {
-            /**
-             * Pass this to ensure that Vite/Rollup does not use $ as a 
-             * minification symbol
-             */
             'jquery': '$',
             'mediawiki': 'mw',
           },
+          /**
+           * Turn off mangling when using Oxc as a JS minifier
+           * This is because mangling with Oxc is still rather limited
+           * https://oxc.rs/docs/guide/usage/minifier/mangling.html 
+           */
+          minify: minify ? {
+            mangle: false
+          } : 'dce-only',
         },
         moduleTypes: {
           ".yaml": "text",
