@@ -4,7 +4,7 @@ import type { OutputBundle } from 'rolldown';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import type { Target } from 'vite-plugin-static-copy';
-import { transformWithOxc } from 'vite';
+import { transformWithOxc, minifySync as minifyFn } from 'vite';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -414,7 +414,7 @@ export async function createRolledUpGadgetImplementation(
   body.push(`];`);
   body.push(`});`);
 
-  return (await transformWithOxc(
+  let trf = (await transformWithOxc(
     [
       `(function (mw) {`,
       ...rsCondHead,
@@ -422,8 +422,12 @@ export async function createRolledUpGadgetImplementation(
       ...rsCondTail,
       `})(mediaWiki);`,
     ].join(''), 
-    gadgetImplementationFilePath
+    gadgetImplementationFilePath,
   )).code;
+  if (minify) {
+    trf = minifyFn(gadgetImplementationFilePath, trf).code;
+  }
+  return trf;
 }
 
 /**
@@ -478,7 +482,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
 }
 
 /**
- * Pass this function to `build.rollupOptions.input` in Vite's config.
+ * Pass this function to `build.rolldownOptions.input` in Vite's config.
  *
  * @param gadgetsToBuild
  * @returns
