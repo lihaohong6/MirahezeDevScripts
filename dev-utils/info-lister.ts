@@ -291,7 +291,12 @@ function buildListOfGadgets(doc: HTMLDocument, gadgets: GadgetDefinition[]): voi
   buildGadgetListTableHeader(doc, thead);
   const tbody = doc.createElement('tbody');
   gadgets
-    .sort(({ name: a }, { name: b }) => (a < b) ? -1 : (a > b) ? 1 : 0) // sort alphabetically
+    .sort(({ name: a }, { name: b }) => {
+      a = a.toLocaleLowerCase();
+      b = b.toLocaleLowerCase();
+      // sort alphabetically
+      return (a < b) ? -1 : (a > b) ? 1 : 0;
+    })
     .forEach((gadget, idx) => {
       buildGadgetListTableRow(doc, tbody, gadget, idx+1);
     });
