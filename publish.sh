@@ -13,7 +13,7 @@ git push
 
 # Push new tag
 if [[ -v NEW_TAG ]]; then
-  git tag -a "$NEW_TAG" -m "Release $NEW_TAG"
+  git tag -a "$NEW_TAG" -m "Build & deploy at timestamp: $NEW_TAG"
   git push origin $NEW_TAG
 fi
 
