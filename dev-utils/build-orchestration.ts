@@ -365,7 +365,7 @@ export async function createRolledUpGadgetImplementation({
   rolldownMinify, buildConfig, outputChunk, outputAsset 
 }: {
   gadgetImplementationFilePath: string, 
-  gadget: GadgetDefinition, 
+  gadget: GadgetDefinition,
   rolldownMinify: boolean | 'oxc' | 'terser',
   buildConfig: ResolvedConfig,
   outputChunk?: OutputChunk,
@@ -394,9 +394,9 @@ export async function createRolledUpGadgetImplementation({
   body.push(`}, {"css": [`);
 
   if (outputAsset && outputAsset.source) {
-        body.push("`");
+    body.push("`");
     body.push(String(outputAsset.source).replaceAll("`", "\\`").trim());
-        body.push("`");
+    body.push("`");
   }
 
   body.push(`]},`);
@@ -405,11 +405,11 @@ export async function createRolledUpGadgetImplementation({
   body.push(`});`);
 
   let trf = [
-      `(function (mw) {`,
-      ...rsCondHead,
-      ...body,
-      ...rsCondTail,
-      `})(mediaWiki);`,
+    `(function (mw) {`,
+    ...rsCondHead,
+    ...body,
+    ...rsCondTail,
+    `})(mediaWiki);`,
   ].join('');
   
   trf = await formatOrMinifyCode(trf, gadgetImplementationFilePath, rolldownMinify, buildConfig);
@@ -484,9 +484,11 @@ export function mapGadgetSourceFiles(gadgetsToBuild: readonly GadgetDefinition[]
     entries[gadgetName] = `virtual:gadgets-builder:${gadgetName}`;
     definition.i18n?.forEach((i18nFile) => {
       assets.push({ 
-        src: resolveSrcGadgetsPath(name, i18nFile), 
-        dest: name, 
-        overwrite: true 
+        src: resolveSrcGadgetsPath(gadgetName, i18nFile), 
+        dest: gadgetName, 
+        overwrite: true,
+        // remove /gadgets/<gadget-name> from dest path
+        rename: { stripBase: 2 },
       });
     });
   });
