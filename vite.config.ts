@@ -37,9 +37,9 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
     setViteServerOrigin(serverPreviewOrigin);
   }
   setGadgetNamespace(gadgetNamespace);
-    
+  
   const gadgetsToBuild = await (async () => {
-  const gadgetsDefinition = await readGadgetsDefinition();
+    const gadgetsDefinition = await readGadgetsDefinition();
     return getGadgetsToBuild(gadgetsDefinition);
   })();
   const [bundleInputs, bundleAssets] = mapGadgetSourceFiles(gadgetsToBuild);
@@ -58,10 +58,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       autogenerateEntrypoint(gadgetsToBuild, rollup),
       
       // In Vite Build, copy the i18n.json files to dist/
-      viteStaticCopy({
-        targets: bundleAssets,
-        structured: false,
-      }),
+      viteStaticCopy({ targets: bundleAssets }),
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
       rollup &&
