@@ -289,7 +289,7 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
   const conditions: string[] = [];
   const normalizeVariable = (variable: string | string[]) => {
     if (typeof variable === 'string') {
-      return variable.split(/\s*,\s*/);
+      return variable.trim().split(/\s*,\s*/).filter((val) => val !== '');
     }
     return variable;
   }

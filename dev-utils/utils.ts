@@ -103,7 +103,7 @@ export function resolveGadgetsDefinitionManifestPath(): string {
  * 
  * @returns 
  */
-export function resolveDistPath(relativeFilepath?: string): string {
+export function resolveDistPath(relativeFilepath?: string, treatAsFile: boolean = false): string {
   const distFolder = resolve(__dirname, '../dist');
   if (!existsSync(distFolder)) {
     mkdirSync(distFolder);
@@ -112,7 +112,7 @@ export function resolveDistPath(relativeFilepath?: string): string {
   if (!!relativeFilepath) {
     dir = resolve(dir, relativeFilepath);
   }
-  if (!existsSync(dir)) {
+  if (!existsSync(dir) && !treatAsFile) {
     mkdirSync(dir);
   }
   return dir;
