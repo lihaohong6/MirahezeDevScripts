@@ -11,7 +11,7 @@ import type { GadgetDefinition } from '../dev-utils/types.js';
  * @param rollup
  * @returns 
  */
-export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: GadgetDefinition[], rollup: boolean = false): PluginOption {
+export default function autogenerateEntrypoint(gadgetsToBuildAtIntialState: readonly GadgetDefinition[], rollup: boolean = false): PluginOption {
   
   return {
     name: 'autogenerate-entrypoint',

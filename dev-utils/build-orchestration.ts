@@ -1,9 +1,8 @@
 import { readFile } from 'fs/promises';
-import { transformWithOxc, minifySync as minifyFnOxc, ResolvedConfig } from 'vite';
-import { minify as minifyFnTerser } from 'terser';
+import { ResolvedConfig } from 'vite';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
-import type { MinifyOptions, OutputBundle, OutputOptions, PluginContext } from 'rolldown';
+import type { OutputChunk, OutputAsset, PluginContext } from 'rolldown';
 import type { Target } from 'vite-plugin-static-copy';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
@@ -12,7 +11,7 @@ import {
   resolveGadgetsDefinitionManifestPath,
   resolveEntrypointFilepath,
   checkGadgetExists,
-  resolveFilepathForBundleInputKey,
+  formatOrMinifyCode,
 } from './utils';
 
 let viteServerOrigin: string;
@@ -86,7 +85,7 @@ interface GadgetPremCheck {
  *  @param gadgetsDefinition
  *  @returns
  */
-export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetDefinition[] {
+export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): readonly GadgetDefinition[] {
   const { 'enable_all': enableAll = false, enable: arrEnabledGs = [], disable: arDisabledGs = [] } = gadgetsDefinition?.workspace || {};
   const enabledGadgets = new Set(arrEnabledGs);
   const disabledGadgets = new Set(arDisabledGs);
@@ -215,7 +214,7 @@ export function createScriptLoadingStatement(gadgetName: string, asSharedDep: bo
  * Otherwise, it will lazily load and execute the individual scripts and stylesheets.
  * @returns
  */
-export async function serveGadgets(pluginContext: PluginContext, gadgetsToBuild: GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
+export async function serveGadgets(pluginContext: PluginContext, gadgetsToBuild: readonly GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
   const sb: string[] = [];
   try {
     if (useRolledUpImplementation) {
@@ -354,21 +353,27 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * Creates an `mw.loader.impl` implementation with direct execution of each script and stylesheet.
  * 
  * @param gadgetImplementationFilePath
- * @param writeBundle
  * @param gadget
+ * @param rolldownMinify
  * @param buildConfig
+ * @param outputChunk
+ * @param outputAsset
  * @returns
  */
-export async function createRolledUpGadgetImplementation(
+export async function createRolledUpGadgetImplementation({ 
+  gadgetImplementationFilePath, gadget,
+  rolldownMinify, buildConfig, outputChunk, outputAsset 
+}: {
   gadgetImplementationFilePath: string, 
-  writeBundle: OutputBundle,
   gadget: GadgetDefinition, 
-  buildConfig: ResolvedConfig
-): Promise<string> {
-  const { name } = gadget;
+  rolldownMinify: boolean | 'oxc' | 'terser',
+  buildConfig: ResolvedConfig,
+  outputChunk?: OutputChunk,
+  outputAsset?: OutputAsset, 
+}): Promise<string> {
   
-  if (!checkGadgetExists(name)) {
-    throw new Error(`Cannot resolve gadget ${name}`);
+  if (!checkGadgetExists(gadget.name)) {
+    throw new Error(`Cannot resolve gadget ${gadget.name}`);
   }
 
   const hash = crypto.randomBytes(4).toString('hex');
@@ -378,36 +383,20 @@ export async function createRolledUpGadgetImplementation(
   const body = [
     `mw.loader.impl(function () {`,
     `return [`,
-    `"${namespace}.${name}@${hash}",`,
+    `"${namespace}.${gadget.name}@${hash}",`,
     `function ($, jQuery, require, module) {`,
   ];
 
-  if (gadget?.scripts?.length) {
-    gadget.scripts.forEach((script) => {
-      const moduleInfo = writeBundle[`${name}/${resolveFileExtension(script)}`];
-      if (moduleInfo.type === 'chunk') body.push(moduleInfo.code);
-    });
+  if (outputChunk) {
+    body.push(outputChunk.code);
   }
 
   body.push(`}, {"css": [`);
 
-  if (gadget?.styles?.length) {
-    gadget.styles.forEach((style) => {
-      const assetInfo = writeBundle[`${name}/${resolveFileExtension(style)}`];
-      if (assetInfo.type === 'asset') {
+  if (outputAsset && outputAsset.source) {
         body.push("`");
-        (() => {
-          let src = assetInfo.source;
-          if (src instanceof Uint8Array) {
-            src = new TextDecoder().decode(src);
-          }
-          src = src.trim().replaceAll(/(`)/g, '\\$1');
-          body.push(src);
-        })();
+    body.push(String(outputAsset.source).replaceAll("`", "\\`").trim());
         body.push("`");
-        body.push(', ');
-      }
-    });
   }
 
   body.push(`]},`);
@@ -415,26 +404,16 @@ export async function createRolledUpGadgetImplementation(
   body.push(`];`);
   body.push(`});`);
 
-  let trf = (await transformWithOxc(
-    [
+  let trf = [
       `(function (mw) {`,
       ...rsCondHead,
       ...body,
       ...rsCondTail,
       `})(mediaWiki);`,
-    ].join(''), 
-    gadgetImplementationFilePath,
-  )).code;
-  switch (buildConfig.build.minify) {
-    case 'oxc':
-      trf = minifyFnOxc(gadgetImplementationFilePath, trf, 
-        ((buildConfig.build.rolldownOptions.output as OutputOptions).minify as MinifyOptions)
-      ).code;
-      break;
-    case 'terser':
-      trf = (await minifyFnTerser(trf, buildConfig.build.terserOptions)).code || trf;
-      break;
-  }
+  ].join('');
+  
+  trf = await formatOrMinifyCode(trf, gadgetImplementationFilePath, rolldownMinify, buildConfig);
+
   return trf;
 }
 
@@ -477,7 +456,7 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
   ];
 
   const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget);
-  return (await transformWithOxc(
+  return (await formatOrMinifyCode(
     [
       `(function (mw) {`,
       ...rsCondHead,
@@ -485,8 +464,9 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
       ...rsCondTail,
       `})(mediaWiki);`
     ].join(''),
-    resolveEntrypointFilepath()
-  )).code;
+    resolveEntrypointFilepath(),
+    false,
+  ));
 }
 
 /**
@@ -495,18 +475,13 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
  * @param gadgetsToBuild
  * @returns
  */
-export function mapGadgetSourceFiles(gadgetsToBuild: GadgetDefinition[]): [{ [Key: string]: string }, Target[]] {
-  const entries: { [Key: string]: string } = {};
+export function mapGadgetSourceFiles(gadgetsToBuild: readonly GadgetDefinition[]): [Record<string, string>, Target[]] {
+  const entries: Record<string, string> = {};
   const assets: Target[] = [];
 
   gadgetsToBuild.forEach((definition) => {
-    const { name } = definition;
-    const loadFile = (filepath: string) => {
-      const key = `${name}/${resolveFilepathForBundleInputKey(filepath)}`;
-      entries[key] = resolveSrcGadgetsPath(name, filepath);
-    }
-    definition.styles?.forEach(loadFile);
-    definition.scripts?.forEach(loadFile);
+    const { name: gadgetName } = definition;
+    entries[gadgetName] = `virtual:gadgets-builder:${gadgetName}`;
     definition.i18n?.forEach((i18nFile) => {
       assets.push({ 
         src: resolveSrcGadgetsPath(name, i18nFile), 
