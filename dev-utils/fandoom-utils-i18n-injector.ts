@@ -1,5 +1,5 @@
 import { readFile } from "fs/promises";
-import type { PluginContext, TransformResult } from "rollup";
+import type { PluginContext, TransformResult } from "rolldown";
 import type { GadgetDefinition } from "./types.ts";
 //@ts-ignore
 import { resolveSrcGadgetsPath } from "./utils.ts";
@@ -15,7 +15,7 @@ const REGEX_ID = /INJECT_FANDOM_UTILS_I18N\s*\(([^\)]*)\)\s*;?/;
  * @param gadgets 
  * @returns 
  */
-export function getModuleIdsToWatch(gadgets: GadgetDefinition[]): { [gadgetId: string]: GadgetDefinition } {
+export function getModuleIdsToWatch(gadgets: readonly GadgetDefinition[]): { [gadgetId: string]: GadgetDefinition } {
   const moduleIdsToWatch: { [gadgetId: string]: GadgetDefinition } = {};
   gadgets
     .filter((gadget) => !!gadget?.i18n?.length )

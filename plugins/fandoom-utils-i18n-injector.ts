@@ -1,5 +1,5 @@
 import { PluginOption } from 'vite';
-import { TransformPluginContext } from 'rollup';
+import { TransformPluginContext } from 'rolldown';
 import type { GadgetDefinition } from '../dev-utils/types.js';
 import { 
   fandoomUtilsI18nTransformer, 
@@ -13,7 +13,7 @@ import {
  * @param gadgetsToBuildAtIntialState 
  * @returns 
  */
-export default function fandoomUtilsI18nInjector(gadgetsToBuildAtIntialState: GadgetDefinition[]): PluginOption {
+export default function fandoomUtilsI18nInjector(gadgetsToBuildAtIntialState: readonly GadgetDefinition[]): PluginOption {
   
   const moduleIdsToWatch = getModuleIdsToWatch(gadgetsToBuildAtIntialState);
 

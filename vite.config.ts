@@ -1,6 +1,8 @@
 import {
+  gadgetModuleResolver,
   autogenerateEntrypoint,
   createMwGadgetImplementation,
+  buildOverviewPage,
   fandoomUtilsI18nInjector,
 } from './plugins';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -27,95 +29,85 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
   const { 
     GADGET_NAMESPACE: gadgetNamespace = 'ext.gadget.store',
     SERVER_DEV_ORIGIN: serverDevOrigin = 'http://localhost:5173',
-    SERVER_PREVIEW_ORIGIN: serverPreviewOrigin = 'http://localhost:4173',
     CDN_ENTRYPOINT: cdnEntrypoint = 'http://localhost:4173',
+    SERVER_PREVIEW_ORIGIN: serverPreviewOrigin,
   } = env;
   
   const isDev = mode === 'development';
   if (isDev) { 
     setViteServerOrigin(serverDevOrigin); 
   } else {
-    setViteServerOrigin(serverPreviewOrigin);
+    setViteServerOrigin(serverPreviewOrigin || cdnEntrypoint);
   }
   setGadgetNamespace(gadgetNamespace);
-    
-  const gadgetsDefinition = await readGadgetsDefinition();
-  const gadgetsToBuild = getGadgetsToBuild(gadgetsDefinition);
+  
+  const gadgetsToBuild = await (async () => {
+    const gadgetsDefinition = await readGadgetsDefinition();
+    return getGadgetsToBuild(gadgetsDefinition);
+  })();
   const [bundleInputs, bundleAssets] = mapGadgetSourceFiles(gadgetsToBuild);
 
   const minify = !customArgs['no-minify'];
   const rollup = !customArgs['no-rollup'];
+  const useOxcMinifier = customArgs['oxc-minifier'];
 
   return {
     plugins: [
+      // This plugin is responsible for coalescing every constituent JS/CSS file
+      // into one index.js/style.css file
+      gadgetModuleResolver(gadgetsToBuild),
+
       // Generate the load.js entrypoint file 
       autogenerateEntrypoint(gadgetsToBuild, rollup),
       
       // In Vite Build, copy the i18n.json files to dist/
-      viteStaticCopy({
-        targets: bundleAssets,
-        structured: false,
-      }),
+      viteStaticCopy({ targets: bundleAssets }),
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
       rollup &&
-        createMwGadgetImplementation(gadgetsToBuild, minify),
+        createMwGadgetImplementation(gadgetsToBuild),
+
+      // Build dist/index.html
+      buildOverviewPage(gadgetsToBuild),
       
       // In Vite Build, help create boilerplate logic to load i18n
       fandoomUtilsI18nInjector(gadgetsToBuild),
     ],
     build: {
-      minify: minify ? 'terser' : false,
+      minify: minify ? (useOxcMinifier ? 'oxc' : 'terser') : false,
       terserOptions: {
         mangle: {
           reserved: ['$', 'mw']
         }
       },
       cssMinify: minify,
-      rollupOptions: {
+      rolldownOptions: {
         input: bundleInputs,
         output: {
           // Preserve the directory structure
           entryFileNames: (chunkInfo) => {
-            return chunkInfo.name + '.js';
+            // Coalesce all JS files into one index.js file, 
+            // located in each gadget subfolder 
+            return `${chunkInfo.name}/index.js`;
           },
           assetFileNames: (assetInfo) => {
-            // Handle CSS files
+            // Coalesce all CSS files into one style.css file, 
+            // located in each gadget subfolder 
             if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-              return assetInfo.name;
+              return `${assetInfo.name.slice(0, -4)}/style.css`;
             }
+            // misc assets
             return 'assets/[name][extname]';
           },
-          // generatedCode: {
-          //   /**
-          //    * Turn these settings off if you want to enforce ES5 compliance
-          //    */
-          //   arrowFunctions: true,
-          //   constBindings: true,
-          //   objectShorthand: true,
-          // },
           globals: {
-            /**
-             * Pass this to ensure that Vite/Rollup does not use $ as a 
-             * minification symbol
-             */
             'jquery': '$',
             'mediawiki': 'mw',
           },
         },
-        external: [
-          'jquery', 
-          'mediawiki', 
-          /**
-           * Exposed global methods
-           * https://doc.wikimedia.org/mediawiki-core/master/js/window.html
-           */
-          'addOnloadHook',
-          'importScript',
-          'importScriptURI',
-          'importStylesheet',
-          'importStylesheetURI', 
-        ]
+        moduleTypes: {
+          ".yaml": "text",
+          ".yml": "text"
+        },
       },
       outDir: 'dist',
       emptyOutDir: true
@@ -127,55 +119,8 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         }
       }
     },
-    /**
-     * Additional ESBuild Settings
-     */
-    esbuild: {
-      
-      // format: 'esm',
-
-      // Set this on if you want to preserve comments in /!* */ or //! blocks 
-      // legalComments: 'inline', 
-      
-      // Ignore annotations such as /* @__PURE__ */ when building
-      // ignoreAnnotations: true,
-
-      // Minification settings
-      // minifyWhitespace: minify && true,
-      // minifyIdentifiers: minify && false,
-      // minifySyntax: minify && true,
-
-      define: {
-        /**
-         * This is passed so we can replace the variable MH_DEVSCRIPTS_CDN_ENTRYPOINT 
-         * used in FandoomUtilsI18nLoader with the actual CDN URL during
-         * compilation
-         */
-        'MH_DEVSCRIPTS_CDN_ENTRYPOINT': `"${cdnEntrypoint}"`,
-
-        'MH_DEVSCRIPTS_GADGET_NAMESPACE': `"${gadgetNamespace}"`,
-
-        /**
-         * Useful for debugging
-         * In your gadget code, use by writing:
-         * `DEBUG && console.log(obj);`
-         * 
-         * On compilation this will become `console.log(obj);` on debug mode, and no output on dist mode.
-         */
-        'DEBUG': isDev || (serverPreviewOrigin || cdnEntrypoint).match(/^https?:\/\/localhost/) !== null ? 'true' : 'false',
-      },
-
-    },
-    optimizeDeps: {
-      esbuildOptions: {
-        loader: {
-          ".yaml": "text",
-          ".yml": "text"
-        }
-      }
-    },
     preview: {
-      open: '/load.js'
+      open: '/index.html'
     }
   }
 });

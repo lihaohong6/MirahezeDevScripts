@@ -13,7 +13,7 @@
  *    In Fandom's version of I18n-js, this GET request is made to a wiki page on the Fandom
  *    Developers wiki instead.
  */
-/* globals MH_DEVSCRIPTS_GADGET_NAMESPACE, MH_DEVSCRIPTS_CDN_ENTRYPOINT */
+/* globals MH_DEVSCRIPTS_CDN_ENTRYPOINT */
 (function() {
   'use strict';
       
@@ -1139,8 +1139,8 @@
 
   // module is passed from the mw.loader.impl invocation that the contents of this 
   // code is injected into
-  if (typeof module !== "undefined" && module.exports) {
-    module.exports = loader;
+  if (typeof mwModule !== "undefined" && mwModule.exports) { // eslint-disable-line no-undef
+    mwModule.exports = loader; // eslint-disable-line no-undef
   }
   window.dev.i18nLoader = $.extend(window.dev.i18nLoader, loader);
   mw.hook('dev.fandoom.i18n').fire(window.dev.i18nLoader);

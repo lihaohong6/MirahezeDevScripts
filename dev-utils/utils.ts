@@ -1,6 +1,13 @@
 import { existsSync, mkdirSync } from "fs";
 import { resolve } from "path";
-import { normalizePath } from "vite";
+import { 
+  normalizePath,
+  transformWithOxc, 
+  minifySync as minifyFnOxc, 
+  ResolvedConfig
+} from "vite";
+import { minify as minifyFnTerser } from 'terser';
+import type { MinifyOptions, OutputOptions } from 'rolldown';
 
 const rxFileExtension = /\.[a-zA-Z0-9]+$/;
 
@@ -108,7 +115,7 @@ export function resolveGadgetsDefinitionManifestPath(): string {
  * 
  * @returns 
  */
-export function resolveDistPath(relativeFilepath?: string): string {
+export function resolveDistPath(relativeFilepath?: string, treatAsFile: boolean = false): string {
   const distFolder = resolve(__dirname, '../dist');
   if (!existsSync(distFolder)) {
     mkdirSync(distFolder);
@@ -117,7 +124,7 @@ export function resolveDistPath(relativeFilepath?: string): string {
   if (!!relativeFilepath) {
     dir = resolve(dir, relativeFilepath);
   }
-  if (!existsSync(dir)) {
+  if (!existsSync(dir) && !treatAsFile) {
     mkdirSync(dir);
   }
   return dir;
@@ -147,7 +154,7 @@ export function resolveDistGadgetsPath(gadgetName?: string, codeRelativePath?: s
  * @returns 
  */
 export function resolveEntrypointFilepath(): string {
-  return normalizePath(resolveDistPath('load.js'));
+  return normalizePath(resolveDistPath('load.js', true));
 }
 
 /**
@@ -160,4 +167,47 @@ export function resolveEntrypointFilepath(): string {
 export function checkGadgetExists(gadgetName: string, codeFile?: string): boolean {
   const path = resolveSrcGadgetsPath(gadgetName, codeFile);
   return existsSync(path);
+}
+
+/**
+ * 
+ * @param code 
+ * @param filename 
+ * @param rolldownMinify 
+ * @param buildConfig 
+ */
+export async function formatOrMinifyCode(
+  code: string, 
+  filename: string, 
+  rolldownMinify: boolean | 'oxc' | 'terser',
+  buildConfig?: ResolvedConfig
+): Promise<string> {
+
+  switch (rolldownMinify) {
+    case false:
+      // Format using Oxc
+      const tf = await transformWithOxc(code, filename);
+      if (!tf.code) {
+        throw new Error(tf.warnings.length > 0 ? tf.warnings.join("\n") : "Unknown Oxc parsing error");
+      }
+      return tf.code;
+    
+    case 'oxc':
+      const toxc = minifyFnOxc(
+        filename, code, 
+        ((buildConfig!.build.rolldownOptions.output as OutputOptions).minify as MinifyOptions)
+      );
+      if (!toxc.code) {
+        throw new Error(toxc.errors.length > 0 ? toxc.errors.join("\n") : "Unknown Oxc minification error");
+      }
+      return toxc.code;
+
+    case 'terser':
+    default:
+      const tter = await minifyFnTerser(code, buildConfig!.build.terserOptions);
+      if (!tter.code) {
+        throw new Error("Unknown Terser minification error");
+      }
+      return tter.code;
+  }
 }
