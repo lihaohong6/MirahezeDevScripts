@@ -1,4 +1,4 @@
-var parserFunctions = {
+export var parserFunctions = {
 	'#expr': 'Help:Extension:ParserFunctions#.23expr',
 	'#if': 'Help:Extension:ParserFunctions#.23if',
 	'#ifeq': 'Help:Extension:ParserFunctions#.23ifeq',
@@ -52,9 +52,9 @@ var parserFunctions = {
 	'DEFAULTSORT': 'Help:Magic_words#Technical_metadata',
 	'DISPLAYTITLE': 'Help:Magic_words#Technical_metadata',
 	'int': 'Help:Magic_words#Transclusion_modifiers'
-},
+};
 
-parserTags = {
+export var parserTags = {
 	aoaudio: 'https://www.mediawiki.org/wiki/Extension:YouTube',
 	aovideo: 'https://www.mediawiki.org/wiki/Extension:YouTube',
 	archiveorg: 'https://www.mediawiki.org/wiki/Extension:EmbedVideo_(fork)',
@@ -135,9 +135,9 @@ parserTags = {
 	youtubeoembed: 'https://www.mediawiki.org/wiki/Extension:EmbedVideo_(fork)',
 	youtubeplaylist: 'https://www.mediawiki.org/wiki/Extension:EmbedVideo_(fork)',
 	youtubevideolist: 'https://www.mediawiki.org/wiki/Extension:EmbedVideo_(fork)'
-},
+};
 
-interwikiMap = {
+export var interwikiMap = {
 	acronym: 'https://www.acronymfinder.com/~/search/af.aspx?string=exact&Acronym=$1',
 	arxiv: 'https://www.arxiv.org/abs/$1',
 	att: 'https://allthetropes.org/wiki/$1',
@@ -229,9 +229,3 @@ interwikiMap = {
 	wp: 'https://en.wikipedia.org/wiki/Wikipedia:$1',
 	wt: 'https://meta.wikitide.org/wiki/$1'
 };
-
-mw.hook('userjs.view-source.definitions').fire({
-	parserFunctions: parserFunctions,
-	parserTags: parserTags,
-	interwikiMap: interwikiMap,
-});

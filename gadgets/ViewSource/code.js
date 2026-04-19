@@ -13,6 +13,8 @@
 
 /*jshint jquery:true, browser:true, es5:true, devel:true, camelcase:true, curly:false, undef:true, unused:true, bitwise:true, eqeqeq:true, forin:true, immed:true, latedef:true, newcap:true, noarg:true, regexp:false, strict:true, trailing:true, maxcomplexity:10 */
 /* eslint-disable no-useless-escape */
+import { parserFunctions, parserTags, interwikiMap } from './definitions';
+
 (function (module, mw, $) {
   
   'use strict';
@@ -33,8 +35,7 @@
     'wgVersion',
     'skin'
   ]),
-  parserFunctions, parserTags, interwikiMap,
-  preloads = 3,
+  preloads = 2,
   i18n, $content, $source, $a, $toc, headers = [];
   
   // Return if content model is not wikitext, not on view mode, or if article doesn't exist 
@@ -247,12 +248,6 @@
   /* AUTO-GENERATE BOILERPLATE LOGIC ON COMPILATION */
   INJECT_FANDOM_UTILS_I18N();
   
-  mw.hook( 'userjs.view-source.definitions' ).add(function ( definitions ) {
-    parserFunctions = definitions.parserFunctions;
-    parserTags = definitions.parserTags;
-    interwikiMap = definitions.interwikiMap;
-    preload();
-  } );
   $.when(
     getI18nLoader(),
     mw.loader.using('mediawiki.util')
