@@ -384,7 +384,7 @@ export async function createRolledUpGadgetImplementation({
     `mw.loader.impl(function () {`,
     `return [`,
     `"${namespace}.${gadget.name}@${hash}",`,
-    `function ($, jQuery, require, module) {`,
+    `function ($, jQuery, mwRequire, mwModule) {`,
   ];
 
   if (outputChunk) {
