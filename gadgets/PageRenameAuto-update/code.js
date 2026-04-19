@@ -11,7 +11,7 @@
 /* globals MH_DEVSCRIPTS_CDN_ENTRYPOINT, MH_DEVSCRIPTS_GADGET_NAMESPACE */
 (function() {
   'use strict';
-  if (window.PRA || !/sysop|bureaucrat|global-admin/g.test(mw.config.get('wgUserGroups').join('|'))) {
+  if (window.PRA) {
     return;
   }
   var PRA = {

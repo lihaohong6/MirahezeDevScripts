@@ -4,10 +4,7 @@
 * @author KnazO
 */
 mw.loader.using('mediawiki.api', function () {
-  if (
-    window.MassRenameLoaded ||
-    !/sysop|bureaucrat|global-admin/.test(mw.config.get('wgUserGroups').join())
-  ) {
+  if (window.MassRenameLoaded) {
     return;
   }
   window.MassRenameLoaded = true;

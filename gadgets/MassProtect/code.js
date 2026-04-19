@@ -9,10 +9,7 @@ mw.loader.using([
   'mediawiki.api',
   'mediawiki.user'
 ], function () {
-  if (
-    !/sysop|bureaucrat|global-admin/.test(mw.config.get('wgUserGroups').join()) ||
-    window.MassProtectLoaded
-  ) {
+  if (window.MassProtectLoaded) {
     return;
   }
   window.MassProtectLoaded = true;

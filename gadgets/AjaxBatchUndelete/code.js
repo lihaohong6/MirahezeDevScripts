@@ -8,10 +8,7 @@
 mw.loader.using('mediawiki.api', function() {
   'use strict';
   
-  if (
-    window.AjaxBatchUndeleteLoaded ||
-    !/sysop|bureaucrat|global-admin/.test(mw.config.get('wgUserGroups').join())
-  ) {
+  if (window.AjaxBatchUndeleteLoaded) {
     return;
   }
   window.AjaxBatchUndeleteLoaded = true;
