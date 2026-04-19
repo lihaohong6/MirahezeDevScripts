@@ -2,6 +2,7 @@ import {
   gadgetModuleResolver,
   autogenerateEntrypoint,
   createMwGadgetImplementation,
+  buildOverviewPage,
 } from './plugins';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
@@ -64,6 +65,9 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
       rollup &&
         createMwGadgetImplementation(gadgetsToBuild),
+
+      // Build dist/index.html
+      buildOverviewPage(gadgetsToBuild),
     ],
     build: {
       minify: minify ? (useOxcMinifier ? 'oxc' : 'terser') : false,
@@ -112,7 +116,7 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       }
     },
     preview: {
-      open: '/load.js'
+      open: '/index.html'
     }
   }
 });
