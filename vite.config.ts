@@ -119,6 +119,24 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
         }
       }
     },
+    define: {
+      /**
+       * This is passed so we can replace the variable MH_DEVSCRIPTS_CDN_ENTRYPOINT 
+       * used in FandoomUtilsI18nLoader with the actual CDN URL during
+       * compilation
+       */
+      'MH_DEVSCRIPTS_CDN_ENTRYPOINT': `"${cdnEntrypoint}"`,
+      'MH_DEVSCRIPTS_GADGET_NAMESPACE': `"${gadgetNamespace}"`,
+
+      /**
+       * Useful for debugging
+       * In your gadget code, use by writing:
+       * `DEBUG && console.log(obj);`
+       * 
+       * On compilation this will become `console.log(obj);` on debug mode, and no output on dist mode.
+       */
+      'DEBUG': isDev || (serverPreviewOrigin || cdnEntrypoint).match(/^https?:\/\/localhost/) !== null ? 'true' : 'false',
+    },
     preview: {
       open: '/index.html'
     }

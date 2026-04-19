@@ -90,6 +90,8 @@ export default async (args: TestSuiteDriverArgs) => {
       rcuser: process.env.SELENIUM_TESTING_WIKI_USERNAME!,
       rcprop: 'title|user|comment|timestamp',
       rclimit: ''+limit,
+      maxage: '0',
+      smaxage: '0',
     })}`);
     const d: MwActionApiRecentChanges = await res.json();
     if (d.error) {

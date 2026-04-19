@@ -1,5 +1,5 @@
 import { createRolledUpGadgetImplementation } from '../dev-utils/build-orchestration.js';
-import { PluginOption } from 'vite';
+import type { PluginOption } from 'vite';
 import type { OutputChunk, OutputAsset } from 'rolldown';
 import { resolveDistGadgetsPath } from '../dev-utils/utils.js';
 import type { GadgetDefinition } from '../dev-utils/types.js';

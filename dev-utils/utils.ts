@@ -4,8 +4,8 @@ import {
   normalizePath,
   transformWithOxc, 
   minifySync as minifyFnOxc, 
-  ResolvedConfig
 } from "vite";
+import type { ResolvedConfig } from "vite";
 import { minify as minifyFnTerser } from 'terser';
 import type { MinifyOptions, OutputOptions } from 'rolldown';
 

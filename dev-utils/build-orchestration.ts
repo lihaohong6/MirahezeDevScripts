@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import { ResolvedConfig } from 'vite';
+import type { ResolvedConfig } from 'vite';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
 import type { OutputChunk, OutputAsset, PluginContext } from 'rolldown';

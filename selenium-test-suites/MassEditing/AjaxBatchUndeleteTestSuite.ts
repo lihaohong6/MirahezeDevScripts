@@ -127,7 +127,9 @@ export default async (args: TestSuiteDriverArgs) => {
       ledir: 'older',
       /* in last 10 minutes */
       leend: new Date(new Date().valueOf() - 10*60*1000).toISOString(),
-      lelimit: ''+pages.length
+      lelimit: ''+pages.length,
+      maxage: '0',
+      smaxage: '0',
     })}`);
     const d: MwActionApiLogEvent = await res.json();
     if (d.error) {
