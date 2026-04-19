@@ -188,12 +188,12 @@ export default async (args: TestSuiteDriverArgs) => {
         modal = await driver.findElement(By.id('batchredirect-form'));
         const redirectFromInput = await modal.findElement(By.id('text-pages-from'));
         const redirectToInput = await modal.findElement(By.id('text-pages-to'));
-        await redirectFromInput.sendKeys(
-          redirectTitles.join('\n')
-        );
-        await redirectToInput.sendKeys(
-          redirectTargets.join('\n')
-        );
+        for (const redirectTarget of redirectTargets) {
+          await redirectFromInput.sendKeys(`${redirectTarget}\n`);
+        }
+        for (const redirectTitle of redirectTitles) {
+          await redirectToInput.sendKeys(`${redirectTitle}\n`);
+        }
         await driver.sleep(500);
 
         const initiateButton = await modal.findElement(By.id('batchredirect-start'));

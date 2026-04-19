@@ -129,7 +129,9 @@ export default async (args: TestSuiteDriverArgs) => {
       ledir: 'older',
       /* in last 10 minutes */
       leend: new Date(new Date().valueOf() - 10*60*1000).toISOString(),
-      lelimit: ''+limit
+      lelimit: ''+limit,
+      maxage: '0',
+      smaxage: '0',
     })}`);
     const d: MwActionApiLogEvent = await res.json();
     if (d.error) {
@@ -564,7 +566,7 @@ export default async (args: TestSuiteDriverArgs) => {
     movePages(true)
   );
   testSuite.addTestCase(
-    'MassRenameWithRedirectsWithNoI18nJs',
+    'MassRenameWithRedirectsWithI18nJs',
     movePagesWithRedirect(true)
   );
   testSuite.addTestCase(

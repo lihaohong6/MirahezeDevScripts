@@ -99,7 +99,9 @@ export default async (args: TestSuiteDriverArgs) => {
         format: 'json',
         list: 'categorymembers',
         cmtitle: `Category:${category}`,
-        cmlimit: '500'
+        cmlimit: '500',
+        maxage: '0',
+        smaxage: '0',
       })}`
     );
     const d: MwActionApiLogEvent = await res.json();
