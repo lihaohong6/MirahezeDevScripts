@@ -121,7 +121,9 @@ export default async (args: TestSuiteDriverArgs) => {
       cmnamespace: '0',
       cmlimit: '500',
       cmprop: 'title',
-      cb: new Date(Date.now()).toISOString()
+      cb: new Date(Date.now()).toISOString(),
+      maxage: '0',
+      smaxage: '0',
     })}`);
     const d: MwActionApiCategoryMember = await res.json();
     if (d.error) {
