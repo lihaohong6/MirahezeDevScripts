@@ -9,6 +9,9 @@ on:
     paths: 
       - 'gadgets/**'
       - '!gadgets/**.md'
+      - 'dev-utils/**'
+      - 'plugins/**'
+      - 'package.json'
   # Allow manual triggering from the Actions tab
   workflow_dispatch:
 
