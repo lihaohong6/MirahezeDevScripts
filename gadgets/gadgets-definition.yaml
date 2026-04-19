@@ -13,10 +13,6 @@ gadgets:
     styles:
       - style.less
   
-  AudioPlayer:
-    scripts:
-      - index.js
-
   AjaxBatchDelete:
     description: "Allows deleting a list of pages in a form and protecting them too."
     authors:
@@ -159,11 +155,10 @@ gadgets:
     links:
       - https://dev.fandom.com/wiki/I18n-js
     scripts:
-      - gadget-impl.js
+      - code.js
     resourceLoader:
       dependencies:
         - mediawiki.jqueryMsg
-    disableBuildingOfGadgetImplJs: true
   
   HTMLAudioPlayer5:
     description: "Play audio files with a native HTML5 player"
