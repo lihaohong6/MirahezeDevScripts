@@ -10,7 +10,7 @@ import { writeFileSync } from "node:fs";
  * @param gadgets 
  * @returns 
  */
-export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
+export function buildOverviewPageHtml(gadgets: readonly GadgetDefinition[]): void {
   try {
     const dom = new JSDOM(`<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>`);
     const doc = dom.window.document;
@@ -282,7 +282,7 @@ function buildInfoOverview(doc: HTMLDocument): void {
  * @param doc 
  * @param gadgets 
  */
-function buildListOfGadgets(doc: HTMLDocument, gadgets: GadgetDefinition[]): void {
+function buildListOfGadgets(doc: HTMLDocument, gadgets: readonly GadgetDefinition[]): void {
   const heading = doc.createElement('h2');
   heading.textContent = 'List of Scripts';
   
@@ -290,7 +290,7 @@ function buildListOfGadgets(doc: HTMLDocument, gadgets: GadgetDefinition[]): voi
   const thead = doc.createElement('thead');
   buildGadgetListTableHeader(doc, thead);
   const tbody = doc.createElement('tbody');
-  gadgets
+  [...gadgets]
     .sort(({ name: a }, { name: b }) => {
       a = a.toLocaleLowerCase();
       b = b.toLocaleLowerCase();

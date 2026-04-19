@@ -2,7 +2,7 @@
 DIST_DIR="dist"
 TARGET_BRANCH="dist"
 GH_PAGE_BRANCH="github-pages"
-npm run build
+npm run build && npx grunt json-minify
 TEMP_DIR=$(mktemp -d)
 cp -r "$DIST_DIR" "$TEMP_DIR/dist"
 
@@ -13,6 +13,12 @@ cp -r "$TEMP_DIR/dist" "$DIST_DIR"
 git add .
 git commit -m "Recompile gadget"
 git push
+
+# Push new tag
+if [[ -v NEW_TAG ]]; then
+  git tag -a "$NEW_TAG" -m "Build & deploy at timestamp: $NEW_TAG"
+  git push origin $NEW_TAG
+fi
 
 # GitHub Pages
 INDEX_HTML="$TEMP_DIR/dist/index.html"
@@ -28,4 +34,3 @@ else
 fi
 
 git switch master
-

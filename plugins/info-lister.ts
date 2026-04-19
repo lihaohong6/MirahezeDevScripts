@@ -9,7 +9,7 @@ import { buildOverviewPageHtml } from '../dev-utils/info-lister.js';
  * @param gadgetsToBuildAtIntialState
  * @returns 
  */
-export default function buildOverviewPage(gadgetsToBuildAtIntialState: GadgetDefinition[]): PluginOption {
+export default function buildOverviewPage(gadgetsToBuildAtIntialState: readonly GadgetDefinition[]): PluginOption {
   
   return {
     name: 'build-overview-page',
