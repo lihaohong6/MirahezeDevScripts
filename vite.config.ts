@@ -27,14 +27,15 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
   const { 
     GADGET_NAMESPACE: gadgetNamespace = 'ext.gadget.store',
     SERVER_DEV_ORIGIN: serverDevOrigin = 'http://localhost:5173',
-    SERVER_PREVIEW_ORIGIN: serverPreviewOrigin = 'http://localhost:4173',
+    CDN_ENTRYPOINT: cdnEntrypoint = 'http://localhost:4173',
+    SERVER_PREVIEW_ORIGIN: serverPreviewOrigin,
   } = env;
   
   const isDev = mode === 'development';
   if (isDev) { 
     setViteServerOrigin(serverDevOrigin); 
   } else {
-    setViteServerOrigin(serverPreviewOrigin);
+    setViteServerOrigin(serverPreviewOrigin || cdnEntrypoint);
   }
   setGadgetNamespace(gadgetNamespace);
   
