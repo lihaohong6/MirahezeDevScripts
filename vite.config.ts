@@ -1,4 +1,5 @@
 import {
+  gadgetModuleResolver,
   autogenerateEntrypoint,
   createMwGadgetImplementation,
 } from './plugins';
@@ -36,69 +37,68 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
     setViteServerOrigin(serverPreviewOrigin);
   }
   setGadgetNamespace(gadgetNamespace);
-    
-  const gadgetsDefinition = await readGadgetsDefinition();
-  const gadgetsToBuild = getGadgetsToBuild(gadgetsDefinition);
+  
+  const gadgetsToBuild = await (async () => {
+    const gadgetsDefinition = await readGadgetsDefinition();
+    return getGadgetsToBuild(gadgetsDefinition);
+  })();
   const [bundleInputs, bundleAssets] = mapGadgetSourceFiles(gadgetsToBuild);
 
   const minify = !customArgs['no-minify'];
   const rollup = !customArgs['no-rollup'];
+  const useOxcMinifier = customArgs['oxc-minifier'];
 
   return {
     plugins: [
+      // This plugin is responsible for coalescing every constituent JS/CSS file
+      // into one index.js/style.css file
+      gadgetModuleResolver(gadgetsToBuild),
+
       // Generate the load.js entrypoint file 
       autogenerateEntrypoint(gadgetsToBuild, rollup),
       
       // In Vite Build, copy the i18n.json files to dist/
-      viteStaticCopy({
-        targets: bundleAssets,
-        structured: false,
-      }),
+      viteStaticCopy({ targets: bundleAssets }),
 
       // In Vite Build, create the mw.loader.impl wrapped JS+CSS file
       rollup &&
-        createMwGadgetImplementation(gadgetsToBuild, minify),
+        createMwGadgetImplementation(gadgetsToBuild),
     ],
     build: {
-      minify: minify ? 'terser' : false,
+      minify: minify ? (useOxcMinifier ? 'oxc' : 'terser') : false,
       terserOptions: {
         mangle: {
           reserved: ['$', 'mw']
         }
       },
       cssMinify: minify,
-      rollupOptions: {
+      rolldownOptions: {
         input: bundleInputs,
         output: {
           // Preserve the directory structure
           entryFileNames: (chunkInfo) => {
-            return chunkInfo.name + '.js';
+            // Coalesce all JS files into one index.js file, 
+            // located in each gadget subfolder 
+            return `${chunkInfo.name}/index.js`;
           },
           assetFileNames: (assetInfo) => {
-            // Handle CSS files
+            // Coalesce all CSS files into one style.css file, 
+            // located in each gadget subfolder 
             if (assetInfo.name && assetInfo.name.endsWith('.css')) {
-              return assetInfo.name;
+              return `${assetInfo.name.slice(0, -4)}/style.css`;
             }
+            // misc assets
             return 'assets/[name][extname]';
           },
-          // generatedCode: {
-          //   /**
-          //    * Turn these settings off if you want to enforce ES5 compliance
-          //    */
-          //   arrowFunctions: true,
-          //   constBindings: true,
-          //   objectShorthand: true,
-          // },
           globals: {
-            /**
-             * Pass this to ensure that Vite/Rollup does not use $ as a 
-             * minification symbol
-             */
             'jquery': '$',
             'mediawiki': 'mw',
           },
         },
-        external: ['jquery', 'mediawiki']
+        moduleTypes: {
+          ".yaml": "text",
+          ".yml": "text"
+        },
       },
       outDir: 'dist',
       emptyOutDir: true
@@ -107,33 +107,6 @@ export default defineConfig(async ({ mode }: ConfigEnv): Promise<UserConfig> => 
       preprocessorOptions: {
         less: {
           // Add any Less-specific options here
-        }
-      }
-    },
-    /**
-     * Additional ESBuild Settings
-     */
-    esbuild: {
-      
-      // format: 'esm',
-
-      // Set this on if you want to preserve comments in /!* */ or //! blocks 
-      // legalComments: 'inline', 
-      
-      // Ignore annotations such as /* @__PURE__ */ when building
-      // ignoreAnnotations: true,
-
-      // Minification settings
-      // minifyWhitespace: minify && true,
-      // minifyIdentifiers: minify && false,
-      // minifySyntax: minify && true,
-
-    },
-    optimizeDeps: {
-      esbuildOptions: {
-        loader: {
-          ".yaml": "text",
-          ".yml": "text"
         }
       }
     },
