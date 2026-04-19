@@ -22,7 +22,7 @@ export default function fandoomUtilsI18nInjector(gadgetsToBuildAtIntialState: re
     enforce: 'pre', // must be run before ESBuild
 
     async transform (this: TransformPluginContext, code: string, id: string) {
-      return await fandoomUtilsI18nTransformer.bind(this)(moduleIdsToWatch, code, id);
+      return await fandoomUtilsI18nTransformer(this, moduleIdsToWatch, code, id);
     },
     
   }
