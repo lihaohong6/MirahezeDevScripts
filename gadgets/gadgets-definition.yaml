@@ -388,7 +388,6 @@ gadgets:
       - FandoomUtilsI18nLoader
     scripts:
       - code.js
-      - definitions.js
     styles:
       - style.css
     i18n:
