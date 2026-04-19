@@ -1,6 +1,5 @@
 workspace:
   enable_all: true
-  disable: []
 
 gadgets:
   AudioPlayer:
@@ -12,7 +11,54 @@ gadgets:
       - index.js
     styles:
       - style.less
-  
+
+  CollapseJump:
+    description: "Jump to a collapsible element specified in the URL hash"
+    scripts:
+      - index.js
+
+  DynamicCategories:
+    description: "Dynamic, gallery, and classic view switcher for category pages"
+    scripts:
+      - index.js
+    styles:
+      - style.less
+    resourceLoader:
+      dependencies:
+        - 'mediawiki.api'
+
+  FilterTable:
+    description: "Add filter buttons to a table"
+    scripts:
+      - index.js
+
+  ImportButton:
+    scripts:
+      - index.ts
+
+  jswikibot:
+    scripts:
+      - index.ts
+    styles:
+      - styles.less
+    resourceLoader:
+      dependencies:
+        - 'oojs-ui-core'
+        - 'oojs-ui-windows'
+        - 'mediawiki.util'
+        - 'mediawiki.api'
+        - 'mediawiki.user'
+        - 'mediawiki.widgets'
+        - 'mediawiki.widgets.datetime'
+
+  StatCalc:
+    scripts:
+      - index.ts
+
+  Tab:
+    scripts:
+      - index.js
+
   AjaxBatchDelete:
     description: "Allows deleting a list of pages in a form and protecting them too."
     authors:
@@ -33,6 +79,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "sysop, bureaucrat, global-admin"
 
   AjaxBatchUndelete:
     description: "Allows batch undeletion of pages."
@@ -53,6 +101,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "sysop, bureaucrat, global-admin"
 
   AjaxBatchRedirect:
     description: "Allows redirecting a list of pages in a form."
@@ -97,6 +147,7 @@ gadgets:
       - Asaba
       - ccxtwf / CoolMikeHatsune22 (port)
     links:
+      - https://dev.miraheze.org/wiki/Countdown
       - https://dev.fandom.com/wiki/Countdown
     requires:
       - FandoomUtilsI18nLoader
@@ -110,6 +161,7 @@ gadgets:
     authors:
       - Doru
     links:
+      - https://github.com/ccxtwf/MirahezeDevScripts/tree/master/gadgets/FandoomUiUtilsDorui
       - https://dev.fandom.com/wiki/Dorui
     scripts:
       - code.js
@@ -120,6 +172,7 @@ gadgets:
       - Noreplyz
       - KockaAdmiralac
     links:
+      - https://github.com/ccxtwf/MirahezeDevScripts/tree/master/gadgets/FandoomUiUtilsModal
       - https://dev.fandom.com/wiki/Modal
     scripts:
       - code.js
@@ -131,6 +184,7 @@ gadgets:
     authors:
       - OneTwoThreeFall
     links:
+      - https://github.com/ccxtwf/MirahezeDevScripts/tree/master/gadgets/FandoomUiUtilsQDmodal
       - https://dev.fandom.com/wiki/QDmodal
     scripts:
       - code.js
@@ -142,17 +196,19 @@ gadgets:
     authors:
       - KockaAdmiralac
     links:
+      - https://github.com/ccxtwf/MirahezeDevScripts/tree/master/gadgets/FandoomUiUtilsUijs
       - https://dev.fandom.com/wiki/UI-js
     scripts:
       - code.js
 
   FandoomUtilsI18nLoader:
-    description: "Library for loading i18n messages."
+    description: "Library for loading i18n messages. Fork of i18n-js."
     authors:
       - Cqm
       - OneTwoThreeFall
       - ccxtwf / CoolMikeHatsune22
     links:
+      - https://github.com/ccxtwf/MirahezeDevScripts/tree/master/gadgets/FandoomUtilsI18nLoader
       - https://dev.fandom.com/wiki/I18n-js
     scripts:
       - code.js
@@ -195,6 +251,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "autoconfirmed, bot, sysop, bureaucrat"
 
   MassCopyUpload:
     description: "Adds a special page to copy upload many files/images to a wiki at once."
@@ -243,6 +301,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "sysop, bureaucrat, global-admin"
 
   MassRename:
     description: "Rename multiple pages in a list fashion, similar to AjaxBatchDelete"
@@ -262,6 +322,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "sysop, bureaucrat, global-admin"
 
   PageRenameAuto-update:
     description: "Automatically updates page links, transclusions and category members throughout the wiki upon renaming a page."
@@ -281,6 +343,8 @@ gadgets:
       - style.css
     i18n:
       - i18n.json
+    resourceLoader:
+      rights: "sysop, bureaucrat, global-admin"
 
   PowertoolsPlacement:
     description: "Convenience script for placing links to loaded userscripts in a shared portlet. Works across skins."
@@ -299,6 +363,7 @@ gadgets:
       - KockaAdmiralac
       - ccxtwf / CoolMikeHatsune22 (port)
     links:
+      - https://dev.miraheze.org/wiki/PreloadTemplates
       - https://dev.fandom.com/wiki/PreloadTemplates
     requires:
       - FandoomUtilsI18nLoader
@@ -317,6 +382,7 @@ gadgets:
       - Pecoes
       - ccxtwf / CoolMikeHatsune22 (port)
     links:
+      - https://dev.miraheze.org/wiki/View_Source
       - https://dev.fandom.com/wiki/View_Source
     requires:
       - FandoomUtilsI18nLoader
