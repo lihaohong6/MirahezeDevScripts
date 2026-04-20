@@ -1,9 +1,10 @@
-const argumentKeys = ['no-minify', 'no-rollup'];
+const argumentKeys = ['no-minify', 'no-rollup', 'oxc-minifier'];
 const rxCliArg = new RegExp(`^--(${argumentKeys.join('|')})$`);
 
 interface CustomCliArguments {
   'no-minify'?: boolean
   'no-rollup'?: boolean
+  'oxc-minifier'?: boolean
 }
 
 /**
