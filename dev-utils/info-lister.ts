@@ -17,6 +17,10 @@ export function buildOverviewPageHtml(gadgets: GadgetDefinition[]): void {
     const title = doc.createElement('title');
     title.textContent = 'MirahezeDevScripts';
     doc.head.appendChild(title);
+    const icon = doc.createElement('link');
+    icon.setAttribute('rel', 'icon');
+    icon.setAttribute('href', 'https://static.miraheze.org/devwiki/0/02/Devwiki_favicon.ico');
+    doc.head.appendChild(icon);
     appendMetaTags(doc);
     appendStyles(doc);
 
@@ -255,7 +259,8 @@ function buildInfoOverview(doc: HTMLDocument): void {
   );
   const disclaimer = doc.createElement('p');
   disclaimer.append(
-    'The state of these scripts is tentative and may change at any time. Always verify the code that you are executing on your wiki or userpage.'
+    // 'The state of these scripts is tentative and may change at any time. Always verify the code that you are executing on your wiki or userpage.'
+    'Scripts installed on a wiki have the risk of impacting your and/or your users\' experience. Always verify the code that you are executing on your wiki or userpage.'
   );
   const copyrightNotice = doc.createElement('p');
   copyrightNotice.append(
