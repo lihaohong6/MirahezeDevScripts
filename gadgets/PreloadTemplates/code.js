@@ -353,9 +353,6 @@
 	}
 	
 	function init() {
-		if ($main.find('#pt-list').length > 0) {
-			return; // Initialize only once
-		}
 		var primaryPlPagename = config.primary;
 		var secondaryPlPagename = config.secondary;
 		var fetchedFromCache = getListOfTemplatesFromCache(primaryPlPagename, secondaryPlPagename);
@@ -399,6 +396,9 @@
 				});
 			}
 		}).fail(initFail);
+		
+		// Initialize only once
+		mw.hook( 'wikipage.content' ).remove(init);
 	}
 	
 	function populateDropdowns(listPrimary, listSecondary) {
