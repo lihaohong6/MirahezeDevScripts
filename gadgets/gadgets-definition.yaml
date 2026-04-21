@@ -375,6 +375,7 @@ gadgets:
       - i18n.json
     resourceLoader:
       actions: ["edit", "submit"]
+      contentModels: ["wikitext"]
 
   ViewSource:
     description: "Adds a \"View source\" link to the \"Edit\" menu"
