@@ -12,7 +12,7 @@ class Cache {
 
 export class Config {
     debug: boolean = false;
-    summaryBot: string = "[[meta:User:PetraMagna/jswikibot|bot]]"
+    summaryBot: string = "[[mh:dev:jswikibot|bot]]"
     // In seconds
     readThrottle: number = 0.2;
     writeThrottle: number = 1;
