@@ -1,8 +1,20 @@
-import { JSDOM } from "jsdom";
+import { render } from 'mustache';
 import { createScriptLoadingStatement } from "./build-orchestration";
-import { GadgetDefinition } from "./types";
+import { GadgetDefinition, ResourceLoaderConditions } from "./types";
 import { resolveDistPath } from "./utils";
-import { writeFileSync } from "node:fs";
+import { resolve } from 'node:path';
+import { writeFileSync, readFileSync } from "node:fs";
+
+interface MustacheViewModel {
+  gadgets: {
+    idx: number
+    name: string
+    authors: string[] | null
+    description: string
+    resourceLoader: string
+    loadScript: string
+  }[]
+}
 
 /**
  * Build a simple HTML overview page containing the script info
@@ -12,26 +24,13 @@ import { writeFileSync } from "node:fs";
  */
 export function buildOverviewPageHtml(gadgets: readonly GadgetDefinition[]): void {
   try {
-    const dom = new JSDOM(`<!DOCTYPE html><html lang="en-US"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head><body></body></html>`);
-    const doc = dom.window.document;
-    const title = doc.createElement('title');
-    title.textContent = 'MirahezeDevScripts';
-    doc.head.appendChild(title);
-    const icon = doc.createElement('link');
-    icon.setAttribute('rel', 'icon');
-    icon.setAttribute('href', 'https://static.miraheze.org/devwiki/0/02/Devwiki_favicon.ico');
-    doc.head.appendChild(icon);
-    appendMetaTags(doc);
-    appendStyles(doc);
-
-    buildInfoOverview(doc);
-    buildListOfGadgets(doc, gadgets);
-
-    appendScript(doc);
+    const vm = prepareViewModel(gadgets);
+    const template = readFileSync(resolve(__dirname, "./gadget-overview.mustache"), { encoding: 'utf-8', flag: 'r' });
+    const html = render(template, vm);
 
     writeFileSync(
       resolveDistPath('index.html', true),
-      dom.serialize(),
+      html,
       { flag: 'w+', encoding: 'utf-8' }
     );
   } catch (err) {
@@ -40,429 +39,60 @@ export function buildOverviewPageHtml(gadgets: readonly GadgetDefinition[]): voi
 }
 
 /**
- * @param doc 
- */
-function appendMetaTags(doc: HTMLDocument): void {
-  const metaTags = {
-    'name': {
-      'description': 'This is a list of scripts for use in MediaWiki wikis.',
-      'keywords': 'MediaWiki,gadgets,scripts,widgets',
-    }
-  };
-  for (const [tagName, tagContents] of Object.entries(metaTags.name)) {
-    const meta = doc.createElement('meta');
-    meta.setAttribute('name', tagName);
-    meta.setAttribute('contents', tagContents);
-    doc.head.appendChild(meta);
-  }
-}
-
-/**
- * @param doc 
- */
-function appendStyles(doc: HTMLDocument): void {
-  const urls = ['https://cdn.simplecss.org/simple.min.css'];
-  const styles = urls.map((url) => {
-    const link = doc.createElement('link');
-    link.setAttribute('rel', 'stylesheet');
-    link.setAttribute('href', url);
-    return link;
-  });
-
-  const styleTag = doc.createElement('style');
-  styleTag.setAttribute('type', 'text/css');
-  styleTag.textContent = `
-    body {
-      grid-template-columns: none;
-      margin: 0 10em;
-    }
-    table {
-      width: 100%;
-      overflow-x: scroll;
-      display: block;
-    }
-    td {
-      word-break: break-word;
-    }
-    th:nth-child(2) {
-      min-width: 180px;
-    }
-    th:nth-child(3) {
-      min-width: 220px;
-    }
-    th:nth-child(4) {
-      min-width: 320px;
-    } 
-    th:nth-child(5) {
-      min-width: 200px;
-    }
-    tr {
-      background-color: initial !important;
-    }
-    tr:nth-child(4n-1), tr:nth-child(4n) {
-      background-color: var(--accent-bg) !important;
-    }
-    @media (min-width:768px) and (max-width:1200px) {
-      body {
-        margin: 0 5em;
-      }
-    }
-    @media (min-width:501px) and (max-width:767px) {
-      body {
-        margin: 0 2em;
-      }
-    }
-    @media (max-width:500px) {
-      body {
-        margin: 0 20px;
-      }
-      table, thead, tbody, tr, th, td {
-        display: block;
-        width: 100%;
-      }
-      th, td {
-        border-top: none;
-        border-bottom: none;
-      }
-      th {
-        display: none;
-        min-width: none;
-      }
-      td:first-child {
-        border-top: solid 1px;
-      }
-      td:last-child {
-        border-bottom: solid 1px;
-      }
-      td a {
-        word-break: break-all;
-      }
-      td::before {
-        font-style: italic;
-        text-decoration: underline;
-      }
-      td:nth-child(3)::before {
-        content: 'Authors';
-      }
-      td:nth-child(4)::before {
-        content: 'Description';
-      }
-      td:nth-child(5)::before {
-        content: 'Restrictions';
-      }
-    }
-
-    .code-block {
-      position: relative;
-      margin: 1.5rem 0;
-    }
-    .code-block:hover {
-      background-color: #897d8540;
-      cursor:pointer;
-    }
-    .code-block pre {
-      padding: 1rem;
-      padding-top: 2.5rem;
-      background: #897d851c;
-      border-radius: 6px;
-      overflow-x: auto;
-      font-family: monospace;
-      font-size: 0.9rem;
-    }
-    .copy-btn {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      padding: 4px 8px;
-      font-size: 0.75rem;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      opacity: 0.8;
-    }
-    .copy-btn:hover {
-      opacity: 1;
-    }
-    .copy-btn.copied {
-      background: #2ea043;
-    }
-
-    button:enabled:hover, .button:not([aria-disabled=true]):hover, input[type=submit]:enabled:hover, input[type=reset]:enabled:hover, input[type=button]:enabled:hover {
-      background-color: initial;
-      border-color: initial;
-    }
-  `
-  .trim()
-  .replaceAll(/(?<=\}|\{|;)\s*/g, '')
-  .replaceAll(/\s*(?=\{)/g, '')
-  .replaceAll(/(;(?=\})|(?<=:) )/g, '');  // ad-hoc minification
-
-  doc.head.append(...styles, styleTag);
-}
-
-/**
- * @param doc 
- */
-function appendScript(doc: HTMLDocument): void {
-  const script = doc.createElement('script');
-  script.textContent = `
-  document.querySelectorAll(".code-block").forEach(block => {
-    block.addEventListener("click", (event) => {
-      const button = block.getElementsByTagName("button")[0];
-      const code = block.getElementsByTagName("pre")[0].textContent;
-
-      navigator.clipboard.writeText(code).then(() => {
-        const originalText = button.textContent;
-        button.textContent = "Copied!";
-        button.classList.add("copied");
-
-        setTimeout(() => {
-          button.textContent = originalText;
-          button.classList.remove("copied");
-        }, 1500);
-      });
-      event.stopPropagate();
-    });
-  });
-  `.trim()
-  .replaceAll(/(?<=\{|;)\s*(?=[a-zA-Z]|\})\s*/g, ''); // ad-hoc minification
-  doc.body.appendChild(script);
-}
-
-/**
- * @param doc 
- */
-function buildInfoOverview(doc: HTMLDocument): void {
-  const heading = doc.createElement('h2');
-  heading.textContent = 'Miraheze Dev Scripts';
-  const instructions = doc.createElement('p');
-  const formatWikipageSpan = (title: string) => {
-    const code = doc.createElement('span');
-    code.style.whiteSpace = 'nowrap';
-    code.textContent = title;
-    return code;
-  } 
-  instructions.append(
-    'To use one of these scripts, copy the line of code listed below (',
-    (() => {
-      const code = doc.createElement('code');
-      code.textContent = 'mw.loader.load(...)';
-      return code;
-    })(),
-    ') to either your ',
-    formatWikipageSpan('User:<username>/common.js'),
-    ' page (single-user installation) or ', 
-    formatWikipageSpan('MediaWiki:Common.js'), 
-    ' (site-wide installation) page on your wiki.'
-  );
-  const disclaimer = doc.createElement('p');
-  disclaimer.append(
-    // 'The state of these scripts is tentative and may change at any time. Always verify the code that you are executing on your wiki or userpage.'
-    'Scripts installed on a wiki have the risk of impacting your and/or your users\' experience. Always verify the code that you are executing on your wiki or userpage.'
-  );
-  const copyrightNotice = doc.createElement('p');
-  copyrightNotice.append(
-    'The contents of the scripts listed here are originally listed under the ',
-    (() => {
-      const a = doc.createElement('a');
-      a.setAttribute('href', 'https://creativecommons.org/licenses/by-sa/3.0/deed.en');
-      a.setAttribute('target', '_blank');
-      a.setAttribute('rel', 'noreferrer');
-      a.textContent = 'Creative Commons Attribution-Share Alike License 3.0 (Unported) (CC BY-SA) license';
-      return a;
-    })(),
-    '. Be sure that you are not violating any terms of the license when you are reusing, modifying, or redistributing the scripts listed below.'
-  );
-  doc.body.append(
-    heading,
-    instructions,
-    disclaimer,
-    copyrightNotice
-  );
-}
-
-/**
- * @param doc 
+ * 
  * @param gadgets 
+ * @returns 
  */
-function buildListOfGadgets(doc: HTMLDocument, gadgets: readonly GadgetDefinition[]): void {
-  const heading = doc.createElement('h2');
-  heading.textContent = 'List of Scripts';
-  
-  const table = doc.createElement('table');
-  const thead = doc.createElement('thead');
-  buildGadgetListTableHeader(doc, thead);
-  const tbody = doc.createElement('tbody');
-  [...gadgets]
+function prepareViewModel(gadgets: readonly GadgetDefinition[]): MustacheViewModel {
+  const gadgetsVm = [...gadgets]
     .sort(({ name: a }, { name: b }) => {
       a = a.toLocaleLowerCase();
       b = b.toLocaleLowerCase();
       // sort alphabetically
       return (a < b) ? -1 : (a > b) ? 1 : 0;
     })
-    .forEach((gadget, idx) => {
-      buildGadgetListTableRow(doc, tbody, gadget, idx+1);
-    });
+    .map(({ name, authors = [], description = null, links = [], resourceLoader = {} }, idx) => ({
+      idx: idx+1,
+      name,
+      authors,
+      description: createDescriptionHtmlBlock(description, links),
+      resourceLoader: createResourceLoaderConditions(resourceLoader),
+      loadScript: createScriptLoadingStatement(name, false),
+    }));
   
-  table.append(thead, tbody);
-  doc.body.append(table);
+  return { 
+    gadgets: gadgetsVm
+  };
 }
 
 /**
- * Utility function - build HTML table cell
+ * This returns a raw HTML block that will be rendered by Mustache. XSS risks should be addresed accordingly.
  * 
- * @param doc 
- * @param tagName 
- * @param contents 
- * @returns 
- */
-function buildTableCell(doc: HTMLDocument, tagName: 'th' | 'td', contents: Text | HTMLElement): HTMLTableCellElement {
-  const tcell = doc.createElement(tagName);
-  tcell.appendChild(contents);
-  return tcell;
-}
-
-/**
- * Utility function - build gadget list table headers 
- * 
- * @param doc 
- * @param thead 
- */
-function buildGadgetListTableHeader(doc: HTMLDocument, thead: HTMLTableSectionElement): void {
-  const theadRow = doc.createElement('tr');
-  const tableHeaderColumnLabels = [
-    'No', 'Name', 'Authors', 'Description', 'Restrictions'
-  ];
-  const thCells = tableHeaderColumnLabels.map((label) => {
-    const textNode = doc.createTextNode(label);
-    return buildTableCell(doc, 'th', textNode);
-  });
-  theadRow.append(...thCells);
-  thead.append(theadRow);
-}
-
-/**
- * Utility function - build gadget list table row 
- * 
- * @param doc 
- * @param tbody 
- * @param gadget 
- * @param rowIdx 
- */
-function buildGadgetListTableRow(doc: HTMLDocument, tbody: HTMLTableSectionElement, gadget: GadgetDefinition, rowIdx: number): void {
-  let tRow = doc.createElement('tr');
-  const _buildTableCell: (contents: Text | HTMLElement) => HTMLTableSectionElement = buildTableCell.bind(null, doc, 'td');
-  let tRowNumberCell = _buildTableCell(doc.createTextNode(''+rowIdx));
-  tRowNumberCell.setAttribute("rowspan", "2");
-  tRow.append(tRowNumberCell);
-  let tCells = [
-    _buildTableCell(buildGadgetName(doc, gadget)),
-    _buildTableCell(buildGadgetAuthorsInfo(doc, gadget)),
-    _buildTableCell(buildGadgetDescription(doc, gadget)),
-    _buildTableCell(buildGadgetLoadingRestrictionsOverview(doc, gadget)),
-  ];
-  tRow.append(...tCells);
-  tbody.append(tRow);
-  tRow = doc.createElement('tr');
-  let tLinkCell = _buildTableCell(buildGadgetLoadingCode(doc, gadget));
-  tLinkCell.setAttribute("colspan", "4");
-  tRow.append(tLinkCell);
-  tbody.append(tRow);
-}
-
-/**
- * Utility function - build gadget name table cell
- * 
- * @param doc 
- * @param name
- * @param version 
- * @returns 
- */
-function buildGadgetName(doc: HTMLDocument, { name, version }: GadgetDefinition): HTMLElement {
-  const div = doc.createElement('div');
-
-  const textContent = doc.createTextNode(name);
-  div.appendChild(textContent);
-
-  if (version) {
-    const spanVersion = doc.createElement('div');
-    const iTag = doc.createElement('i');
-    iTag.textContent = 'v '+version;
-    spanVersion.appendChild(iTag);
-    div.appendChild(spanVersion);
-  }
-
-  return div;
-}
-
-/**
- * Utility function - build gadget name author metadata table cell
- * 
- * @param doc 
- * @param authors 
- * @returns 
- */
-function buildGadgetAuthorsInfo(doc: HTMLDocument, { authors }: GadgetDefinition): HTMLElement {
-  if (!authors) {
-    const iTag = doc.createElement('i');
-    iTag.textContent = 'No authors listed';
-    return iTag;
-  }
-
-  const ul = doc.createElement('ul');
-  ul.append(
-    ...authors
-      .map((author) => {
-        const li = doc.createElement('li');
-        li.textContent = author;
-        return li;
-      })
-  );
-  return ul;
-}
-
-/**
- * Utility function - build gadget description table cell
- * 
- * @param doc 
- * @param description
+ * @param description 
  * @param links 
- * @returns 
  */
-function buildGadgetDescription(doc: HTMLDocument, { description, links }: GadgetDefinition): HTMLElement {
+function createDescriptionHtmlBlock(description: string | null, links: string[]): string {
+  const sb: string[] = [];
+  sb.push('<div>');
   if (!description) {
-    const iTag = doc.createElement('i');
-    iTag.textContent = 'No description available';
-    return iTag;
+    sb.push('<i>No description available</i>');
+  } else {
+    sb.push('<div>');
+    sb.push(escapeXml(description));
+    sb.push('</div>');
   }
-
-  const div = doc.createElement('div');
-
-  const divDesc = doc.createElement('div');
-  divDesc.textContent = description;
-
-  const divLinks = doc.createElement('div');
-  if (links && links.length > 0) {
-    const ul = doc.createElement('ul');
-    const lis = links.map((link) => {
-      const li = doc.createElement('li');
-      const a = doc.createElement('a');
-      a.setAttribute('href', link);
-      a.setAttribute('target', '_blank');
-      a.setAttribute('rel', 'noreferrer');
-      a.textContent = link;
-      li.appendChild(a);
-      return li;
+  if (links.length) {
+    sb.push('<ul>');
+    links.forEach((link) => {
+      sb.push('<li>');
+      link = escapeXml(link);
+      sb.push(`<a href="${link}" target="_blank" rel="noreferrer">${link}</a>`);
+      sb.push('</li>');
     });
-    ul.append(...lis);
-    divLinks.appendChild(ul);
+    sb.push('</ul>');
   }
-
-  div.append(divDesc, divLinks);
-  
-  return div;
+  sb.push('</div>');
+  return sb.join('');
 }
 
 /**
@@ -503,99 +133,57 @@ const DICT_NAMESPACES: Map<string, string> = new Map(Object.entries({
 }));
 
 /**
- * Utility function - build gadget loading restrictions table cell
+ * This returns a raw HTML block that will be rendered by Mustache. XSS risks should be addresed accordingly.
  * 
- * @param doc 
  * @param resourceLoader 
- * @returns 
  */
-function buildGadgetLoadingRestrictionsOverview(doc: HTMLDocument, { resourceLoader }: GadgetDefinition): HTMLElement {
-  const masterDiv = doc.createElement('div');
+function createResourceLoaderConditions(resourceLoader: ResourceLoaderConditions): string {
+  const sb: string[] = [];
+  const props = ['rights', 'skins', 'actions', 'categories', 'namespaces', 'contentModels'] as const;
 
-  const p = doc.createElement('p');  
-  
-  if (!resourceLoader) {
-    resourceLoader = {};
-  }
-  const props = ['rights', 'skins', 'actions', 'categories', 'namespaces', 'contentModels'];
-  const _mapper = (prop: 'rights' | 'skins' | 'actions' | 'categories' | 'namespaces' | 'contentModels') => {
-    let values = (resourceLoader[prop]);
-    if (!values) {
-      return { key: prop, values: null };
-    }
-    values = normalizeYamlListVariable(values);
+  props.forEach((prop) => {
+    let values = normalizeYamlListVariable(resourceLoader[prop] || '');
     if (values.length === 0) {
-      return { key: prop, values: null };
+      return;
     }
-    // Special case: namespaces
+    // Convert namespace numeric ID to common name 
     if (prop === 'namespaces') {
-      values = values.map(value => {
-        if (!DICT_NAMESPACES.has(value)) {
-          return value;
-        }
-        return DICT_NAMESPACES.get(value)!;
-      });
+      values = values.map((val) => DICT_NAMESPACES.get(val) || val);
     }
-    return { key: prop, values };
-  }
-  const conditions = props.map(_mapper).filter(({ values }) => values !== null);
+    // ul header
+    // prop is one of the values 'rights', 'skins', 'actions', 'categories', 'namespaces', 'contentModels', so escaping is not necessary here
+    sb.push(`<div>${prop[0].toUpperCase()}${prop.slice(1, prop.length)}</div>`);
+    sb.push('<ul>');
+    values.forEach((val) => {
+      sb.push(`<li><code>${escapeXml(val)}</code></li>`);
+    });
+    sb.push('</ul>');
+  });
 
-  if (conditions.length === 0) {
-    const iTag = doc.createElement('i');
-    iTag.textContent = 'None';
-    p.appendChild(iTag);
+  if (sb.length === 0) {
+    sb.push(`<i>None</i>`);
   } else {
-    p.textContent = 'Restricted to the following pages/user groups:';
+    sb.unshift(`<p><i>Restricted to the following pages/user groups:</i></p>`);
   }
   
-  const conditionsRendered = conditions.map(({ key, values }) => {
-    const d = doc.createElement('div');
-    const h = doc.createElement('div');
-    const ul = doc.createElement('ul');
-    // Capital case
-    h.textContent = key[0].toUpperCase() + key.slice(1, key.length);
-    ul.append(
-      ...values!.map((value) => {
-        const li = doc.createElement('li');
-        const co = doc.createElement('code');
-        co.textContent = value;
-        li.appendChild(co);
-        return li;
-      })
-    );
-    d.append(h, ul);
-    return d;
-  });
-  masterDiv.appendChild(p);
-  masterDiv.append(...conditionsRendered);
-
-  return masterDiv;
+  return sb.join('');
 }
 
 /**
- * Utility function - build gadget table cell containing line of code to load the cell
+ * Fast, naive way to escape XML
  * 
- * @param doc 
- * @param name 
+ * @param unsafe 
  * @returns 
  */
-function buildGadgetLoadingCode(doc: HTMLDocument, { name }: GadgetDefinition): HTMLElement {
-  const divBlock = doc.createElement('div');
-  divBlock.classList.add('code-block');
-  
-  const button = doc.createElement('button');
-  button.setAttribute('type', 'button');
-  button.classList.add('copy-btn');
-  button.setAttribute('aria-label', 'Copy code');
-  button.textContent = 'Copy';
-  
-  const pre = doc.createElement('pre');
-  pre.textContent = createScriptLoadingStatement(name);
-
-  divBlock.append(
-    button,
-    pre
-  );
-
-  return divBlock;
+function escapeXml(unsafe: string): string {
+  return unsafe.replace(/[<>&"']/g, (c: string) => {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '&': return '&amp;';
+      case '"': return '&quot;';
+      case "'": return '&apos;';
+      default: return c;
+    }
+  });
 }
