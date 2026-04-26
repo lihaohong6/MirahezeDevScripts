@@ -1,5 +1,5 @@
 import { serveGadgets } from '../dev-utils/build-orchestration.js';
-import { PluginOption } from 'vite';
+import type { PluginOption } from 'vite';
 import type { PluginContext } from 'rolldown';
 import type { GadgetDefinition } from '../dev-utils/types.js';
 

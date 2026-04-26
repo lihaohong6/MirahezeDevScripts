@@ -6,9 +6,12 @@
     "build": "vite build",
     "serve": "vite preview",
     "watch": "vite build --watch",
-    "test": "grunt test"
+    "test": "grunt test",
+    "selenium-seed": "node ./selenium-test-suites/.seeds/.index.ts",
+    "selenium-test": "node ./selenium-test-suites/driver.ts"
   },
   "devDependencies": {
+    "@types/selenium-webdriver": "^4.35.4",
     "@types/mustache": "^4.2.6",
     "@types/node": "^24.3.0",
     "eslint-config-wikimedia": "^0.31.0",
@@ -18,7 +21,9 @@
     "grunt-stylelint": "^0.20.1",
     "jiti": "^2.6.1",
     "less": "^4.4.1",
+    "selenium-webdriver": "^4.39.0",
     "mustache": "^4.2.0",
+    "mwn": "^3.0.1",
     "stylelint-config-wikimedia": "^0.18.0",
     "terser": "^5.46.1",
     "types-mediawiki": "^2.0.0",

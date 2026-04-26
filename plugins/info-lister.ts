@@ -1,4 +1,4 @@
-import { PluginOption } from 'vite';
+import type { PluginOption } from 'vite';
 import type { GadgetDefinition } from '../dev-utils/types.js';
 import { buildOverviewPageHtml } from '../dev-utils/info-lister.js';
 
