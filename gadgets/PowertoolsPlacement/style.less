@@ -1,0 +1,168 @@
+.powertools-icon {
+	content: '';
+
+	&.powertools-icon.powertools-icon {
+		width: 20px;
+		height: 20px;
+	}
+}
+
+#p-power-editor-tools.floating {
+	--powertools-portlet-background-color: #fff;
+	--powertools-portlet-background-hover-color: #f0f0f0;
+	--powertools-portlet-text-color: #031f19;
+	--powertools-portlet-border-color: #404007;
+	--powertools-portlet-shadow-color: #fff;
+	--powertools-portlet-width: 50px;
+	--powertools-portlet-width-maximized: 200px;
+	--powertools-portlet-border-radius: 25px;
+	position: fixed;
+	width: var( --powertools-portlet-width );
+	z-index: var( --powertools-z-index, 100 );
+	cursor: pointer;
+
+	// grows left
+	direction: rtl;
+
+	& > * {
+		direction: ltr;
+	}
+
+	// Prevents portlet from breaking on mobile
+	touch-action: none;
+
+	> div {
+		width: var( --powertools-portlet-width );
+		transition: width 300ms;
+		position: absolute;
+	}
+
+	.powertools-portlet-menu-label {
+		border-radius: var( --powertools-portlet-border-radius );
+		padding: 8px 14px;
+		box-sizing: border-box;
+		width: 100%;
+		height: 50px;
+		color: var( --powertools-portlet-text-color );
+		background-color: var( --powertools-portlet-background-color );
+		border: solid 1px var( --powertools-portlet-border-color );
+		box-shadow: 0 0 8px 0 var( --powertools-portlet-shadow-color );
+		transition: border-radius 300ms;
+		display: flex;
+		flex-flow: row nowrap;
+		justify-content: flex-start;
+		align-items: center;
+		position: relative;
+
+		.powertools-icon {
+			position: absolute;
+		}
+
+		.powertools-label-text {
+			margin-left: 25px;
+		}
+
+		.powertools-label-text,
+		.crosshair {
+			visibility: hidden;
+			opacity: 0;
+			transition: width 200ms, visibility 300ms, opacity 300ms ease-out;
+			transition-delay: 100ms;
+		}
+
+		.crosshair {
+			position: absolute;
+			right: 15px;
+			width: 20px;
+			height: 20px;
+		}
+	}
+
+	.powertools-portlet-body {
+		display: none;
+		width: var( --powertools-portlet-width );
+		transition: width 300ms;
+		border-bottom: solid 1px var( --powertools-portlet-border-color );
+		border-radius: 8px 8px 0 0;
+		border: solid 1px var( --powertools-portlet-border-color );
+		padding: 8px 4px 15px 4px;
+		box-sizing: border-box;
+		text-align: left;
+		right: 0;
+		left: auto;
+
+		ul {
+			font-size: 0.95rem;
+			list-style-type: none;
+			margin-left: 0.2rem;
+		}
+
+		a {
+			text-decoration: none;
+		}
+	}
+
+	&:hover,
+	&.show,
+	&.ui-draggable-dragging {
+		> div {
+			width: var( --powertools-portlet-width-maximized );
+		}
+
+		.powertools-portlet-menu-label {
+			span,
+			div.crosshair {
+				visibility: visible;
+				opacity: 1;
+			}
+		}
+	}
+
+	&.show {
+		.powertools-portlet-menu-label {
+			border-radius: 0;
+			border-bottom-left-radius: var( --powertools-portlet-border-radius );
+			border-bottom-right-radius: var( --powertools-portlet-border-radius );
+
+			.powertools-portlet-arrow-icon svg {
+				transform: rotate( 180deg );
+			}
+		}
+
+		.powertools-portlet-body {
+			display: block;
+			position: absolute;
+			bottom: 100%;
+			left: 0;
+			width: var( --powertools-portlet-width-maximized );
+			color: var( --powertools-portlet-text-color );
+			background-color: var( --powertools-portlet-background-color );
+			box-shadow: 0 0 8px 0 var( --powertools-portlet-shadow-color );
+
+			ul li {
+				cursor: pointer;
+				padding: 5px 8px;
+
+				&:hover {
+					background-color: var( --powertools-portlet-background-hover-color );
+				}
+			}
+		}
+	}
+}
+
+body.skin-citizen .powertools-icon {
+	// yes
+	&.powertools-icon.powertools-icon {
+		clip-path: none;
+	}
+}
+
+body.skin-citizen #citizen-powertools-portlet-container__card {
+	left: 50px;
+
+	@media ( max-width: 1119.98px ) {
+		left: 0;
+		bottom: 50px;
+	}
+}

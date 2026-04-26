@@ -1,0 +1,55 @@
+{
+	"_metadata": {
+		"order": [
+			"text"
+		]
+	},
+	"en": {
+		"text": "Your browser does not support the \u0026lt;audio\u0026gt; tag."
+	},
+	"qqq": {
+		"text": "An error message when their browser hasn't enabled JavaScript."
+	},
+	"ar": {
+		"text": ".متصفحك لا يدعم علامة \u0026lt;audio\u0026gt;"
+	},
+	"be": {
+		"text": "Ваш браўзар не падтрымвае \u0026lt;audio\u0026gt; тэг."
+	},
+	"de": {
+		"text": "Dein Browser unterstützt den \u0026lt;audio\u0026gt; Tag nicht."
+	},
+	"es": {
+		"text": "Tu navegador no soporta la etiqueta de \u0026lt;audio\u0026gt;."
+	},
+	"et": {
+		"text": "Sinu brauser ei toeta \u0026lt;audio\u0026gt;"
+	},
+	"fi": {
+		"text": "Selaimesi ei lue tätä \u0026lt;audio\u0026gt;-tunnistetta."
+	},
+	"fr": {
+		"text": "Votre navigateur ne supporte pas la balise \u0026lt;audio\u0026gt;."
+	},
+	"ja": {
+		"text": "お使いのブラウザは \u0026lt;audio\u0026gt; タグをサポートしていません。"
+	},
+	"ko": {
+		"text": "귀하의 브라우저는 \u0026lt;audio\u0026gt; 태그를 지원하지 않습니다."
+	},
+	"pl": {
+		"text": "Twoja przeglądarka nie wspiera tagu \u0026lt;audio\u0026gt;."
+	},
+	"pt-br": {
+		"text": "Seu navegador não suporta a tag \u0026lt;audio\u0026gt;."
+	},
+	"ru": {
+		"text": "Ваш браузер не поддерживает \u0026lt;audio\u0026gt; тег."
+	},
+	"tr": {
+		"text": "Tarayıcınız \u003Caudio\u003E etiketini desteklemiyor."
+	},
+	"uk": {
+		"text": "Ваш веб-переглядач не підтримує \u0026lt;audio\u0026gt; тег"
+	}
+}

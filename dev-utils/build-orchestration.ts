@@ -1,10 +1,9 @@
 import { readFile } from 'fs/promises';
-import { createWriteStream } from 'fs';
-import { OutputBundle } from 'rollup';
+import type { ResolvedConfig } from 'vite';
 import { parse } from 'yaml';
 import * as crypto from 'crypto';
-import { Target } from 'vite-plugin-static-copy';
-import { transformWithEsbuild } from 'vite';
+import type { OutputChunk, OutputAsset, PluginContext } from 'rolldown';
+import type { Target } from 'vite-plugin-static-copy';
 import type { GadgetDefinition, GadgetsDefinition } from './types';
 import { 
   resolveFileExtension,
@@ -12,7 +11,7 @@ import {
   resolveGadgetsDefinitionManifestPath,
   resolveEntrypointFilepath,
   checkGadgetExists,
-  resolveFilepathForBundleInputKey,
+  formatOrMinifyCode,
 } from './utils';
 
 let viteServerOrigin: string;
@@ -86,7 +85,7 @@ interface GadgetPremCheck {
  *  @param gadgetsDefinition
  *  @returns
  */
-export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetDefinition[] {
+export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): readonly GadgetDefinition[] {
   const { 'enable_all': enableAll = false, enable: arrEnabledGs = [], disable: arDisabledGs = [] } = gadgetsDefinition?.workspace || {};
   const enabledGadgets = new Set(arrEnabledGs);
   const disabledGadgets = new Set(arDisabledGs);
@@ -196,46 +195,69 @@ export function getGadgetsToBuild(gadgetsDefinition: GadgetsDefinition): GadgetD
 }
 
 /**
+ * 
+ * @param gadget 
+ * @returns 
+ */
+export function createScriptLoadingStatement(gadgetName: string, asSharedDep: boolean = false) {
+  return `${asSharedDep ? 'importScriptURI' : 'mw.loader.load'}("${getStaticUrlToFile(gadgetName, 'gadget-impl.js')}");`;
+}
+
+/**
  * Builds the entrypoint file (`load.js`) to be served by the Vite server and to be 
  * loaded on the MediaWiki client.
  * 
+ * @param pluginContext
  * @param gadgetsToBuild
- * @param useRolledUpImplementation If set to true, then `load.js` will load the gadget-impl.js files. 
- *                                  Otherwise, it will lazily load and execute the individual scripts and stylesheets.
+ * @param useRolledUpImplementation 
+ * If set to true, then `load.js` will load the gadget-impl.js files. 
+ * Otherwise, it will lazily load and execute the individual scripts and stylesheets.
  * @returns
  */
-export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
-  const entrypointFile = resolveEntrypointFilepath();
-  const writeStream = createWriteStream(entrypointFile, { flags: 'w', encoding: 'utf-8'});
+export async function serveGadgets(pluginContext: PluginContext, gadgetsToBuild: readonly GadgetDefinition[], useRolledUpImplementation: boolean): Promise<void> {
+  const sb: string[] = [];
   try {
     if (useRolledUpImplementation) {
+      /*
+       * The `dist` pipeline (i.e. the default workflow that is run when 
+       * `npm run build` is run) generates a load.js that lists (and loads) each 
+       * gadget that is built.
+       */
       const writeScriptLoadingStatement = (gadget: GadgetDefinition) => {
-        return writeStream.write(
-          `mw.loader.load("${
-            getStaticUrlToFile(gadget.name, 'gadget-impl.js')
-          }");\n`
-        );
+        return sb.push(createScriptLoadingStatement(gadget.name));
       }
       gadgetsToBuild.forEach(writeScriptLoadingStatement);
     } else {
+      /*
+       * This block is only called when `npm run build -- -- --no-rollup` is called.
+       * 
+       * This block is run when you want to make a load.js file that invokes each 
+       * part of the gadget separately, e.g. call code.js and apply style.css 
+       * separately. 
+       * 
+       * The `dist` pipeline does not execute this block.
+       */
       // Async generator implementation
       async function* createGadgetImplementations() {
         for (const gadget of gadgetsToBuild) {
           yield await createRolledUpGadgetImplementationByLazyLoading(gadget);
         }
       }
-      // should be ES5-compliant
-      writeStream.write(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(function (res) { return res.text(); })\n\t\t.then(function (contents) { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n\n`);
+      // We use $.globalEval to prevent each script from polluting the global scope
+      sb.push(`{\n\nfunction loadLazily (scriptUrl) {\n\tfetch(scriptUrl)\n\t\t.then(res => res.text())\n\t\t.then(contents => { $.globalEval("(function () {" + contents + "})()"); })\n\t\t.catch(console.error);\n}\n`);
       for await (const gadgetImplementation of createGadgetImplementations()) {
-        writeStream.write(gadgetImplementation);
-        writeStream.write('\n\n');
+        sb.push(gadgetImplementation);
       }
-      writeStream.write(`}`);
+      sb.push(`}`);
     }
+
+    pluginContext.emitFile({
+      code: sb.join("\n"),
+      fileName: 'load.js',
+      type: 'prebuilt-chunk',
+    });
   } catch (err) {
     console.error(err);
-  } finally {
-    writeStream.close();
   }
 }
 
@@ -246,35 +268,43 @@ export async function serveGadgets(gadgetsToBuild: GadgetDefinition[], useRolled
  * @returns
  */
 function generateGadgetImplementationLoadConditionsWrapperCode(
-  { resourceLoader: { 
-    dependencies = null, rights = null, skins = null, 
-    actions = null, categories = null, namespaces = null, 
-    contentModels = null 
-  } = {} }: GadgetDefinition
+  { 
+    resourceLoader: { 
+      dependencies = null,
+      rights = null, skins = null, 
+      actions = null, categories = null, namespaces = null, 
+      contentModels = null 
+    } = {}, 
+    requires = [],
+  }: GadgetDefinition
 ): [string[], string[]] {
-  if ([dependencies, rights, skins, actions, categories, namespaces, contentModels].every((v) => v === null)) {
+  if (
+    [dependencies, rights, skins, actions, categories, namespaces, contentModels].every((v) => v === null)
+    &&
+    requires.length === 0
+  ) {
     return [[], []];
   }
   const conditions: string[] = [];
   const normalizeVariable = (variable: string | string[]) => {
     if (typeof variable === 'string') {
-      return variable.split(/\s*,\s*/);
+      return variable.trim().split(/\s*,\s*/).filter((val) => val !== '');
     }
     return variable;
   }
   const generateCodeConditionForComparingValues = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
     const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
-    // should be ES5-compliant
-    return `${arr}.some(function (a) { return mw.config.get('${configKey}') === a; })`;
+    // not ES5-compliant
+    return `${arr}.some(a => mw.config.get('${configKey}') === a)`;
   };
   const generateCodeConditionForComparingLists = (rsValues: string[], configKey: string, valueIsNumeric: boolean = false): string => {
     const arr = `[${rsValues.map(el => valueIsNumeric ? el : `"${el}"`).join(',')}]`;
-    // should be ES5-compliant
-    return `${arr}.some(function (a) { return (mw.config.get('${configKey}') || []).indexOf(a) > -1; })`
+    // not ES5-compliant
+    return `${arr}.some(a => (mw.config.get('${configKey}') || []).indexOf(a) > -1)`
   };
 
   const checkForConditions = [
-    { v: rights, configIsListOfValues: true, configKey: 'wgUserRights', valueIsNumeric: false },
+    { v: rights, configIsListOfValues: true, configKey: 'wgUserGroups', valueIsNumeric: false },
     { v: skins, configIsListOfValues: false, configKey: 'skin', valueIsNumeric: false },
     { v: actions, configIsListOfValues: false, configKey: 'wgAction', valueIsNumeric: false },
     { v: categories, configIsListOfValues: true, configKey: 'wgCategories', valueIsNumeric: false },
@@ -304,6 +334,12 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
     tail.unshift(`}`);
   }
 
+  requires.forEach((gadgetName) => {
+    head.push(`if (!mw.loader.getState('${namespace}.${gadgetName}')) { ${
+      createScriptLoadingStatement(gadgetName, true)
+    } }`);
+  });
+    
   if (!!dependencies) {
     dependencies = normalizeVariable(dependencies);
     head.push(`mw.loader.using([ ${dependencies.map(el => `"${el}"`).join(`, `)} ], function (require) {`);
@@ -317,21 +353,27 @@ function generateGadgetImplementationLoadConditionsWrapperCode(
  * Creates an `mw.loader.impl` implementation with direct execution of each script and stylesheet.
  * 
  * @param gadgetImplementationFilePath
- * @param writeBundle
  * @param gadget
- * @param minify
+ * @param rolldownMinify
+ * @param buildConfig
+ * @param outputChunk
+ * @param outputAsset
  * @returns
  */
-export async function createRolledUpGadgetImplementation(
+export async function createRolledUpGadgetImplementation({ 
+  gadgetImplementationFilePath, gadget,
+  rolldownMinify, buildConfig, outputChunk, outputAsset 
+}: {
   gadgetImplementationFilePath: string, 
-  writeBundle: OutputBundle,
-  gadget: GadgetDefinition, 
-  minify: boolean
-): Promise<string> {
-  const { name } = gadget;
+  gadget: GadgetDefinition,
+  rolldownMinify: boolean | 'oxc' | 'terser',
+  buildConfig: ResolvedConfig,
+  outputChunk?: OutputChunk,
+  outputAsset?: OutputAsset, 
+}): Promise<string> {
   
-  if (!checkGadgetExists(name)) {
-    throw new Error(`Cannot resolve gadget ${name}`);
+  if (!checkGadgetExists(gadget.name)) {
+    throw new Error(`Cannot resolve gadget ${gadget.name}`);
   }
 
   const hash = crypto.randomBytes(4).toString('hex');
@@ -341,55 +383,38 @@ export async function createRolledUpGadgetImplementation(
   const body = [
     `mw.loader.impl(function () {`,
     `return [`,
-    `"${namespace}.${name}@${hash}",`,
-    `function ($, jQuery, require, module) {`,
+    `"${namespace}.${gadget.name}@${hash}",`,
+    `function ($, jQuery, mwRequire, mwModule) {`,
   ];
 
-  if (gadget?.scripts?.length) {
-    gadget.scripts.forEach((script) => {
-      const moduleInfo = writeBundle[`${name}/${resolveFileExtension(script)}`];
-      if (moduleInfo.type === 'chunk') body.push(moduleInfo.code);
-    });
+  if (outputChunk) {
+    body.push(outputChunk.code);
   }
 
   body.push(`}, {"css": [`);
 
-  if (gadget?.styles?.length) {
-    gadget.styles.forEach((style) => {
-      const assetInfo = writeBundle[`${name}/${resolveFileExtension(style)}`];
-      if (assetInfo.type === 'asset') {
-        body.push(minify ? `"` : `\``);
-        (() => {
-          let src = assetInfo.source;
-          if (src instanceof Uint8Array) {
-            src = new TextDecoder().decode(src);
-          }
-          src = src.trim().replaceAll(
-            minify ? /(")/g : /(`)/g,
-            '\\$1'
-          );
-          body.push(src);
-        })();
-        body.push(minify ? `"` : `\``);
-        body.push(', ');
-      }
-    });
+  if (outputAsset && outputAsset.source) {
+    body.push("`");
+    body.push(String(outputAsset.source).replaceAll("`", "\\`").trim());
+    body.push("`");
   }
 
-  body.push(`]}, {}, {}, null];`);
+  body.push(`]},`);
+  // body.push(` {}, {}, null`);
+  body.push(`];`);
   body.push(`});`);
 
-  return (await transformWithEsbuild(
-    [
-      `(function (mw) {`,
-      ...rsCondHead,
-      ...body,
-      ...rsCondTail,
-      `})(mediaWiki);`,
-    ].join(''), 
-    gadgetImplementationFilePath, 
-    { minify }
-  )).code;
+  let trf = [
+    `(function (mw) {`,
+    ...rsCondHead,
+    ...body,
+    ...rsCondTail,
+    `})(mediaWiki);`,
+  ].join('');
+  
+  trf = await formatOrMinifyCode(trf, gadgetImplementationFilePath, rolldownMinify, buildConfig);
+
+  return trf;
 }
 
 /**
@@ -425,13 +450,13 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
         ...scriptsToLoad,
         `}, `,
         `{"url": {"all": [${stylesToLoad.join(',')}] }},`,
-        `{}, {}, null`,
+        // `{}, {}, null`,
       `];`,
     `});`
   ];
 
   const [rsCondHead, rsCondTail] = generateGadgetImplementationLoadConditionsWrapperCode(gadget);
-  return (await transformWithEsbuild(
+  return (await formatOrMinifyCode(
     [
       `(function (mw) {`,
       ...rsCondHead,
@@ -440,33 +465,30 @@ export async function createRolledUpGadgetImplementationByLazyLoading(gadget: Ga
       `})(mediaWiki);`
     ].join(''),
     resolveEntrypointFilepath(),
-    { minify: false }
-  )).code;
+    false,
+  ));
 }
 
 /**
- * Pass this function to `build.rollupOptions.input` in Vite's config.
+ * Pass this function to `build.rolldownOptions.input` in Vite's config.
  *
  * @param gadgetsToBuild
  * @returns
  */
-export function mapGadgetSourceFiles(gadgetsToBuild: GadgetDefinition[]): [{ [Key: string]: string }, Target[]] {
-  const entries: { [Key: string]: string } = {};
+export function mapGadgetSourceFiles(gadgetsToBuild: readonly GadgetDefinition[]): [Record<string, string>, Target[]] {
+  const entries: Record<string, string> = {};
   const assets: Target[] = [];
 
   gadgetsToBuild.forEach((definition) => {
-    const { name } = definition;
-    const loadFile = (filepath: string) => {
-      const key = `${name}/${resolveFilepathForBundleInputKey(filepath)}`;
-      entries[key] = resolveSrcGadgetsPath(name, filepath);
-    }
-    definition.styles?.forEach(loadFile);
-    definition.scripts?.forEach(loadFile);
+    const { name: gadgetName } = definition;
+    entries[gadgetName] = `virtual:gadgets-builder:${gadgetName}`;
     definition.i18n?.forEach((i18nFile) => {
       assets.push({ 
-        src: resolveSrcGadgetsPath(name, i18nFile), 
-        dest: name, 
-        overwrite: true 
+        src: resolveSrcGadgetsPath(gadgetName, i18nFile), 
+        dest: gadgetName, 
+        overwrite: true,
+        // remove /gadgets/<gadget-name> from dest path
+        rename: { stripBase: 2 },
       });
     });
   });
