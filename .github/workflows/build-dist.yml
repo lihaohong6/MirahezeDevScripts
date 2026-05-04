@@ -6,12 +6,12 @@ name: Build and Deploy to Dist Branch
 on:
   push:
     branches: [ master ]
-    paths: 
-      - 'gadgets/**'
-      - '!gadgets/**.md'
-      - 'dev-utils/**'
-      - 'plugins/**'
-      - 'package.json'
+    paths:
+      - "gadgets/**"
+      - "!gadgets/**.md"
+      - "dev-utils/**"
+      - "plugins/**"
+      - "package.json"
   # Allow manual triggering from the Actions tab
   workflow_dispatch:
 
@@ -21,49 +21,41 @@ permissions:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout master branch
-      uses: actions/checkout@v4
-      with:
-        ref: master
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
-    
-    - name: Cache Node.js modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-modules-
-    
-    - name: Install dependencies
-      run: npm ci
-    
-    - name: Configure Git
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-    
-    - name: Set environment variables
-      run: |
-        NEW_TAG="$(date +%s)"
-        echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+      - name: Checkout master branch
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-        # Set CDN entrypoint with version pinning
-        echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@$NEW_TAG/dist" >> $GITHUB_ENV
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
 
-    - name: Publish build result to dist branch
-      run: |
-        bash ./publish.sh
-  
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Set environment variables
+        run: |
+          NEW_TAG="$(date +%s)"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+          # Set CDN entrypoint with version pinning
+          echo "CDN_ENTRYPOINT=https://cdn.jsdelivr.net/gh/${{ github.repository }}@$NEW_TAG/dist" >> $GITHUB_ENV
+
+      - name: Publish build result to dist branch
+        run: |
+          bash ./publish.sh
+
   sync-with-dev:
     if: ${{ github.repository == 'lihaohong6/MirahezeDevScripts' }}
 
@@ -72,33 +64,33 @@ jobs:
     needs: build-and-deploy
 
     steps:
-    - name: Checkout all branches
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout all branches
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Get latest commit hash from dist branch
-      id: dist-hash
-      run: |
-        git fetch origin dist
-        HASH=$(git rev-parse origin/dist)
-        echo "dist_hash=$HASH" >> $GITHUB_ENV
+      - name: Get latest commit hash from dist branch
+        id: dist-hash
+        run: |
+          git fetch origin dist
+          HASH=$(git rev-parse origin/dist)
+          echo "dist_hash=$HASH" >> $GITHUB_ENV
 
-    - name: Switch to master branch
-      run: |
-        git checkout master
+      - name: Switch to master branch
+        run: |
+          git checkout master
 
-    - name: Set up Python with uv
-      run: |
-        pip install uv
+      - name: Set up Python with uv
+        run: |
+          pip install uv
 
-    - name: Run dev-sync script
-      env:
-        CONSUMER_TOKEN: ${{ secrets.CONSUMER_TOKEN }}
-        CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
-        ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-        ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
-      run: |
-        cd dev-sync
-        uv run main.py $dist_hash $CONSUMER_TOKEN $CONSUMER_SECRET $ACCESS_TOKEN $ACCESS_SECRET
+      - name: Run dev-sync script
+        env:
+          CONSUMER_TOKEN: ${{ secrets.CONSUMER_TOKEN }}
+          CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
+        run: |
+          cd dev-sync
+          uv run main.py $dist_hash $CONSUMER_TOKEN $CONSUMER_SECRET $ACCESS_TOKEN $ACCESS_SECRET
