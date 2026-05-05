@@ -1,7 +1,10 @@
 import { createRolledUpGadgetImplementation } from '../dev-utils/build-orchestration.js';
 import { PluginOption } from 'vite';
+import type { OutputChunk, OutputAsset } from 'rolldown';
 import { resolveDistGadgetsPath } from '../dev-utils/utils.js';
 import type { GadgetDefinition } from '../dev-utils/types.js';
+
+type RolldownMinifyOptions = boolean | 'oxc' | 'terser';
 
 /**
  * A Vite plugin that creates the gadget implementation code (i.e. scripts
@@ -9,24 +12,50 @@ import type { GadgetDefinition } from '../dev-utils/types.js';
  * built, and placed in the dist/ directory. 
  * 
  * @param gadgetsToBuild
- * @param minify
  * @returns
  */
-export default function createMwGadgetImplementation(gadgetsToBuild: GadgetDefinition[], minify: boolean = true): PluginOption {
-  
+export default function createMwGadgetImplementation(gadgetsToBuild: readonly GadgetDefinition[]): PluginOption {
+  let rolldownMinify: RolldownMinifyOptions = false;
+
   return {
     name: 'create-mw-gadget-implementation',
     enforce: 'post',
     apply: 'build',
 
+    config(config) {
+      //@ts-ignore
+      rolldownMinify = (config.build && config.build.minify) || false;
+      
+      /**
+       * When `npm run build` is run without `--no-rollup` (i.e. create a gadget-impl.js file), 
+       * we want to turn JS minification off between the `load` and `renderChunk` hooks for 
+       * each constituent index.js file.
+       * 
+       * Minification happens later, and only for the gadget-impl.js file.
+       * This plugin doesn't run if the `--no-rollup` flag is passed, so no worries there.
+       */
+      config.build = { ...(config.build || {}), minify: false };
+    },
     async generateBundle(_, bundle) {
       for (const gadget of gadgetsToBuild) {
-        const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
-        this.emitFile({
-          code: await createRolledUpGadgetImplementation(gadgetImplementationFilePath, bundle, gadget, minify),
-          fileName: `${gadget.name}/gadget-impl.js`,
-          type: 'prebuilt-chunk'
-        });
+        try {
+          const gadgetImplementationFilePath = resolveDistGadgetsPath(gadget.name, 'gadget-impl.js');
+          const code = await createRolledUpGadgetImplementation({
+            gadget, 
+            gadgetImplementationFilePath,
+            outputChunk: bundle[`${gadget.name}/index.js`] as OutputChunk | undefined,
+            outputAsset: bundle[`${gadget.name}/style.css`] as OutputAsset | undefined,
+            rolldownMinify,
+            buildConfig: this.environment.getTopLevelConfig(),
+          });
+          this.emitFile({
+            code,
+            fileName: `${gadget.name}/gadget-impl.js`,
+            type: 'prebuilt-chunk'
+          });
+        } catch (err) {
+          this.warn(`Failed to build gadget-impl.js file for ${gadget.name}, encountered the following error:\n${err}`);
+        }
       }
     },
   }
