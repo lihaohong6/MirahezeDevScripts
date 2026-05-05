@@ -162,7 +162,7 @@ function createResourceLoaderConditions(resourceLoader: ResourceLoaderConditions
   });
 
   if (sb.length === 0) {
-    sb.push(`<i>None</i>`);
+    sb.push(`<div><i>None</i></div>`);
   } else {
     sb.unshift(`<p><i>Restricted to the following pages/user groups:</i></p>`);
   }
