@@ -29,7 +29,6 @@ mw.loader.using('mediawiki.api', function() {
   function init() {
     mw.libs.PowertoolsPlacement.addPortletLink(mw.config.values.skin, {
       id: 't-bud',
-      href: '#',
       label: i18n.msg('toolsTitle').plain(),
       tooltip: 'AjaxBatchUndelete',
       onClick: click

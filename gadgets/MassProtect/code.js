@@ -125,7 +125,6 @@ mw.loader.using([
   function init () {
     mw.libs.PowertoolsPlacement.addPortletLink(mw.config.values.skin, {
       id: 't-mp',
-      href: '#',
       cssClasses: 'custom',
       label: i18n.msg('title').plain(),
       tooltip: 'MassProtect',

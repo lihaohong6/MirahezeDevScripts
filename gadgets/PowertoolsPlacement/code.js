@@ -445,7 +445,7 @@
     // Get config parameters
     var label = config.label || '[TOOL]';
     var id = config.id;
-    var href = config.href || '#';
+    var href = config.href || 'javascript:void(0)';
     var tooltip = config.tooltip;
     var cssClasses = config.cssClasses;
     var styles = config.styles;

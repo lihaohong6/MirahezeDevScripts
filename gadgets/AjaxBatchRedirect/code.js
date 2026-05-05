@@ -365,7 +365,6 @@ maxerr: 999999, forin: false, -W082, -W084
     api = new mw.Api();
     mw.libs.PowertoolsPlacement.addPortletLink(mw.config.values.skin, {
       id: 't-batchredirect',
-      href: '#',
       label: i18n.msg('toolsTitle').plain(),
       tooltip: 'AjaxBatchRedirect',
       onClick: click

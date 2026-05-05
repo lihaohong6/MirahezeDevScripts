@@ -32,7 +32,6 @@ mw.loader.using('mediawiki.api', function() {
   function init() {
     mw.libs.PowertoolsPlacement.addPortletLink(mw.config.values.skin, {
       id: 't-bd',
-      href: '#',
       label: i18n.msg('toolsTitle').plain(),
       tooltip: 'AjaxBatchDelete',
       onClick: click

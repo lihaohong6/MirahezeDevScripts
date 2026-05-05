@@ -519,7 +519,6 @@
     mw.hook('dev.powertools.placement').add(function (module) {
       module.addPortletLink(mw.config.values.skin, {
         id: 't-mne',
-        href: '#',
         label: i18n('title').plain(),
         tooltip: 'MassNullEdit',
         onClick: openModal
