@@ -3,6 +3,7 @@
 module.exports = function ( grunt ) {
 	grunt.loadNpmTasks( 'grunt-eslint' );
 	grunt.loadNpmTasks( 'grunt-stylelint' );
+	grunt.loadNpmTasks( 'grunt-json-minify' );
 
 	grunt.initConfig( {
 		eslint: {
@@ -22,6 +23,15 @@ module.exports = function ( grunt ) {
 				'!vendor/**',
 				'!dist/**',
 			]
+		},
+		"json-minify": {
+			build: {
+				files: "dist/**/*.json"
+			},
+			options: {
+				skipOnError: true,
+				encoding: "utf-8"
+			}
 		}
 	} );
 
