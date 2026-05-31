@@ -13,6 +13,7 @@ $(function () {
         defaultCategoryView: 'dynamic', // Choose from 'classic', 'dynamic' or 'gallery'
         galleryCatStyle: 'compacter', // 'normal', 'compact' or 'compacter'
         catlistAlphabets: false, // Whether to show navigation alphabet menu above category list
+        thumbSize: 200,
         labels: {
             classic: 'Classic',
             dynamic: 'Dynamic',
@@ -23,8 +24,9 @@ $(function () {
     };
 
     const userConfig = window.dynamicCategoriesConfig || {};
-    const config = Object.assign({}, defaults, userConfig, {
-        labels: Object.assign({}, defaults.labels, userConfig.labels)
+    const pageOverrides = loadPageOverrides(defaults);
+    const config = Object.assign({}, defaults, userConfig, pageOverrides, {
+        labels: Object.assign({}, defaults.labels, userConfig.labels, pageOverrides.labels)
     });
     const {catlistAlphabets, labels} = config;
     const defaultCategoryView = config.defaultCategoryView.toLowerCase();
@@ -136,7 +138,7 @@ $(function () {
             action: 'query',
             format: 'json',
             prop: 'pageimages',
-            pithumbsize: '200',
+            pithumbsize: config.thumbSize,
             titles: value
         };
 
@@ -226,5 +228,25 @@ $(function () {
                 break;
             }
         }
+    }
+
+    function loadPageOverrides() {
+        const configElement = $('#dynamic-categories-config');
+        if (configElement.length === 0) {
+            return {};
+        }
+        const dataset = configElement[0].dataset;
+        const overrides = {};
+        const keys = [
+            "galleryCatStyle", "catlistAlphabets", "thumbSize"
+        ]
+
+        for (const key of keys) {
+            if (dataset[key]) {
+                overrides[key] = dataset[key];
+            }
+        }
+
+        return overrides;
     }
 });
