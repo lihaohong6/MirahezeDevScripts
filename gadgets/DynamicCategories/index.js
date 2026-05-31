@@ -5,6 +5,10 @@
  */
 
 $(function () {
+    if (mw.config.get('wgNamespaceNumber') !== 14) {
+        return;
+    }
+
     const defaults = {
         defaultCategoryView: 'dynamic', // Choose from 'classic', 'dynamic' or 'gallery'
         galleryCatStyle: 'compacter', // 'normal', 'compact' or 'compacter'
@@ -25,10 +29,6 @@ $(function () {
     const {catlistAlphabets, labels} = config;
     const defaultCategoryView = config.defaultCategoryView.toLowerCase();
     const galleryCatStyle = config.galleryCatStyle.toLowerCase();
-
-    if (mw.config.get('wgNamespaceNumber') !== 14) {
-        return;
-    }
 
     const $mwPages = $('#mw-pages');
 
@@ -207,7 +207,7 @@ $(function () {
         const $btn = $(this);
         $btn.addClass('active').siblings().removeClass('active');
         localStorage.categoryView = $btn.attr('title');
-        $('#mw-pages').attr('class', 'catview-' + $btn.attr('title'));
+        $mwPages.attr('class', 'catview-' + $btn.attr('title'));
     }
 
     function catMagicWords() {
