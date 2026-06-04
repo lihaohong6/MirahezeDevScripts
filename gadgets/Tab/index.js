@@ -186,5 +186,5 @@
         }
     }
 
-    initTabs();
+    mw.hook( 'wikipage.content' ).add( initTabs );
 }() );
