@@ -22,7 +22,7 @@ export const addTextBot: Bot<AddTextOptions> = new Bot({
         const page = pages[0];
         let newText = page.text || "";
 
-        if (options.skipExisting && page.text!.includes(newText)) {
+        if (options.skipExisting && newText.includes(options.textToAdd)) {
             return {
                 severity: LogSeverity.WARNING,
                 message: `Skipped ${page.title} because it already contains the text to be added.`
