@@ -37,6 +37,18 @@ gadgets:
     scripts:
       - index.ts
 
+  JsonEditor:
+    description: "Popup editor for specific fields of a JSON data page"
+    scripts:
+      - index.ts
+    styles:
+      - style.less
+    resourceLoader:
+      dependencies:
+        - '@wikimedia/codex'
+        - 'mediawiki.api'
+        - 'mediawiki.util'
+
   jswikibot:
     scripts:
       - index.ts
