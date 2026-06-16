@@ -26,12 +26,29 @@
 
     const groups = {};
 
+    function parsePreload(preload) {
+        preload = preload || "";
+        preload = preload.toLowerCase();
+        if (preload === "true") {
+            return true;
+        }
+        if (preload === "false") {
+            return false;
+        }
+        if (preload === "metadata") {
+            return "metadata";
+        }
+        // Preload by default
+        return true;
+    }
+
     function initAudioPlayer(index, audioPlayer) {
         const dataSet = audioPlayer.dataset;
         const audioGroup = dataSet.group;
         const shouldLoop = dataSet.loop === "true";
+        const useHtml5 = dataSet.html5 === "true";
         // Always preload unless instructed otherwise
-        const shouldPreload = dataSet.preload !== "false";
+        const shouldPreload = parsePreload(dataSet.preload);
         const loopStart = parseFloat(dataSet.loopStart);
         const loopEnd = parseFloat(dataSet.loopEnd);
         const isPauseButton = dataSet.pauseButton;
@@ -92,6 +109,7 @@
 
         const howler = new Howl({
             src: [dataSet.src],
+            html5: useHtml5,
             preload: shouldPreload,
             volume: startingVolume,
             onpause: onAudioPauseOrStop,
