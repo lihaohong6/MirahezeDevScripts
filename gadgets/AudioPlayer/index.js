@@ -103,6 +103,7 @@
         if (isNaN(startingVolume)) {
             startingVolume = 1;
         }
+        startingVolume = Math.max(0, Math.min(1, startingVolume));
         const volumeButton = audioPlayer.querySelector(".volume-button");
         const volumeButtonIcon = audioPlayer.querySelector(".volume");
         const volumeSlider = audioPlayer.querySelector(".volume-slider");
@@ -121,6 +122,7 @@
         }
 
         let muted = false;
+        let currentVolume = startingVolume;
 
         function onAudioPauseOrStop() {
             playButton.classList.remove("pause");
@@ -139,9 +141,16 @@
             }
         }
 
+        function setVolume(volumeFraction) {
+            currentVolume = Math.max(0, Math.min(1, volumeFraction));
+            setVolumeBarWidth(currentVolume);
+            howler.volume(currentVolume);
+        }
+
         const howler = new Howl({
             src: [processAudioUrl(dataSet.src)],
             preload: shouldPreload,
+            volume: startingVolume,
             onpause: onAudioPauseOrStop,
             onplay: function () {
                 playButton.classList.remove("play");
@@ -163,6 +172,7 @@
                 }
             },
             onload: function () {
+                howler.volume(currentVolume);
                 if (audioTime) {
                     audioCurrentTime.innerText = "0:00";
                     audioDivider.innerText = "/";
@@ -176,12 +186,16 @@
                 console.log(err);
             },
             onvolume: function () {
-                setVolumeBarWidth(howler.volume());
+                // Redundant for now but maybe something else changes the volume
+                const howlerVolume = howler.volume();
+                if (howlerVolume !== currentVolume) {
+                    currentVolume = howlerVolume;
+                    setVolumeBarWidth(currentVolume);
+                }
             }
         });
 
         setVolumeBarWidth(startingVolume);
-        howler.volume(startingVolume);
 
         function checkBGMLoop() {
             const seek = howler.seek();
@@ -280,9 +294,11 @@
                 if (muted) {
                     toggleMute();
                 }
-                const sliderWidth = window.getComputedStyle(volumeSlider).width;
-                const newVolume = e.offsetX / parseInt(sliderWidth);
-                howler.volume(newVolume);
+                const sliderWidth = volumeSlider.clientWidth || parseFloat(window.getComputedStyle(volumeSlider).width);
+                if (!sliderWidth) {
+                    return;
+                }
+                setVolume(e.offsetX / sliderWidth);
             });
         }
     }
