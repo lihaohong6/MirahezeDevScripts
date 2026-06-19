@@ -42,6 +42,11 @@
         return true;
     }
 
+    function parseNumber(value, fallback) {
+        const parsed = parseFloat(value);
+        return isNaN(parsed) ? fallback : parsed;
+    }
+
     function initAudioPlayer(index, audioPlayer) {
         const dataSet = audioPlayer.dataset;
         const audioGroup = dataSet.group;
@@ -49,8 +54,9 @@
         const useHtml5 = dataSet.html5 === "true";
         // Always preload unless instructed otherwise
         const shouldPreload = parsePreload(dataSet.preload);
-        const loopStart = parseFloat(dataSet.loopStart);
-        const loopEnd = parseFloat(dataSet.loopEnd);
+        const loopStart = parseNumber(dataSet.loopStart, 0);
+        const loopEnd = parseNumber(dataSet.loopEnd, 0);
+        const hasLoopRegion = shouldLoop && loopEnd > loopStart;
         const isPauseButton = dataSet.pauseButton;
         const filename = dataSet.filename;
 
@@ -76,15 +82,21 @@
 
         if (isPauseButton && isPauseButton === "true") {
             playButton.parentElement.addEventListener("click", function () {
-                groups[audioGroup].pause();
+                if (groups[audioGroup]) {
+                    groups[audioGroup].pause();
+                }
             });
             return;
         }
 
         let muted = false;
         let currentVolume = startingVolume;
+        let loopCheckTimeout = null;
+        let progressTimeout = null;
 
         function onAudioPauseOrStop() {
+            clearLoopCheck();
+            clearProgressUpdate();
             playButton.classList.remove("pause");
             playButton.classList.add("play");
         }
@@ -116,12 +128,11 @@
             onplay: function () {
                 playButton.classList.remove("play");
                 playButton.classList.add("pause");
-                if (shouldLoop && loopEnd !== 0) {
-                    setTimeout(checkBGMLoop, 20);
+                if (hasLoopRegion) {
+                    scheduleLoopCheck();
                 }
-                // update progress in every set interval
-                if ((shouldLoop && loopEnd !== 0) || progressBar || audioCurrentTime) {
-                    setTimeout(updateProgress, 100);
+                if (hasLoopRegion || progressBar || audioCurrentTime) {
+                    scheduleProgressUpdate(100);
                 }
             },
             onend: function () {
@@ -158,18 +169,46 @@
 
         setVolumeBarWidth(startingVolume);
 
+        function clearLoopCheck() {
+            if (loopCheckTimeout !== null) {
+                clearTimeout(loopCheckTimeout);
+                loopCheckTimeout = null;
+            }
+        }
+
+        function scheduleLoopCheck() {
+            if (loopCheckTimeout === null) {
+                loopCheckTimeout = setTimeout(checkBGMLoop, 20);
+            }
+        }
+
         function checkBGMLoop() {
+            loopCheckTimeout = null;
+            if (!howler.playing()) {
+                return;
+            }
             const seek = howler.seek();
             if (seek >= loopEnd && seek - loopEnd < 0.5) {
                 // seek will trigger update progress, so no need to do extra things
                 howler.seek(loopStart);
             }
-            if (howler.playing) {
-                setTimeout(checkBGMLoop, 20);
+            scheduleLoopCheck();
+        }
+
+        function clearProgressUpdate() {
+            if (progressTimeout !== null) {
+                clearTimeout(progressTimeout);
+                progressTimeout = null;
             }
         }
 
-        function updateProgress() {
+        function scheduleProgressUpdate(delay) {
+            if (progressTimeout === null) {
+                progressTimeout = setTimeout(updateProgress, delay);
+            }
+        }
+
+        function renderProgress() {
             const seek = howler.seek();
             if (progressBar) {
                 progressBar.style.width = (seek / howler.duration() * 100) + "%";
@@ -177,11 +216,16 @@
             if (audioCurrentTime) {
                 audioCurrentTime.innerText = getTimeCodeFromNum(seek);
             }
-            if (howler.playing) {
-                setTimeout(updateProgress, 20);
+        }
+
+        function updateProgress() {
+            progressTimeout = null;
+            renderProgress();
+            if (howler.playing()) {
+                scheduleProgressUpdate(20);
             }
         }
-        howler.on("seek", updateProgress);
+        howler.on("seek", renderProgress);
 
         function openFilePage() {
             if (filename) {
