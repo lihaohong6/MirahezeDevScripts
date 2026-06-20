@@ -312,5 +312,8 @@
         $(".audio-player").each(initAudioPlayer);
     }
 
-    addScript("https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js", audioInit);
+    // document.body is sometimes null when trying to add this script
+    mw.hook('wikipage.content').add(() => {
+        addScript("https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js", audioInit);
+    });
 })();
