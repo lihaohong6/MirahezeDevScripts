@@ -146,7 +146,6 @@ export class ProgressWindow {
             ],
             size: "large"
         }, () => {
-            // Cleanup wakelock
             this.cleanupWakeLock();
         });
 
