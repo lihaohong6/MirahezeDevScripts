@@ -35,6 +35,7 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
     private summaryInput!: OO.ui.TextInputWidget;
     private readThrottleInput!: OO.ui.NumberInputWidget;
     private writeThrottleInput!: OO.ui.NumberInputWidget;
+    private wakeLockEnabledInput!: OO.ui.CheckboxInputWidget;
 
     public initialize(): this {
         super.initialize();
@@ -52,6 +53,11 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
             min: 0.5,
             max: 20
         });
+        
+        this.wakeLockEnabledInput = new OO.ui.CheckboxInputWidget({
+            selected: state.config.wakeLockEnabled,
+            disabled: !("wakeLock" in navigator)
+        });
 
         const fieldset = new OO.ui.FieldsetLayout({ label: 'Global Bot Configuration' });
         fieldset.addItems([
@@ -61,6 +67,7 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
             new OO.ui.FieldLayout(this.readThrottleInput, { label: 'Read throttle (0.1s to 10s)', align: 'top' }),
             // @ts-expect-error This works as a widget
             new OO.ui.FieldLayout(this.writeThrottleInput, { label: 'Write throttle (0.5s to 20s)', align: 'top' }),
+            new OO.ui.FieldLayout(this.wakeLockEnabledInput, { label: 'Wakelock enabled', align: 'inline'})
         ]);
 
         const mainPanel = new OO.ui.PanelLayout({ padded: true, expanded: false });
@@ -77,6 +84,7 @@ export class SettingsDialog extends OO.ui.ProcessDialog {
                 state.config.summaryBot = this.summaryInput.getValue();
                 state.config.readThrottle = Number(this.readThrottleInput.getValue());
                 state.config.writeThrottle = Number(this.writeThrottleInput.getValue());
+                state.config.wakeLockEnabled = this.wakeLockEnabledInput.isSelected();
 
                 // Persist to local storage
                 saveConfig();
