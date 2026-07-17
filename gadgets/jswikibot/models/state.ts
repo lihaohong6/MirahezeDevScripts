@@ -17,7 +17,7 @@ export class Config {
     readThrottle: number = 0.2;
     writeThrottle: number = 1;
     // Whether a wakelock is held while the bot is executing actions
-    wakeLockEnabled: boolean = true
+    wakeLockEnabled: boolean = true;
 }
 
 class State {
