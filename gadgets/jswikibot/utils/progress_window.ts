@@ -1,5 +1,5 @@
 import {openWindow} from "./alert_window";
-import {isWakeLockEnabled, isDebugMode} from "../models/state"
+import {isWakeLockEnabled, isDebugMode} from "../models/state";
 
 export enum LogSeverity {
     SUCCESS = "Success",
