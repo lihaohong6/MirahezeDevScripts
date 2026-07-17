@@ -214,15 +214,15 @@ export class ProgressWindow {
                 this.addLog(LogSeverity.INFO, `Wake lock requested`);
             }
         }).catch((err) => {
-            this.addLog(LogSeverity.INFO, `Failed to request wake lock: ${err.name}, ${err.message}`)
-        })
+            this.addLog(LogSeverity.INFO, `Failed to request wake lock: ${err.name}, ${err.message}`);
+        });
     }
 
     releaseWakeLock() {
         if (this.wakeLock) {
             this.wakeLock.release().then(() => {
                 this.wakeLock = null;
-            })
+            });
         }
     }
 
