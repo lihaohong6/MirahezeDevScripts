@@ -37,7 +37,7 @@ export class ProgressWindow {
     private readonly logLabel: OO.ui.LabelWidget;
     private readonly cancelButton: OO.ui.ButtonWidget;
     private readonly logPanelWidget: OO.ui.Widget;
-    private wakeLock: WakeLockSentinel | null;
+    private wakeLock: WakeLockSentinel | null = null;
     private isDone = false;
     private progress = 0;
     private isCancelled = false;
