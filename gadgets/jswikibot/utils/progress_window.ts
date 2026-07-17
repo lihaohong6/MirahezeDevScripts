@@ -147,6 +147,9 @@ export class ProgressWindow {
             size: "large"
         }, () => {
             this.cleanupWakeLock();
+            if (isDebugMode()) {
+                console.log("jswikibot: wakelock cleanup");
+            }
         });
 
         // Confirm exit when the bot is not yet done/canceled
