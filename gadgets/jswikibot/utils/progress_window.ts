@@ -196,7 +196,7 @@ export class ProgressWindow {
 
     handleDocumentVisibilityChange = async () => {
         if (this.wakeLock !== null && document.visibilityState === "visible") {
-            this.requestWakeLock()
+            this.requestWakeLock();
         }
     }
 
