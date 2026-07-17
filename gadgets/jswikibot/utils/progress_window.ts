@@ -209,8 +209,10 @@ export class ProgressWindow {
 
     requestWakeLock() {
         navigator.wakeLock.request("screen").then((wakeLock: WakeLockSentinel) => {
-            this.wakeLock = wakeLock
-            if (isDebugMode()) this.addLog(LogSeverity.INFO, `Wake lock requested`)
+            this.wakeLock = wakeLock;
+            if (isDebugMode()) {
+                this.addLog(LogSeverity.INFO, `Wake lock requested`);
+            }
         }).catch((err) => {
             this.addLog(LogSeverity.INFO, `Failed to request wake lock: ${err.name}, ${err.message}`)
         })
