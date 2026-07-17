@@ -228,7 +228,7 @@ export class ProgressWindow {
 
     cleanupWakeLock() {
         this.releaseWakeLock();
-        document.removeEventListener("visibilitychange", this.handleDocumentVisibilityChange)
+        document.removeEventListener("visibilitychange", this.handleDocumentVisibilityChange);
     }
 
     private readonly logEntries: LogEntry[] = [];
