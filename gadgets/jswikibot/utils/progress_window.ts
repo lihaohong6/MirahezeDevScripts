@@ -1,4 +1,5 @@
 import {openWindow} from "./alert_window";
+import {isWakeLockEnabled, isDebugMode} from "../models/state";
 
 export enum LogSeverity {
     SUCCESS = "Success",
@@ -36,6 +37,7 @@ export class ProgressWindow {
     private readonly logLabel: OO.ui.LabelWidget;
     private readonly cancelButton: OO.ui.ButtonWidget;
     private readonly logPanelWidget: OO.ui.Widget;
+    private wakeLock: WakeLockSentinel | null = null;
     private isDone = false;
     private progress = 0;
     private isCancelled = false;
@@ -129,6 +131,8 @@ export class ProgressWindow {
             })
         ]);
 
+        this.initialRequestWakeLock();
+
         this.progressDialog = new OO.ui.MessageDialog();
         openWindow(this.progressDialog, {
             title: 'Bot progress',
@@ -141,6 +145,11 @@ export class ProgressWindow {
                 }
             ],
             size: "large"
+        }, () => {
+            this.cleanupWakeLock();
+            if (isDebugMode()) {
+                console.log("jswikibot: wakelock cleanup");
+            }
         });
 
         // Confirm exit when the bot is not yet done/canceled
@@ -183,6 +192,43 @@ export class ProgressWindow {
 
     makeProgress(progress: number) {
         this.setProgress(this.progress + progress);
+    }
+
+    handleDocumentVisibilityChange = async () => {
+        if (this.wakeLock !== null && document.visibilityState === "visible") {
+            this.requestWakeLock();
+        }
+    }
+
+    initialRequestWakeLock() {
+        if (isWakeLockEnabled() && 'wakeLock' in navigator) {
+            document.addEventListener("visibilitychange", this.handleDocumentVisibilityChange);
+            this.requestWakeLock();
+        }
+    }
+
+    requestWakeLock() {
+        navigator.wakeLock.request("screen").then((wakeLock: WakeLockSentinel) => {
+            this.wakeLock = wakeLock;
+            if (isDebugMode()) {
+                this.addLog(LogSeverity.INFO, `Wake lock requested`);
+            }
+        }).catch((err) => {
+            this.addLog(LogSeverity.INFO, `Failed to request wake lock: ${err.name}, ${err.message}`);
+        });
+    }
+
+    releaseWakeLock() {
+        if (this.wakeLock) {
+            this.wakeLock.release().then(() => {
+                this.wakeLock = null;
+            });
+        }
+    }
+
+    cleanupWakeLock() {
+        this.releaseWakeLock();
+        document.removeEventListener("visibilitychange", this.handleDocumentVisibilityChange);
     }
 
     private readonly logEntries: LogEntry[] = [];
@@ -234,6 +280,7 @@ export class ProgressWindow {
             this.isDone = true;
             this.setProgress(this.total);
             this.hideCancelButton();
+            this.cleanupWakeLock();
         }
     }
 }

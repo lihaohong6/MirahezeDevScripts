@@ -16,6 +16,8 @@ export class Config {
     // In seconds
     readThrottle: number = 0.2;
     writeThrottle: number = 1;
+    // Whether a wakelock is held while the bot is executing actions
+    wakeLockEnabled: boolean = true;
 }
 
 class State {
@@ -27,6 +29,10 @@ export const state = new State();
 
 export function isDebugMode() {
     return state.config.debug;
+}
+
+export function isWakeLockEnabled() {
+    return state.config.wakeLockEnabled;
 }
 
 export function cachePageInfo(pageInfo: PageInfo) {
