@@ -280,6 +280,7 @@ export class ProgressWindow {
             this.isDone = true;
             this.setProgress(this.total);
             this.hideCancelButton();
+            this.cleanupWakeLock();
         }
     }
 }
