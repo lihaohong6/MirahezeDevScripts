@@ -64,6 +64,13 @@ gadgets:
         - 'mediawiki.widgets'
         - 'mediawiki.widgets.datetime'
 
+  ModelViewer:
+    description: "Interactive 3D model viewer (glTF/GLB, FBX, OBJ, STL, Collada)"
+    scripts:
+      - index.ts
+    styles:
+      - style.less
+
   StatCalc:
     scripts:
       - index.ts

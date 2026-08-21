@@ -1,0 +1,269 @@
+/* These class names are the gadget's wikitext interface, written against by
+   templates, so they carry their own prefix instead of MediaWiki's. */
+/* stylelint-disable selector-class-pattern */
+
+/* The viewer needs import maps and WebGL 2 anyway, which rules out every
+   browser the support data flags below. */
+/* stylelint-disable plugin/no-unsupported-browser-features */
+
+.model-viewer {
+	margin: 0.5em 0;
+	max-width: 100%;
+}
+
+.model-viewer-stage {
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	border: 1px solid var( --border-color-base, #a2a9b1 );
+	border-radius: 2px;
+	background-color: var( --background-color-neutral-subtle, #f8f9fa );
+}
+
+.model-viewer-canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+	/* OrbitControls needs the pointer events; a pan must not swallow a drag. */
+	touch-action: none;
+}
+
+.model-viewer-message {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate( -50%, -50% );
+	max-width: 80%;
+	padding: 0.4em 0.8em;
+	border-radius: 2px;
+	text-align: center;
+	background-color: var( --background-color-neutral, #eaecf0 );
+	color: var( --color-subtle, #54595d );
+	font-size: 0.9em;
+}
+
+.model-viewer-message-error {
+	background-color: var( --background-color-error-subtle, #fee7e6 );
+	color: var( --color-error, #bf3c2c );
+}
+
+/* The Codex bar is width-agnostic and this one sits inside the status pill. */
+.model-viewer-progress {
+	width: 12em;
+	max-width: 100%;
+	margin: 0.5em auto 0.15em;
+}
+
+.model-viewer-load {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate( -50%, -50% );
+}
+
+.model-viewer-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.35em 1em;
+	padding: 0.4em 0.2em;
+}
+
+.model-viewer-control {
+	display: flex;
+	align-items: center;
+	gap: 0.35em;
+}
+
+/* An author rule beats the UA stylesheet's `[hidden]` at equal specificity
+   whatever the source order, so this one has to outrank the class rule above. */
+.model-viewer-control[ hidden ] {
+	display: none;
+}
+
+/* Matched to the Codex checkbox's label, which sits beside these in the row. */
+.model-viewer-control-label {
+	color: var( --color-base, #202122 );
+	font-size: 0.9em;
+	white-space: nowrap;
+}
+
+.model-viewer-control .cdx-checkbox .cdx-label__label__text {
+	font-size: 0.9em;
+	font-weight: normal;
+}
+
+/* Codex has no range component, so this is the one widget drawn by hand.
+   `accent-color` alone is not enough: setting it makes Chrome opt out of its
+   dark-mode adjustment, leaving a bright white track on a dark page. Painting
+   the track from Codex tokens keeps it following the skin in both modes.
+
+   The filled portion is a gradient stop, not a pseudo-element, because only
+   Firefox has `::-moz-range-progress`; paintSlider() in controls.ts keeps
+   `--mv-fill` in step with the value. */
+@mv-track-height: 4px;
+@mv-thumb-size: 14px;
+
+.model-viewer-slider {
+	appearance: none;
+	width: 8em;
+	max-width: 30vw;
+	height: @mv-thumb-size;
+	margin: 0;
+	padding: 0;
+	vertical-align: middle;
+	background-color: transparent;
+	cursor: pointer;
+
+	&:disabled {
+		cursor: default;
+	}
+}
+
+.mv-slider-track() {
+	height: @mv-track-height;
+	border: 0;
+	border-radius: @mv-track-height;
+	@fill: var( --background-color-progressive, #36c ) var( --mv-fill, 0% );
+	@rest: var( --background-color-interactive, #dadde3 ) var( --mv-fill, 0% );
+	background-image: linear-gradient( to right, @fill, @rest );
+}
+
+.mv-slider-track-disabled() {
+	@fill: var( --background-color-disabled, #dadde3 ) var( --mv-fill, 0% );
+	@rest: var( --background-color-disabled-subtle, #eaecf0 ) var( --mv-fill, 0% );
+	background-image: linear-gradient( to right, @fill, @rest );
+}
+
+.mv-slider-thumb() {
+	appearance: none;
+	box-sizing: border-box;
+	width: @mv-thumb-size;
+	height: @mv-thumb-size;
+	border: 0;
+	border-radius: 50%;
+	background-color: var( --background-color-progressive, #36c );
+}
+
+.mv-slider-thumb-disabled() {
+	background-color: var( --background-color-disabled, #dadde3 );
+}
+
+.model-viewer-slider::-webkit-slider-runnable-track {
+	.mv-slider-track();
+}
+
+.model-viewer-slider::-webkit-slider-thumb {
+	.mv-slider-thumb();
+	/* Chrome aligns the thumb to the top of the track rather than its centre. */
+	margin-top: ( ( @mv-track-height - @mv-thumb-size ) / 2 );
+}
+
+.model-viewer-slider:disabled::-webkit-slider-runnable-track {
+	.mv-slider-track-disabled();
+}
+
+.model-viewer-slider:disabled::-webkit-slider-thumb {
+	.mv-slider-thumb-disabled();
+}
+
+.model-viewer-slider::-moz-range-track {
+	.mv-slider-track();
+}
+
+.model-viewer-slider::-moz-range-thumb {
+	.mv-slider-thumb();
+}
+
+.model-viewer-slider:disabled::-moz-range-track {
+	.mv-slider-track-disabled();
+}
+
+.model-viewer-slider:disabled::-moz-range-thumb {
+	.mv-slider-thumb-disabled();
+}
+
+.model-viewer-slider:focus-visible {
+	outline: 1px solid var( --border-color-progressive--focus, #36c );
+	outline-offset: 1px;
+}
+
+/* Codex sizes a select for a form column; in a control row it gives way.
+   Two classes, so this beats `.cdx-select` whatever the stylesheet order. */
+.model-viewer-control .model-viewer-select {
+	min-width: 0;
+	max-width: 16em;
+}
+
+/* The row already spaces its children with `gap`. */
+.model-viewer-control .cdx-checkbox--inline {
+	margin-right: 0;
+}
+
+/* The scrub bar is the one control worth giving the leftover room to. */
+.model-viewer-control-scrub {
+	flex: 1 1 12em;
+
+	.model-viewer-slider {
+		flex: 1 1 auto;
+		width: auto;
+		max-width: none;
+	}
+}
+
+.model-viewer-readout {
+	color: var( --color-subtle, #54595d );
+	font-size: 0.85em;
+	/* Digits changing width would make the row twitch every frame. */
+	font-variant-numeric: tabular-nums;
+	min-width: 4em;
+	/* A narrow row would otherwise wrap the trailing unit onto its own line. */
+	white-space: nowrap;
+}
+
+/* Empty except while a clip file is in flight, so it must take no room. */
+.model-viewer-note {
+	color: var( --color-subtle, #54595d );
+	font-size: 0.85em;
+}
+
+/* Everything visual comes from `.cdx-button`, so the buttons keep MediaWiki's
+   32px metrics. */
+.model-viewer-icon {
+	width: 1.15em;
+	height: 1.15em;
+}
+
+/* No Codex colour well, so it borrows the tokens and 32px height of its
+   neighbours. */
+.model-viewer-color {
+	box-sizing: border-box;
+	width: 2.75rem;
+	height: 32px;
+	padding: 0 0.15em;
+	border: 1px solid var( --border-color-interactive, #72777d );
+	border-radius: 2px;
+	background-color: var( --background-color-interactive-subtle, #f8f9fa );
+	cursor: pointer;
+
+	&:disabled {
+		border-color: var( --border-color-disabled, #c8ccd1 );
+		background-color: var( --background-color-disabled-subtle, #eaecf0 );
+		cursor: default;
+	}
+}
+
+.model-viewer:fullscreen {
+	display: flex;
+	flex-direction: column;
+	background-color: var( --background-color-base, #fff );
+	/* An authored width arrives inline, so outranking it takes `!important`. */
+	width: auto !important; /* stylelint-disable-line declaration-no-important */
+	max-width: none;
+
+	.model-viewer-stage {
+		/* The authored height is for page flow; here the stage takes the rest. */
+		height: auto !important; /* stylelint-disable-line declaration-no-important */
+		flex: 1 1 auto;
+	}
+}
