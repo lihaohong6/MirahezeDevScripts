@@ -152,7 +152,7 @@ export class CategoryMembersQuery extends ApiListQuery {
     }
 }
 
-export class AllPagesQuery extends ApiListQuery {
+export class PagesInNamespaceQuery extends ApiListQuery {
     static readonly description = "All pages in namespace";
     static override readonly inputs: UserInputOption[] = [
         {
@@ -174,6 +174,47 @@ export class AllPagesQuery extends ApiListQuery {
     getDescription(): string {
         const ns = getNamespaces().toNamespace(this.args['apnamespace'] as string) as { ok: true, value: Namespace };
         return `All pages in namespace ${ns.value.toString()}`;
+    }
+}
+
+export class AllWikiPagesQuery extends PageLister {
+    private static readonly FILE_NS = 6;
+    static readonly description = "All pages on the wiki";
+    static override readonly inputs: UserInputOption[] = [
+        {
+            key: 'skipFiles',
+            label: 'Skip File namespace',
+            type: InputType.BOOLEAN,
+            defaultValue: false,
+            help: "File pages are often numerous and rarely need to be edited in bulk."
+        },
+    ]
+
+    constructor(args: QueryArguments) {
+        super(args);
+    }
+
+    private skipFiles(): boolean {
+        return this.args['skipFiles'] === true;
+    }
+
+    private getNamespaces(): Namespace[] {
+        return getNamespaces().namespaces
+            .filter(ns => ns.number >= 0 && !(this.skipFiles() && ns.number === AllWikiPagesQuery.FILE_NS))
+            .sort((a, b) => a.number - b.number);
+    }
+
+    async* getNext(): AsyncGenerator<PageProps> {
+        for (const ns of this.getNamespaces()) {
+            yield* new PagesInNamespaceQuery({apnamespace: ns.number}).getNext();
+        }
+    }
+
+    getDescription(): string {
+        if (this.skipFiles()) {
+            return "All pages on the wiki, excluding the File namespace";
+        }
+        return "All pages on the wiki";
     }
 }
 
@@ -359,7 +400,8 @@ export interface QueryConstructor extends SelectorConfig<QueryArguments> {
 
 export const allQueryLister: QueryConstructor[] = [
     CategoryMembersQuery,
-    AllPagesQuery,
+    PagesInNamespaceQuery,
+    AllWikiPagesQuery,
     EmbeddedInQuery,
     BacklinksQuery,
     PageLinksQuery,
