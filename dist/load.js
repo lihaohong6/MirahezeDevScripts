@@ -6,6 +6,7 @@ mw.loader.load("http://localhost:4173/FilterTable/gadget-impl.js");
 mw.loader.load("http://localhost:4173/ImportButton/gadget-impl.js");
 mw.loader.load("http://localhost:4173/JsonEditor/gadget-impl.js");
 mw.loader.load("http://localhost:4173/jswikibot/gadget-impl.js");
+mw.loader.load("http://localhost:4173/ModelViewer/gadget-impl.js");
 mw.loader.load("http://localhost:4173/StatCalc/gadget-impl.js");
 mw.loader.load("http://localhost:4173/Tab/gadget-impl.js");
 mw.loader.load("http://localhost:4173/VueHelloWorld/gadget-impl.js");
