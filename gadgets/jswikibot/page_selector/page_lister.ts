@@ -1,6 +1,6 @@
 import {PageProps} from "../models/page";
 import {API} from "../utils/mw_api";
-import {getNamespaces, Namespace} from "../models/namespace";
+import {getMainNamespaceName, getNamespaces, Namespace} from "../models/namespace";
 import {InputType, UserInputOption} from "../utils/input_dialog";
 import {PageSelector, SelectorConfig} from "./page_selector";
 import {flatMap} from "../utils/result";
@@ -159,7 +159,7 @@ export class PagesInNamespaceQuery extends ApiListQuery {
             key: 'apnamespace',
             label: 'Namespace name or number (only one allowed)',
             type: InputType.NAMESPACE,
-            defaultValue: "Main",
+            defaultValue: getMainNamespaceName(),
             validator: (nsString) => {
                 const result = getNamespaces().toNamespace(String(nsString));
                 return flatMap(result, (ns) => ns.number.toString());

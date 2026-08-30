@@ -3,6 +3,14 @@ import {getSiteInfo} from "../utils/mw_api";
 import {Result} from "../utils/result";
 import {state} from "./state";
 
+const MAIN_NAMESPACE_FALLBACK_NAME = "Main";
+
+export function getMainNamespaceName(): string {
+    // Message loaded with mediawiki.widgets
+    const message = mw.message('blanknamespace');
+    return message.exists() ? message.text() : MAIN_NAMESPACE_FALLBACK_NAME;
+}
+
 export class Namespace {
     constructor(public readonly name: string,
                 public readonly number: number,
@@ -89,8 +97,8 @@ export async function getAllNamespacesAsync(): Promise<NamespaceList> {
         if (response && typeof response === 'object') {
             for (const key in response) {
                 const ns = response[key];
-                const nsName = ns.id === 0 ? "Main" : (ns.canonical || ns['*']);
-                const localizedName = ns.id === 0 ? "Main" : (ns['*'] || nsName);
+                const nsName = ns.id === 0 ? MAIN_NAMESPACE_FALLBACK_NAME : (ns.canonical || ns['*']);
+                const localizedName = ns.id === 0 ? getMainNamespaceName() : (ns['*'] || nsName);
                 namespaces.push(new Namespace(nsName, ns.id, localizedName));
             }
         }
