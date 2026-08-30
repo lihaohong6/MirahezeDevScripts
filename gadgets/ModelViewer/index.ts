@@ -7,7 +7,7 @@
  * shown; see ./three-cdn.ts.
  */
 
-import { Viewer, ViewerOptions, ShadingMode } from './viewer';
+import { Viewer, ViewerOptions, ShadingMode, ControlsMode } from './viewer';
 import { button, ControlPanels, ensureCodexStyles } from './controls';
 import { UnsupportedBrowserError } from './three-cdn';
 import { resolveModelEntries } from './models';
@@ -66,6 +66,15 @@ function parseShading(value: string | undefined): ShadingMode {
         : 'shaded';
 }
 
+const CONTROLS_MODES: ControlsMode[] = ['orbit', 'trackball'];
+
+function parseCameraControl(value: string | undefined): ControlsMode {
+    const normalized = (value || '').trim().toLowerCase();
+    return (CONTROLS_MODES as string[]).includes(normalized)
+        ? normalized as ControlsMode
+        : 'orbit';
+}
+
 function readOptions(element: HTMLElement): ViewerOptions {
     const data = element.dataset;
     return {
@@ -83,6 +92,7 @@ function readOptions(element: HTMLElement): ViewerOptions {
         exposure: num(data.exposure, 1),
         fov: num(data.fov, 35),
         camera: parseCamera(data.camera),
+        cameraControl: parseCameraControl(data.cameraControl),
         autorotate: bool(data.autorotate, false),
         grid: bool(data.grid, false),
         shading: parseShading(data.shading),

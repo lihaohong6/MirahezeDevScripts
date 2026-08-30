@@ -4,6 +4,7 @@
 
 import type * as THREE from 'three';
 import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import type { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
 import type { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 import { importAddon, importModule } from './three-cdn';
@@ -20,6 +21,8 @@ import { PartLayer, parsePartList } from './parts';
  * two are one exclusive mode instead of two booleans that could fight.
  */
 export type ShadingMode = 'shaded' | 'unlit' | 'wireframe';
+
+export type ControlsMode = 'orbit' | 'trackball';
 
 export interface ViewerOptions {
     /** `data-src`: the primary model. */
@@ -42,6 +45,8 @@ export interface ViewerOptions {
     exposure: number;
     fov: number;
     camera: [number, number, number] | null;
+    /** `data-camera-control="trackball"`: turn past the poles; see `setUpControls()`. */
+    cameraControl: ControlsMode;
     autorotate: boolean;
     grid: boolean;
     shading: ShadingMode;
@@ -66,17 +71,42 @@ const TONE_MAPPINGS: Record<string, string> = {
 /** A tab left in the background hands back one huge delta on return. */
 const MAX_DELTA = 0.1;
 
+/** TrackballControls' turn state, which it keeps to itself; see `Viewer.turn`. */
+interface TurnFields {
+    _moveCurr: THREE.Vector2;
+    _movePrev: THREE.Vector2;
+    _lastAngle: number;
+}
+
+/** Radians per second, matching OrbitControls' own `autoRotateSpeed = 1.5`. */
+const AUTO_ROTATE_RATE = 2 * Math.PI / 60 * 1.5;
+
 export class Viewer {
     private three!: typeof THREE;
     private renderer!: THREE.WebGLRenderer;
     private scene!: THREE.Scene;
     private camera!: THREE.PerspectiveCamera;
-    private orbit!: OrbitControls;
+    /** Whichever kind `setUpControls()` built; exactly one of the two is set. */
+    private controls!: OrbitControls | TrackballControls;
+    private orbit: OrbitControls | null = null;
+    private trackball: TrackballControls | null = null;
+    /** So `spin()` does not fight the pointer. */
+    private dragging = false;
+    /**
+     * The trackball's own turn state, and where the last `update()` turned
+     * from. It reads a drag as the gap between the last two pointer events, so
+     * a mouse reporting more than once a frame has all but its last report
+     * thrown away, and it carries the last gap on after the pointer stops.
+     * Re-anchoring each frame counts every report, once; see `tick()`.
+     */
+    private turn: { fields: TurnFields; anchor: THREE.Vector2 } | null = null;
     private timer!: THREE.Timer;
     private grid: THREE.GridHelper | null = null;
     private root: THREE.Object3D | null = null;
     private bounds: { center: THREE.Vector3; size: THREE.Vector3 } | null = null;
     private fitDistance = 0;
+    /** `data-camera`'s zoom, so a re-fit keeps the page's framing. */
+    private zoom = 1;
     private resizeObserver: ResizeObserver | null = null;
     private running = false;
     /** Built lazily by `setUnlitMaterial()`. */
@@ -197,14 +227,7 @@ export class Viewer {
         this.camera = new three.PerspectiveCamera(this.options.fov, 1, 0.01, 1000);
         this.timer = new three.Timer();
 
-        const { OrbitControls: Orbit } = await importAddon<{
-            OrbitControls: typeof OrbitControls;
-        }>('controls/OrbitControls.js');
-        this.orbit = new Orbit(this.camera, this.canvas);
-        this.orbit.enableDamping = true;
-        this.orbit.dampingFactor = 0.08;
-        this.orbit.autoRotate = this.options.autorotate;
-        this.orbit.autoRotateSpeed = 1.5;
+        await this.setUpControls();
 
         await this.setUpLighting();
         this.resize();
@@ -212,6 +235,60 @@ export class Viewer {
         this.resizeObserver.observe(this.container);
 
         await this.loadModelEntry(this.resolveModelIndex(), true);
+    }
+
+    /**
+     * OrbitControls holds the up axis fixed, so the camera can never be carried
+     * over a pole. `data-camera-control="trackball"` turns up along with the
+     * camera instead: no limit, but no horizon and no autorotate of its own
+     * (see `spin()`), which is why it is not the default.
+     */
+    private async setUpControls(): Promise<void> {
+        if (this.options.cameraControl === 'trackball') {
+            const { TrackballControls: Trackball } = await importAddon<{
+                TrackballControls: typeof TrackballControls;
+            }>('controls/TrackballControls.js');
+            const trackball = new Trackball(this.camera, this.canvas);
+            // Smooths the pan and the zoom only: `tick()` takes the turn's own
+            // damping away, and `tuneControls()` divides this back out of the
+            // pan speed.
+            trackball.dynamicDampingFactor = 0.3;
+            // Its modifier keys are listened for on `window`, so at their
+            // defaults an A, S or D typed anywhere on the page — a search box,
+            // an edit form — would change what dragging the viewer does.
+            trackball.keys = ['', '', ''];
+            const fields = trackball as unknown as Partial<TurnFields>;
+            if (fields._moveCurr && fields._movePrev
+                && typeof fields._lastAngle === 'number') {
+                this.turn = {
+                    fields: fields as TurnFields,
+                    anchor: fields._moveCurr.clone(),
+                };
+            }
+            trackball.addEventListener('start', () => {
+                this.dragging = true;
+                // A press seeds both vectors with itself; older ones belong to
+                // a drag that is over.
+                this.turn?.anchor.copy(this.turn.fields._moveCurr);
+            });
+            trackball.addEventListener('end', () => {
+                this.dragging = false;
+            });
+            this.trackball = trackball;
+            this.controls = trackball;
+            return;
+        }
+
+        const { OrbitControls: Orbit } = await importAddon<{
+            OrbitControls: typeof OrbitControls;
+        }>('controls/OrbitControls.js');
+        const orbit = new Orbit(this.camera, this.canvas);
+        orbit.enableDamping = true;
+        orbit.dampingFactor = 0.08;
+        orbit.autoRotate = this.options.autorotate;
+        orbit.autoRotateSpeed = 1.5;
+        this.orbit = orbit;
+        this.controls = orbit;
     }
 
     private async setUpLighting(): Promise<void> {
@@ -244,9 +321,6 @@ export class Viewer {
             return;
         }
         const token = ++this.modelToken;
-        // Taken before anything is touched: the framing below needs to know where
-        // the *previous* model's camera was.
-        const wasPristine = this.cameraPristine();
         this.modelLoading = true;
 
         let loaded;
@@ -306,15 +380,11 @@ export class Viewer {
         // Before `measure()`: a hidden part should not widen the bounds.
         this.parts.apply();
 
-        // The old bounds describe a model that is gone, so they always go; the
-        // camera follows only on a first load, or if the user had not moved it.
+        // The old bounds, target and distance describe a model that is gone; a
+        // switch keeps only the direction the reader looks from.
         this.measure();
         this.buildGrid();
-        if (initial) {
-            this.frame(false);
-        } else if (wasPristine) {
-            this.frame(true);
-        }
+        this.frame(!initial);
 
         if (this.options.autoplay && this.animation.available) {
             // Not awaited: an external clip is a second round trip. `play` records
@@ -498,9 +568,9 @@ export class Viewer {
             return false;
         }
         const tolerance = this.fitDistance * 0.02;
-        return Math.abs(this.camera.position.distanceTo(this.orbit.target)
+        return Math.abs(this.camera.position.distanceTo(this.controls.target)
             - this.fitDistance) < tolerance
-            && this.bounds.center.distanceTo(this.orbit.target) < tolerance;
+            && this.bounds.center.distanceTo(this.controls.target) < tolerance;
     }
 
     private reframe(): void {
@@ -523,9 +593,15 @@ export class Viewer {
         const fit = Math.max(size.y / height, size.x / width);
         let distance = fit * height / (2 * Math.tan(fov / 2)) * 1.08 + size.z * 0.6;
 
+        // Our own direction needs our own up, or a rolled trackball view would
+        // be re-fitted still upside down.
+        if (!keepOrientation) {
+            this.camera.up.set(0, 1, 0);
+        }
+
         let direction: THREE.Vector3;
         if (keepOrientation) {
-            direction = this.camera.position.clone().sub(this.orbit.target).normalize();
+            direction = this.camera.position.clone().sub(this.controls.target).normalize();
         } else if (this.options.camera) {
             const [azimuth, elevation, zoom] = this.options.camera;
             const a = three.MathUtils.degToRad(azimuth);
@@ -533,18 +609,20 @@ export class Viewer {
             direction = new three.Vector3(
                 Math.cos(e) * Math.sin(a), Math.sin(e), Math.cos(e) * Math.cos(a),
             ).normalize();
-            distance *= zoom || 1;
+            this.zoom = zoom || 1;
         } else {
             direction = new three.Vector3(0, 0.04, 1).normalize();
+            this.zoom = 1;
         }
+        distance *= this.zoom;
 
-        this.orbit.target.copy(center);
+        this.controls.target.copy(center);
         this.camera.position.copy(center).addScaledVector(direction, distance);
         this.camera.near = distance / 200;
         this.camera.far = distance * 20;
         this.fitDistance = distance;
         this.camera.updateProjectionMatrix();
-        this.orbit.update();
+        this.controls.update();
     }
 
     resetCamera(): void {
@@ -554,7 +632,9 @@ export class Viewer {
 
     setAutoRotate(on: boolean): void {
         this.options.autorotate = on;
-        this.orbit.autoRotate = on;
+        if (this.orbit) {
+            this.orbit.autoRotate = on;
+        }
     }
 
     /**
@@ -672,6 +752,9 @@ export class Viewer {
         const width = Math.max(this.canvas.clientWidth, 1);
         const height = Math.max(this.canvas.clientHeight, 1);
         this.renderer.setSize(width, height, false);
+        // The trackball caches the rect it maps pointer movement into.
+        this.trackball?.handleResize();
+        this.tuneControls(width / height);
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         // A narrower box crops a fit computed at the old aspect. A resize cannot
@@ -703,17 +786,58 @@ export class Viewer {
         this.timer.update(timestamp);
         const delta = Math.min(this.timer.getDelta(), MAX_DELTA);
         this.animation?.update(delta);
-        this.orbit.update();
+        if (this.trackball && this.options.autorotate && !this.dragging) {
+            this.spin(delta);
+        }
+        if (this.turn) {
+            this.turn.fields._movePrev.copy(this.turn.anchor);
+        }
+        this.controls.update();
+        if (this.turn) {
+            this.turn.anchor.copy(this.turn.fields._moveCurr);
+            // Damping is left to smooth the pan and the zoom; a turn that ran on
+            // after the pointer would only drift the model while it is held still.
+            this.turn.fields._lastAngle = 0;
+        }
         this.renderer.render(this.scene, this.camera);
         // Every frame, not only while playing: a pause can come from scrubbing or
         // a clip clamping at its end, and the transport still needs repainting.
         this.onFrame?.();
     }
 
+    /**
+     * Both speeds are per box rather than per pixel, so they follow the stage.
+     * The trackball measures a drag against the box's width across but its
+     * height down, so the box is squared up first, leaving a diagonal drag
+     * true to the pointer and only a middle-button zoom reading gentler on a
+     * wide stage.
+     */
+    private tuneControls(aspect: number): void {
+        if (!this.trackball) {
+            return;
+        }
+        this.trackball.screen.height = this.trackball.screen.width;
+        // A drag of the stage's height turns right round, as OrbitControls does.
+        this.trackball.rotateSpeed = Math.PI * aspect;
+        // And a drag holds the model under the pointer.
+        this.trackball.panSpeed = 2 * Math.tan(this.camera.fov * Math.PI / 360)
+            * aspect * this.trackball.dynamicDampingFactor;
+    }
+
+    /** Autorotation for the trackball, which has none of its own. */
+    private spin(delta: number): void {
+        const { target } = this.controls;
+        this.camera.position.sub(target)
+            .applyAxisAngle(this.camera.up.normalize(), -AUTO_ROTATE_RATE * delta)
+            .add(target);
+    }
+
     dispose(): void {
         this.stop();
         this.resizeObserver?.disconnect();
         this.unloadModel();
+        // The trackball's key listeners are on `window`, outliving the canvas.
+        this.controls?.dispose();
         this.renderer?.dispose();
     }
 }
