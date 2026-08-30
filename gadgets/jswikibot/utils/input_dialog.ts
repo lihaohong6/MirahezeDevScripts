@@ -102,8 +102,8 @@ export class InputDialog {
                 widget = new OO.ui.ComboBoxInputWidget({
                     value: inputField.defaultValue as string || '',
                     options: getNamespaces().namespaces.map(ns => ({
-                        data: ns.name,
-                        label: ns.name
+                        data: ns.localizedName,
+                        label: ns.localizedName
                     })),
                     menu: {
                         filterFromInput: true
@@ -115,8 +115,8 @@ export class InputDialog {
                     // Handle potential default value as an array or single string
                     selected: [],
                     options: getNamespaces().namespaces.map(ns => ({
-                        data: ns.name,
-                        label: ns.name
+                        data: ns.localizedName,
+                        label: ns.localizedName
                     })),
                     allowArbitrary: true,
                     inputPosition: 'inline',

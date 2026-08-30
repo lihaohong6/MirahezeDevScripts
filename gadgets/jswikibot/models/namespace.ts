@@ -5,11 +5,12 @@ import {state} from "./state";
 
 export class Namespace {
     constructor(public readonly name: string,
-                public readonly number: number) {
+                public readonly number: number,
+                public readonly localizedName: string = name) {
     }
 
     toString(): string {
-        return `${this.number} (${this.name})`;
+        return `${this.number} (${this.localizedName})`;
     }
 }
 
@@ -20,6 +21,7 @@ export class NamespaceList {
         this.index = {};
         for (const namespace of namespaces) {
             this.index[namespace.name.toLowerCase()] = namespace;
+            this.index[namespace.localizedName.toLowerCase()] = namespace;
             this.index[namespace.number.toString()] = namespace;
         }
     }
@@ -88,7 +90,8 @@ export async function getAllNamespacesAsync(): Promise<NamespaceList> {
             for (const key in response) {
                 const ns = response[key];
                 const nsName = ns.id === 0 ? "Main" : (ns.canonical || ns['*']);
-                namespaces.push(new Namespace(nsName, ns.id));
+                const localizedName = ns.id === 0 ? "Main" : (ns['*'] || nsName);
+                namespaces.push(new Namespace(nsName, ns.id, localizedName));
             }
         }
 
