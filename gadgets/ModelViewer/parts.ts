@@ -45,6 +45,16 @@ export function parsePartList(spec: string | null): string[] {
 }
 
 /**
+ * Names as three.js holds them: `GLTFLoader` runs every node name through
+ * `PropertyBinding.sanitizeNodeName`, which turns whitespace into `_` and drops
+ * the characters an animation path reserves. A rule naming a part the way the
+ * file does — `weapon bag` — would otherwise match nothing.
+ */
+function sanitize(name: string): string {
+    return name.replace(/\s/g, '_').replace(/[[\].:/]/g, '').toLowerCase();
+}
+
+/**
  * A part name resolves in two steps:
  *
  * 1. objects named `name`, case-insensitively. Visibility takes the whole
@@ -53,16 +63,21 @@ export function parsePartList(spec: string | null): string[] {
  * 2. failing that, objects with `name` as a truthy key in their glTF `extras`,
  *    which `GLTFLoader` copies onto `userData`, so a model exported with
  *    `{"optional": true}` on its swap-in parts answers to `optional`.
+ *
+ * Either way the match brings its meshes with it, because the two steps do not
+ * land on the same objects: glTF splits a mesh with several materials into one
+ * object per primitive under a group, and the group is what carries the name
+ * while the primitives are what carry the `extras`.
  */
 function resolvePart(root: THREE.Object3D, name: string): THREE.Object3D[] {
-    const wanted = name.toLowerCase();
+    const wanted = sanitize(name);
     const byName: THREE.Object3D[] = [];
     const byFlag: THREE.Object3D[] = [];
     root.traverse((object) => {
         if (object.userData.isOutline) {
             return;
         }
-        if (object.name.toLowerCase() === wanted) {
+        if (sanitize(object.name) === wanted) {
             byName.push(object);
             return;
         }
@@ -73,7 +88,24 @@ function resolvePart(root: THREE.Object3D, name: string): THREE.Object3D[] {
             }
         }
     });
-    return byName.length ? byName : byFlag;
+    return withMeshes(byName.length ? byName : byFlag);
+}
+
+/**
+ * Outline hulls stay out: a hull follows the mesh it wraps, and forcing one
+ * visible would draw an outline the reader has switched off.
+ */
+function withMeshes(matches: THREE.Object3D[]): THREE.Object3D[] {
+    const found = new Set<THREE.Object3D>();
+    for (const match of matches) {
+        found.add(match);
+        match.traverse((object) => {
+            if ((object as THREE.Mesh).isMesh && !object.userData.isOutline) {
+                found.add(object);
+            }
+        });
+    }
+    return [...found];
 }
 
 /**

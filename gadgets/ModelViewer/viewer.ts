@@ -81,6 +81,26 @@ interface TurnFields {
 /** Radians per second, matching OrbitControls' own `autoRotateSpeed = 1.5`. */
 const AUTO_ROTATE_RATE = 2 * Math.PI / 60 * 1.5;
 
+/**
+ * Frustum culling tests a mesh against a bounding volume the geometry was
+ * measured in, and a skeleton can put the vertices anywhere else: three.js
+ * caches a SkinnedMesh's bounding sphere the first time it is tested, in
+ * whatever pose that frame held, and never measures it again. A clip that
+ * carries a prop away from the bind pose then has it culled while it is in
+ * plain sight.
+ *
+ * Measuring the sphere per frame costs a pass over every vertex, so skinned
+ * meshes are simply always drawn; there are a handful per model, and the
+ * static meshes that make up an arbitrary upload still cull normally.
+ */
+function keepSkinnedMeshesDrawn(root: THREE.Object3D): void {
+    root.traverse((object) => {
+        if ((object as THREE.SkinnedMesh).isSkinnedMesh) {
+            object.frustumCulled = false;
+        }
+    });
+}
+
 export class Viewer {
     private three!: typeof THREE;
     private renderer!: THREE.WebGLRenderer;
@@ -355,6 +375,7 @@ export class Viewer {
         this.currentModelIndex = index;
 
         this.root = loaded.root;
+        keepSkinnedMeshesDrawn(this.root);
         this.scene.add(this.root);
         this.applyShading(this.options.shading);
 
@@ -500,22 +521,33 @@ export class Viewer {
     }
 
     /**
+     * What the camera should fit in the pose the model is holding now: the
+     * character, and whatever is keeping her company.
+     *
+     * A prop can be on screen and still not be worth framing — Minova walks
+     * with a weapon that swings five metres over her head — so a mesh counts
+     * only while it stays within a body height of the body, which is the mesh
+     * with the most vertices in every model here. Hidden parts and the outline
+     * hulls never count.
+     *
      * Box3.setFromObject caches a SkinnedMesh's box, measured at load in the bind
      * pose, which for a rigged model can sit far from where a clip puts it.
      */
-    private measure(): void {
+    private modelBox(): THREE.Box3 | null {
         if (!this.root) {
-            return;
+            return null;
         }
         const three = this.three;
-        const box = new three.Box3();
-        const meshBox = new three.Box3();
+        const boxes: THREE.Box3[] = [];
+        let body = -1;
+        let densest = -1;
         this.root.updateMatrixWorld(true);
         this.root.traverse((object) => {
             const mesh = object as THREE.SkinnedMesh;
             if (!mesh.isMesh || mesh.userData.isOutline || !mesh.visible) {
                 return;
             }
+            const meshBox = new three.Box3();
             if (mesh.isSkinnedMesh) {
                 mesh.computeBoundingBox();
                 meshBox.copy(mesh.boundingBox!);
@@ -525,18 +557,79 @@ export class Viewer {
                 }
                 meshBox.copy(mesh.geometry.boundingBox!);
             }
-            box.union(meshBox.applyMatrix4(mesh.matrixWorld));
+            meshBox.applyMatrix4(mesh.matrixWorld);
+            const vertices = mesh.geometry.getAttribute('position')?.count ?? 0;
+            if (vertices > densest) {
+                densest = vertices;
+                body = boxes.length;
+            }
+            boxes.push(meshBox);
         });
-        if (box.isEmpty()) {
+        if (body < 0) {
+            return null;
+        }
+        const reach = boxes[body].getSize(new three.Vector3()).y;
+        const near = boxes[body].clone().expandByScalar(reach);
+        const box = boxes[body].clone();
+        for (const other of boxes) {
+            if (near.intersectsBox(other)) {
+                box.union(other);
+            }
+        }
+        return box;
+    }
+
+    /** What the camera is fitted to, and what the grid sits under. */
+    private setBounds(box: THREE.Box3 | null): void {
+        if (!box) {
             return;
         }
         this.bounds = {
-            center: box.getCenter(new three.Vector3()),
-            size: box.getSize(new three.Vector3()),
+            center: box.getCenter(new this.three.Vector3()),
+            size: box.getSize(new this.three.Vector3()),
         };
         if (this.grid) {
             this.grid.position.y = box.min.y;
         }
+    }
+
+    private measure(): void {
+        this.setBounds(this.modelBox());
+    }
+
+    /**
+     * The room a clip needs, rather than the pose it opens on: Amber's
+     * `Victory` starts in a crouch and finishes standing, and a camera fitted
+     * to the crouch cuts her off at the waist for the rest of it. Nearly a
+     * fifth of the featured clips open at least 15% smaller than they end up.
+     *
+     * The anchor is the middle of the clip and a pose counts only while it
+     * still overlaps the anchor, so the frame goes where the clip spends its
+     * time. A clip that travels cannot be held in a fixed frame at all —
+     * Tilia's `Ultra_TL` drops in from four metres up — and framing the
+     * middle at least keeps the character in shot for most of one.
+     */
+    private measureClip(): void {
+        const anim = this.animation;
+        if (!anim?.available || !anim.duration) {
+            this.measure();
+            return;
+        }
+        const was = anim.time / anim.duration;
+        anim.seek(0.5);
+        const anchor = this.modelBox();
+        const box = anchor?.clone();
+        if (box) {
+            for (const sample of [0, 0.25, 0.75, 1]) {
+                anim.seek(sample);
+                const posed = this.modelBox();
+                if (posed && posed.intersectsBox(anchor!)) {
+                    box.union(posed);
+                }
+            }
+        }
+        anim.seek(was);
+        this.setBounds(box || null);
     }
 
     private buildGrid(): void {
@@ -577,7 +670,7 @@ export class Viewer {
         if (!this.cameraPristine()) {
             return;
         }
-        this.measure();
+        this.measureClip();
         this.frame(true);
     }
 
@@ -626,7 +719,7 @@ export class Viewer {
     }
 
     resetCamera(): void {
-        this.measure();
+        this.measureClip();
         this.frame(false);
     }
 
