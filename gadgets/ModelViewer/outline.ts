@@ -143,6 +143,14 @@ export class OutlineLayer {
         });
 
         for (const mesh of sources) {
+            // A hull only reads as a rim on closed geometry, where its back faces
+            // stay behind the front ones. An open sheet — a veil, a lens, a cape —
+            // has no front faces to hide behind, so the hull fills its whole
+            // silhouette instead of outlining it. See-through materials are where
+            // that shows, nothing opaque being drawn over the fill.
+            if (([] as THREE.Material[]).concat(mesh.material).some((m) => m.transparent)) {
+                continue;
+            }
             ensureSmoothNormals(mesh.geometry, three);
             if (!mesh.geometry.getAttribute('smoothNormal')) {
                 continue;
