@@ -525,9 +525,9 @@ export class Viewer {
      * character, and whatever is keeping her company.
      *
      * A prop can be on screen and still not be worth framing — Minova walks
-     * with a weapon that swings five metres over her head — so a mesh counts
-     * only while it stays within a body height of the body, which is the mesh
-     * with the most vertices in every model here. Hidden parts and the outline
+     * with a weapon that swings five metres over her head — so the box grows
+     * out from the densest mesh and takes in only what comes within a body
+     * height of what it has already reached. Hidden parts and the outline
      * hulls never count.
      *
      * Box3.setFromObject caches a SkinnedMesh's box, measured at load in the bind
@@ -569,12 +569,19 @@ export class Viewer {
             return null;
         }
         const reach = boxes[body].getSize(new three.Vector3()).y;
-        const near = boxes[body].clone().expandByScalar(reach);
         const box = boxes[body].clone();
-        for (const other of boxes) {
-            if (near.intersectsBox(other)) {
-                box.union(other);
-            }
+        const near = new three.Box3();
+        const taken = boxes.map((_, index) => index === body);
+        for (let growing = true; growing;) {
+            growing = false;
+            near.copy(box).expandByScalar(reach);
+            boxes.forEach((other, index) => {
+                if (!taken[index] && near.intersectsBox(other)) {
+                    taken[index] = true;
+                    box.union(other);
+                    growing = true;
+                }
+            });
         }
         return box;
     }
