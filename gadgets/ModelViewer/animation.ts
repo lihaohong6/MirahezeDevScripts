@@ -28,12 +28,15 @@ export interface AnimEntry extends PartRule {
 export type AnimLoader = (entry: AnimEntry) => Promise<THREE.AnimationClip | null>;
 
 export function embeddedEntry(clip: THREE.AnimationClip, index: number): AnimEntry {
+    const extras = clip.userData as { show?: unknown; hide?: unknown } | undefined;
     return {
         name: clip.name || `Clip ${index + 1}`,
         src: null,
         duration: clip.duration,
         clip,
         failed: false,
+        show: parsePartNames(extras?.show),
+        hide: parsePartNames(extras?.hide),
     };
 }
 
