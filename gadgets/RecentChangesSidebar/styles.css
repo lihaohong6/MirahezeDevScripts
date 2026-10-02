@@ -34,7 +34,7 @@ html.skin-theme-clientpref-night {
 
 .skin-monobook #p-Recent_changes-label:after,
 .skin-timeless #p-Recent_changes-label:after,
-#citizen-sidebar-recentchanges .citizen-menu__heading:after,
+#citizen-page-aside-rcsidebar-heading:after,
 #p-Recent_changes .vector-menu-heading:after {
     content: '';
     position: relative;
@@ -47,27 +47,25 @@ html.skin-theme-clientpref-night {
 }
 
 #p-Recent_changes .rc-sidebar-page,
-#citizen-sidebar-recentchanges .rc-sidebar-page {
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-page {
     display: block;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: max-content;
-    /* Citizen sets this */
-    min-height: unset;
 }
 
 #p-Recent_changes .rc-sidebar-page,
 #p-Recent_changes .rc-sidebar-page:active,
 #p-Recent_changes .rc-sidebar-page:visited,
-#citizen-sidebar-recentchanges .rc-sidebar-page,
-#citizen-sidebar-recentchanges .rc-sidebar-page:active,
-#citizen-sidebar-recentchanges .rc-sidebar-page:visited {
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-page,
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-page:active,
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-page:visited {
     color: var(--color-link, #36c);
 }
 
 #p-Recent_changes .rc-sidebar-user,
-#citizen-sidebar-recentchanges .rc-sidebar-user {
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-user {
     color: var(--color-subtle, #54595d);
     margin: 0;
     white-space: nowrap;
@@ -76,15 +74,24 @@ html.skin-theme-clientpref-night {
 }
 
 #p-Recent_changes .rc-sidebar-user a,
-#citizen-sidebar-recentchanges .rc-sidebar-user a {
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-user a {
     color: inherit;
 }
 
-.skin-vector-2022 #p-Recent_changes .rc-sidebar-user a,
-.skin-citizen #citizen-sidebar-recentchanges .rc-sidebar-user a {
+.skin-vector-2022 #p-Recent_changes .rc-sidebar-user a {
 	display: inline;
 }
 
-.skin-citizen .rc-sidebar-item {
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-item {
     margin-bottom: 4px;
+}
+
+#citizen-page-aside-rcsidebar {
+    min-height: 14rem;
+}
+
+.citizen-page-aside__panel--rcsidebar .rc-sidebar-list {
+    margin: 0;
+    padding-inline: var(--space-xs);
+    list-style: none;
 }

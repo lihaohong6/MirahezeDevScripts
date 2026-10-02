@@ -69,15 +69,8 @@ mw.loader.using([ 'mediawiki.api', 'mediawiki.util' ], function () {
         );
     }
 
-    function citizenShowMoreItem() {
-        const $sidebar = $('.citizen-page-sidebar').first();
-
-        if (!$sidebar.length) {
-            return $();
-        }
-
+    function citizenShowMoreItem(body) {
         const $showMore = $('<li>', {
-            id: 'n-recentchanges',
             class: 'mw-list-item'
         }).append(
             $('<a>', {
@@ -92,46 +85,13 @@ mw.loader.using([ 'mediawiki.api', 'mediawiki.util' ], function () {
             )
         );
 
-        const $portlet = $('<nav>', {
-            id: 'citizen-sidebar-recentchanges',
-            class: 'citizen-menu rc-sidebar-menu',
-            role: 'navigation',
-            'aria-labelledby': 'citizen-sidebar-recentchanges-label'
-        }).append(
-            $('<div>', {
-                id: 'citizen-sidebar-recentchanges-label',
-                class: 'citizen-menu__heading',
-                text: 'Recent changes'
-            }),
-            $('<div>', {
-                class: 'citizen-menu__content'
-            }).append(
-                $('<ul>', {
-                    class: 'citizen-menu__content-list'
-                }).append($showMore)
-            )
+        $(body).append(
+            $('<ul>', {
+                class: 'rc-sidebar-list'
+            }).append($showMore)
         );
 
-        const $lastModified = $('#citizen-sidebar-lastmod').first();
-        const $toc = $('#citizen-toc').first();
-
-        if ($lastModified.length) {
-            $lastModified.after($portlet);
-        } else if ($toc.length) {
-            $toc.before($portlet);
-        } else {
-            $sidebar.append($portlet);
-        }
-
         return $showMore;
-    }
-
-    function showMoreItem() {
-        if (skin === 'citizen') {
-            return citizenShowMoreItem();
-        }
-
-        return $('#p-Recent_changes #n-recentchanges').first();
     }
 
     function populateRecentChanges($showMore, changes) {
@@ -145,7 +105,7 @@ mw.loader.using([ 'mediawiki.api', 'mediawiki.util' ], function () {
             return recentChangeItem(entry)[0];
         }));
     }
-    
+
     // At this point the DOM might not be ready, so we don't know if we need
     // RC sidebar yet. We can still send an API request early since it's cached.
     const rcPromise = new mw.Api().get({
@@ -162,29 +122,47 @@ mw.loader.using([ 'mediawiki.api', 'mediawiki.util' ], function () {
         smaxage: '120'
     });
 
-    // Wait for DOM ready
-    $(function () {
-        const $showMore = showMoreItem();
-    
+    function showRecentChanges($showMore) {
         if (!$showMore.length) {
             return;
         }
-    
+
         function handleError(msg) {
             console.error(msg);
         }
-    
+
         rcPromise.done(function (data) {
             const changes = data.query && data.query.recentchanges ? data.query.recentchanges : [];
-    
+
             if (changes.length === 0) {
                 handleError("No recent change(s) found.");
                 return;
             }
-    
+
             populateRecentChanges($showMore, changes);
         }).fail(function (msg) {
             handleError(msg);
         });
+    }
+
+    if (skin === 'citizen') {
+        mw.hook('citizen.pageAside.register').add(function (data) {
+            const body = data.register({
+                id: 'rcsidebar',
+                label: message('recentchanges', 'Recent changes'),
+                placement: 'flow',
+                order: 15
+            });
+
+            if (body) {
+                showRecentChanges(citizenShowMoreItem(body));
+            }
+        });
+        return;
+    }
+
+    // Wait for DOM ready
+    $(function () {
+        showRecentChanges($('#p-Recent_changes #n-recentchanges').first());
     });
 });
