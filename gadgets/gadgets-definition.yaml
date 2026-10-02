@@ -71,6 +71,17 @@ gadgets:
     styles:
       - style.less
 
+  RecentChangesSidebar:
+    description: "List recent changes in the sidebar. This is for testing only because CSS loaded from here is not render-blocking."
+    scripts:
+      - index.js
+    styles:
+      - styles.css
+    resourceLoader:
+      dependencies:
+        - 'mediawiki.api'
+        - 'mediawiki.util'
+
   StatCalc:
     scripts:
       - index.ts

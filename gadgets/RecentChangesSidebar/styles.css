@@ -1,0 +1,90 @@
+/* stylelint-disable */
+/* From https://dev.miraheze.org/wiki/Recent_changes_sidebar */
+/* The standard sidebar is not positioned as a true sidebar on these skins. */
+.skin-cosmos #p-Recent_changes,
+.skin-citizen #p-Recent_changes {
+	display: none;
+}
+
+/* When no CSS/JS exist. This RC entry serves as fallback. Otherwise, hide it
+from the start to avoid a flash of single RC entry. */
+#p-Recent_changes .vector-menu-content-list > #n-recentchanges:only-child {
+    visibility: hidden;
+}
+
+/* Reserve space for the inserted entries to avoid layout shift */
+#p-Recent_changes .vector-menu-content-list > #n-recentchanges:only-child::after {
+    content: '';
+    display: block;
+    height: 12em;
+}
+
+html {
+    --gadget-rcsb-indicator-color: #3c7b07;
+}
+
+html.skin-theme-clientpref-night {
+    --gadget-rcsb-indicator-color: #91df64;
+}
+@media (prefers-color-scheme: dark) {
+	html.skin-theme-clientpref-os {
+		--gadget-rcsb-indicator-color: #91df64;
+	}
+}
+
+.skin-monobook #p-Recent_changes-label:after,
+.skin-timeless #p-Recent_changes-label:after,
+#citizen-sidebar-recentchanges .citizen-menu__heading:after,
+#p-Recent_changes .vector-menu-heading:after {
+    content: '';
+    position: relative;
+    background-color: var(--gadget-rcsb-indicator-color);
+    left: 0.5em;
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+#p-Recent_changes .rc-sidebar-page,
+#citizen-sidebar-recentchanges .rc-sidebar-page {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: max-content;
+    /* Citizen sets this */
+    min-height: unset;
+}
+
+#p-Recent_changes .rc-sidebar-page,
+#p-Recent_changes .rc-sidebar-page:active,
+#p-Recent_changes .rc-sidebar-page:visited,
+#citizen-sidebar-recentchanges .rc-sidebar-page,
+#citizen-sidebar-recentchanges .rc-sidebar-page:active,
+#citizen-sidebar-recentchanges .rc-sidebar-page:visited {
+    color: var(--color-link, #36c);
+}
+
+#p-Recent_changes .rc-sidebar-user,
+#citizen-sidebar-recentchanges .rc-sidebar-user {
+    color: var(--color-subtle, #54595d);
+    margin: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+#p-Recent_changes .rc-sidebar-user a,
+#citizen-sidebar-recentchanges .rc-sidebar-user a {
+    color: inherit;
+}
+
+.skin-vector-2022 #p-Recent_changes .rc-sidebar-user a,
+.skin-citizen #citizen-sidebar-recentchanges .rc-sidebar-user a {
+	display: inline;
+}
+
+.skin-citizen .rc-sidebar-item {
+    margin-bottom: 4px;
+}
