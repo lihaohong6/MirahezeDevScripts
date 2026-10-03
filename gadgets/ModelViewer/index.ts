@@ -212,11 +212,9 @@ function build(element: HTMLElement): void {
         mounted = true;
         viewer.mount().catch((error: Error) => {
             if (error instanceof UnsupportedBrowserError) {
-                setStatus(
-                    'This browser cannot display 3D models. '
-                    + 'Please use a current version of Chrome, Firefox, Edge or Safari.',
-                    'error');
-            } else if (!message.textContent) {
+                setStatus(error.message, 'error');
+            } else if (!message.classList.contains('model-viewer-message-error')) {
+                // First error wins and replaces the "Loading" text
                 setStatus(`Could not display the model: ${error.message}`, 'error');
             }
             if (DEBUG_MODE) {

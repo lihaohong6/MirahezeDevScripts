@@ -7,7 +7,7 @@ import type { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js
 import type { TrackballControls } from 'three/examples/jsm/controls/TrackballControls.js';
 import type { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
-import { importAddon, importModule } from './three-cdn';
+import { importAddon, importModule, UnsupportedBrowserError } from './three-cdn';
 import { loadModel } from './formats';
 import { OutlineLayer, OutlineSettings } from './outline';
 import {
@@ -227,11 +227,19 @@ export class Viewer {
         this.three = await importModule<typeof THREE>('three');
         const three = this.three;
 
-        this.renderer = new three.WebGLRenderer({
-            canvas: this.canvas,
-            antialias: true,
-            alpha: !this.options.background,
-        });
+        // Throws when WebGL is off, which some privacy-focused browsers
+        // (e.g. LibreWolf) ship as their default.
+        try {
+            this.renderer = new three.WebGLRenderer({
+                canvas: this.canvas,
+                antialias: true,
+                alpha: !this.options.background,
+            });
+        } catch {
+            throw new UnsupportedBrowserError(
+                'This browser has WebGL disabled or unavailable, '
+                + 'so 3D models cannot be displayed.');
+        }
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         this.renderer.outputColorSpace = three.SRGBColorSpace;
         const toneMapping = TONE_MAPPINGS[this.options.toneMapping] ?? TONE_MAPPINGS.aces;
