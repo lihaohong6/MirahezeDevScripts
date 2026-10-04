@@ -50,17 +50,18 @@
     function initAudioPlayer(index, audioPlayer) {
         const dataSet = audioPlayer.dataset;
         const audioGroup = dataSet.group;
-        const shouldLoop = dataSet.loop === "true";
         const useHtml5 = dataSet.html5 === "true";
         // Always preload unless instructed otherwise
         const shouldPreload = parsePreload(dataSet.preload);
         const loopStart = parseNumber(dataSet.loopStart, 0);
         const loopEnd = parseNumber(dataSet.loopEnd, 0);
-        const hasLoopRegion = shouldLoop && loopEnd > loopStart;
         const isPauseButton = dataSet.pauseButton;
         const filename = dataSet.filename;
 
         const playButton = audioPlayer.querySelector(".toggle-play");
+
+        let shouldLoop = dataSet.loop === "true";
+        const loopButton = audioPlayer.querySelector(".toggle-loop");
 
         const progressBar = audioPlayer.querySelector(".progress");
         const timeline = audioPlayer.querySelector(".timeline");
@@ -119,6 +120,10 @@
             howler.volume(currentVolume);
         }
 
+        function hasLoopRegion() {
+            return shouldLoop && loopEnd > loopStart;
+        }
+
         const howler = new Howl({
             src: [dataSet.src],
             html5: useHtml5,
@@ -128,10 +133,10 @@
             onplay: function () {
                 playButton.classList.remove("play");
                 playButton.classList.add("pause");
-                if (hasLoopRegion) {
+                if (hasLoopRegion()) {
                     scheduleLoopCheck();
                 }
-                if (hasLoopRegion || progressBar || audioCurrentTime) {
+                if (progressBar || audioCurrentTime) {
                     scheduleProgressUpdate(100);
                 }
             },
@@ -264,6 +269,39 @@
                 howler.play();
             }
         });
+
+        // change loop state when the loop button is clicked
+        if (loopButton) {
+            if (shouldLoop) {
+                loopButton.classList.add("loop-on");
+            }
+            else {
+                loopButton.classList.add("loop-off");
+            }
+
+            loopButton.addEventListener("click", e => {
+                event.preventDefault();
+                shouldLoop = !shouldLoop;
+
+                if (shouldLoop) {
+                    loopButton.classList.remove("loop-off");
+                    loopButton.classList.add("loop-on");
+                }
+                else {
+                    loopButton.classList.remove("loop-on");
+                    loopButton.classList.add("loop-off");
+                }
+
+                if (shouldLoop && howler.playing()) {
+                    if (hasLoopRegion()) {
+                        scheduleLoopCheck();
+                    }
+                }
+                else {
+                    clearLoopCheck();
+                }
+            });
+        }
 
         // seek whenever the timeline is clicked
         if (timeline) {
