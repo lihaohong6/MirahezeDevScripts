@@ -101,6 +101,30 @@ function keepSkinnedMeshesDrawn(root: THREE.Object3D): void {
     });
 }
 
+/**
+ * Every loader leaves textures at three.js's anisotropy of 1, so a surface seen
+ * edge-on samples a mip level picked for its most squashed axis. A thin line in
+ * the texture, such as a stitched seam, then smears into a wide grey band once
+ * the surface turns away from the camera. The GPU's maximum (usually 16) keeps
+ * such lines sharp at little cost; it changes nothing on a texture without
+ * mipmaps or on a face seen head-on.
+ */
+function filterAnisotropically(root: THREE.Object3D, anisotropy: number): void {
+    root.traverse((object) => {
+        const mesh = object as THREE.Mesh;
+        if (!mesh.isMesh) {
+            return;
+        }
+        for (const material of ([] as THREE.Material[]).concat(mesh.material)) {
+            for (const value of Object.values(material)) {
+                if ((value as THREE.Texture | null)?.isTexture) {
+                    (value as THREE.Texture).anisotropy = anisotropy;
+                }
+            }
+        }
+    });
+}
+
 export class Viewer {
     private three!: typeof THREE;
     private renderer!: THREE.WebGLRenderer;
@@ -384,6 +408,7 @@ export class Viewer {
 
         this.root = loaded.root;
         keepSkinnedMeshesDrawn(this.root);
+        filterAnisotropically(this.root, this.renderer.capabilities.getMaxAnisotropy());
         this.scene.add(this.root);
         this.applyShading(this.options.shading);
 
