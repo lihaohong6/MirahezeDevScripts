@@ -412,9 +412,9 @@ export class Viewer {
         this.scene.add(this.root);
         this.applyShading(this.options.shading);
 
-        this.outline = new OutlineLayer(this.three);
+        this.outline = new OutlineLayer(this.three, this.root);
         if (this.options.outline.enabled || this.wantsOutline) {
-            this.outline.build(this.root);
+            this.outline.build();
             this.outline.apply(this.options.outline);
         }
 
@@ -534,7 +534,7 @@ export class Viewer {
     requestOutlineSupport(): void {
         this.wantsOutline = true;
         if (this.root && this.outline && !this.outline.available) {
-            this.outline.build(this.root);
+            this.outline.build();
             this.outline.apply(this.options.outline);
         }
     }
