@@ -12,7 +12,7 @@ import { JsonEditorTrigger } from './types';
     }
 
     function readTrigger( element: HTMLElement ): JsonEditorTrigger | undefined {
-        const { jsonPage, jsonField, jsonLabel, jsonSummary } = element.dataset;
+        const { jsonPage, jsonField, jsonLabel, jsonSummary, jsonOptions } = element.dataset;
         if ( !jsonPage || !jsonField ) {
             return undefined;
         }
@@ -21,6 +21,7 @@ import { JsonEditorTrigger } from './types';
             field: jsonField,
             label: jsonLabel,
             summary: jsonSummary,
+            options: jsonOptions,
         };
     }
 

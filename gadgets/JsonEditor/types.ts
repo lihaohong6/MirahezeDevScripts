@@ -3,4 +3,5 @@ export interface JsonEditorTrigger {
     field: string;
     label?: string;
     summary?: string;
+    options?: string;
 }

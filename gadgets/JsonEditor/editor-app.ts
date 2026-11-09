@@ -26,6 +26,7 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                 basetimestamp: string;
                 editValue: string | number | boolean;
                 valueType: ValueType;
+                options: string[];
                 errorMessage: string;
                 saving: boolean;
             } {
@@ -39,16 +40,17 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                     basetimestamp: '',
                     editValue: '',
                     valueType: 'string',
+                    options: [],
                     errorMessage: '',
                     saving: false,
                 };
             },
             computed: {
                 fieldLabel() {
-                    if ( this.label ) {
-                        return this.label;
-                    }
-                    return this.field;
+                    return this.label || this.field;
+                },
+                menuItems() {
+                    return this.options.map( ( option: string ) => ( { value: option } ) );
                 },
                 pageUrl() {
                     return mw.util.getUrl( this.page );
@@ -111,18 +113,25 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                         this.pageData = data;
                         this.basetimestamp = revision.timestamp;
 
-                        if ( typeof value === 'number' ) {
-                            this.valueType = 'number';
-                            this.editValue = value;
-                        } else if ( typeof value === 'boolean' ) {
-                            this.valueType = 'boolean';
-                            this.editValue = value;
-                        } else if ( typeof value === 'string' ) {
-                            this.valueType = 'string';
-                            this.editValue = value;
+                        const type = typeof value;
+                        if ( type === 'number' || type === 'boolean' || type === 'string' ) {
+                            this.valueType = type;
+                            this.editValue = value as string | number | boolean;
                         } else {
                             this.valueType = 'object';
                             this.editValue = JSON.stringify( value, null, 2 );
+                        }
+
+                        const options = ( trigger.options || '' ).split( ';' ).map( ( option ) => option.trim() ).filter( Boolean );
+                        if ( options.length > 0 && this.valueType !== 'object' ) {
+                            this.editValue = String( value );
+                            // Current value is always default even if it doesn't exist in the list
+                            if ( !options.includes( this.editValue ) ) {
+                                options.unshift( this.editValue );
+                            }
+                            this.options = options;
+                        } else {
+                            this.options = [];
                         }
 
                         this.open = true;
@@ -159,6 +168,9 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                             this.errorMessage = `Invalid JSON: ${ error instanceof Error ? error.message : String( error ) }`;
                             return;
                         }
+                    } else if ( this.valueType === 'boolean' ) {
+                        // In case a select gives 'true' or 'false'
+                        newValue = this.editValue === true || this.editValue === 'true';
                     } else {
                         newValue = this.editValue as JsonValue;
                     }
@@ -175,13 +187,13 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                         basetimestamp: this.basetimestamp,
                         summary: this.buildSummary(),
                         format: 'json',
-                    } ).then( () => {
+                    } ).always( () => {
                         this.saving = false;
+                    } ).then( () => {
                         this.open = false;
                         mw.notify( 'JSON Editor: saved. The page may need to be reloaded to see the changes.', { type: 'success' } );
                         api.post( { action: 'purge', titles: mw.config.get( 'wgPageName' ) } );
                     }, ( code: string, response: { error?: { info?: string } } ) => {
-                        this.saving = false;
                         if ( code === 'editconflict' ) {
                             this.errorMessage = 'This page was edited by someone else in the meantime. Please close and reopen the editor to get the latest version.';
                         } else {
@@ -211,7 +223,8 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
                 </template>
                 <cdx-field>
                     <template #label>{{ fieldLabel }}</template>
-                    <cdx-text-input v-if="valueType === 'string'" v-model="editValue" />
+                    <cdx-select v-if="options.length > 0" v-model:selected="editValue" :menu-items="menuItems" />
+                    <cdx-text-input v-else-if="valueType === 'string'" v-model="editValue" />
                     <cdx-text-input v-else-if="valueType === 'number'" v-model="editValue" input-type="number" />
                     <cdx-checkbox v-else-if="valueType === 'boolean'" v-model="editValue" />
                     <cdx-text-area v-else v-model="editValue" rows="8" />
@@ -224,6 +237,7 @@ export function mountEditorApp(): JQuery.Promise<EditorApp> {
             .component( 'cdx-field', Codex.CdxField )
             .component( 'cdx-text-input', Codex.CdxTextInput )
             .component( 'cdx-checkbox', Codex.CdxCheckbox )
+            .component( 'cdx-select', Codex.CdxSelect )
             .component( 'cdx-text-area', Codex.CdxTextArea )
             .mount( mountPoint );
     } );
