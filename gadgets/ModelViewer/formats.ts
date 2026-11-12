@@ -73,7 +73,7 @@ async function fetchBuffer(
     url: string,
     onProgress?: LoadRequest['onProgress'],
 ): Promise<ArrayBuffer> {
-    const response = await fetch(url, { credentials: 'omit' });
+    const response = await fetch(url);
     if (!response.ok) {
         // HTTP/2 responses carry no status text, so it is often empty.
         throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
