@@ -30,8 +30,13 @@
         const panels = allPanels[ group ] || [];
         for ( const { el, option: panelOption } of panels ) {
             el.classList.toggle( 'tab-panel-hidden', panelOption !== option );
-            el.hidden = panelOption !== option;
+            updateHidden( el );
         }
+    }
+
+    function updateHidden( el ) {
+        el.hidden = el.classList.contains( 'tab-panel-hidden' ) ||
+            el.classList.contains( 'collapse-hidden' );
     }
 
     function handleTabKeyDown( event, group, buttonIndex ) {
@@ -186,5 +191,36 @@
         }
     }
 
+    // Hides all siblings after this toggle until data-collapse-until
+    function setCollapsed( toggle, button, collapsed ) {
+        const until = toggle.dataset.collapseUntil || '.collapse-toggle';
+        button.ariaExpanded = String( !collapsed );
+        let el = toggle.nextElementSibling;
+        while ( el && !el.matches( until ) ) {
+            el.classList.toggle( 'collapse-hidden', collapsed );
+            updateHidden( el );
+            el = el.nextElementSibling;
+        }
+    }
+
+    // Written specifically for Template:LuaInfobox on devwiki
+    function initCollapse( $content ) {
+        $content[ 0 ].querySelectorAll( '.collapse-toggle' ).forEach( ( toggle ) => {
+            const button = toggle.matches( 'tr' ) ? toggle.cells[ 0 ] : toggle;
+            const flip = () => setCollapsed( toggle, button, button.ariaExpanded === 'true' );
+            button.role = 'button';
+            button.tabIndex = 0;
+            button.addEventListener( 'click', flip );
+            button.addEventListener( 'keydown', ( ev ) => {
+                if ( ev.key === 'Enter' || ev.key === ' ' ) {
+                    ev.preventDefault();
+                    flip();
+                }
+            } );
+            setCollapsed( toggle, button, toggle.classList.contains( 'collapse-toggle-collapsed' ) );
+        } );
+    }
+
     mw.hook( 'wikipage.content' ).add( initTabs );
+    mw.hook( 'wikipage.content' ).add( initCollapse );
 }() );
